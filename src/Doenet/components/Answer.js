@@ -171,10 +171,8 @@ export default class Answer extends InlineComponent {
 
   }
 
-  static createPropertiesObject({ standardComponentTypes }) {
-    let properties = super.createPropertiesObject({
-      standardComponentTypes: standardComponentTypes
-    });
+  static createPropertiesObject(args) {
+    let properties = super.createPropertiesObject(args);
     properties.weight = { default: 1 };
     properties.inline = { default: false };
     properties.type = { default: "math" };
@@ -185,13 +183,8 @@ export default class Answer extends InlineComponent {
     return properties;
   }
 
-  static returnChildLogic({ standardComponentTypes, allComponentClasses, components,
-    sharedParameters }) {
-    let childLogic = super.returnChildLogic({
-      standardComponentTypes: standardComponentTypes,
-      allComponentClasses: allComponentClasses,
-      components: components,
-    });
+  static returnChildLogic (args) {
+    let childLogic = super.returnChildLogic(args);
 
     function determineType() {
       let typeChild = sharedParameters.typeChild;
@@ -285,17 +278,17 @@ export default class Answer extends InlineComponent {
       }
 
       let sugarInd = 1;
-      let componentAlias = '_answer_' + inputType + sugarInd;
+      let componentName = '_answer_' + inputType + sugarInd;
 
-      while (componentAlias in components) {
+      while (componentName in components) {
         sugarInd++;
-        componentAlias = '_answer_' + inputType + sugarInd;
+        componentName = '_answer_' + inputType + sugarInd;
       }
 
       let ifChildren = [
         {
           componentType: 'ref', children: [
-            { componentType: 'reftarget', state: { refTargetName: componentAlias } },
+            { componentType: 'reftarget', state: { refTargetName: componentName } },
             { componentType: 'prop', state: { variableName: "value" } }
           ]
         },
@@ -308,7 +301,7 @@ export default class Answer extends InlineComponent {
           { componentType: 'string', state: { value: ' or ' } },
           {
             componentType: 'ref', children: [
-              { componentType: 'reftarget', state: { refTargetName: componentAlias } },
+              { componentType: 'reftarget', state: { refTargetName: componentName } },
               { componentType: 'prop', state: { variableName: "value" } }
             ]
           },
@@ -319,7 +312,7 @@ export default class Answer extends InlineComponent {
 
       let inputChild = {
         componentType: inputType,
-        doenetAttributes: { componentAlias: componentAlias },
+        doenetAttributes: { componentName: componentName },
         children: []
       };
 
@@ -371,16 +364,16 @@ export default class Answer extends InlineComponent {
       }
 
       let sugarInd = 1;
-      let componentAlias = '_answer_mathinput' + sugarInd;
+      let componentName = '_answer_mathinput' + sugarInd;
 
-      while (componentAlias in components) {
+      while (componentName in components) {
         sugarInd++;
-        componentAlias = '_answer_mathinput' + sugarInd;
+        componentName = '_answer_mathinput' + sugarInd;
       }
 
       let inputChild = {
         componentType: 'mathinput',
-        doenetAttributes: { componentAlias: componentAlias },
+        doenetAttributes: { componentName: componentName },
         children: []
       };
 
@@ -399,7 +392,7 @@ export default class Answer extends InlineComponent {
                 componentType: 'if', children: [
                   {
                     componentType: 'ref', children: [
-                      { componentType: 'reftarget', state: { refTargetName: componentAlias } },
+                      { componentType: 'reftarget', state: { refTargetName: componentName } },
                       { componentType: 'prop', state: { variableName: "value" } }
                     ]
                   },
@@ -445,17 +438,17 @@ export default class Answer extends InlineComponent {
       }
 
       let sugarInd = 1;
-      let componentAlias = '_answer_textinput' + sugarInd;
+      let componentName = '_answer_textinput' + sugarInd;
 
-      while (componentAlias in components) {
+      while (componentName in components) {
         sugarInd++;
-        componentAlias = '_answer_textinput' + sugarInd;
+        componentName = '_answer_textinput' + sugarInd;
       }
 
 
       let inputChild = {
         componentType: 'textinput',
-        doenetAttributes: { componentAlias: componentAlias },
+        doenetAttributes: { componentName: componentName },
         children: []
       };
 
@@ -474,7 +467,7 @@ export default class Answer extends InlineComponent {
                 componentType: 'if', children: [
                   {
                     componentType: 'ref', children: [
-                      { componentType: 'reftarget', state: { refTargetName: componentAlias } },
+                      { componentType: 'reftarget', state: { refTargetName: componentName } },
                       { componentType: 'prop', state: { variableName: "value" } }
                     ]
                   },
@@ -560,16 +553,16 @@ export default class Answer extends InlineComponent {
       }));
 
       let sugarInd = 1;
-      let componentAlias = '_answer_choiceinput' + sugarInd;
+      let componentName = '_answer_choiceinput' + sugarInd;
 
-      while (componentAlias in components) {
+      while (componentName in components) {
         sugarInd++;
-        componentAlias = '_answer_choiceinput' + sugarInd;
+        componentName = '_answer_choiceinput' + sugarInd;
       }
 
       let choiceinputComponent = {
         componentType: "choiceinput",
-        doenetAttributes: { componentAlias: componentAlias },
+        doenetAttributes: { componentName: componentName },
         children: choiceComponents,
       };
 
@@ -594,7 +587,7 @@ export default class Answer extends InlineComponent {
             children: [
               {
                 componentType: "reftarget",
-                state: { refTargetName: componentAlias }
+                state: { refTargetName: componentName }
               },
               {
                 componentType: "prop",
@@ -682,17 +675,17 @@ export default class Answer extends InlineComponent {
       }
 
       let sugarInd = 1;
-      let componentAlias = '_answer_' + inputType + sugarInd;
+      let componentName = '_answer_' + inputType + sugarInd;
 
-      while (componentAlias in components) {
+      while (componentName in components) {
         sugarInd++;
-        componentAlias = '_answer_' + inputType + sugarInd;
+        componentName = '_answer_' + inputType + sugarInd;
       }
 
 
       let inputChild = {
         componentType: inputType,
-        doenetAttributes: { componentAlias: componentAlias },
+        doenetAttributes: { componentName: componentName },
         children: []
       };
 
@@ -739,7 +732,7 @@ export default class Answer extends InlineComponent {
         let ifChildren = [
           {
             componentType: 'ref', children: [
-              { componentType: 'reftarget', state: { refTargetName: componentAlias } },
+              { componentType: 'reftarget', state: { refTargetName: componentName } },
               { componentType: 'prop', state: { variableName: "value" } }
             ]
           },
@@ -752,7 +745,7 @@ export default class Answer extends InlineComponent {
             { componentType: 'string', state: { value: ' or ' } },
             {
               componentType: 'ref', children: [
-                { componentType: 'reftarget', state: { refTargetName: componentAlias } },
+                { componentType: 'reftarget', state: { refTargetName: componentName } },
                 { componentType: 'prop', state: { variableName: "value" } }
               ]
             },
@@ -1116,14 +1109,14 @@ export default class Answer extends InlineComponent {
       updateInstructions: instructions
     })
 
-    let documentComponent = this.ancestors[this.ancestors.length - 1];
+    let documentComponentName = this.ancestors[this.ancestors.length - 1];
 
     // NOTE: if change this so don't have a request update with just document
     // need to change code that triggers an immediate at the end of requestUpdate in core
     this.requestUpdate({
       updateType: "updateValue",
       updateInstructions: [{
-        componentName: documentComponent.componentName,
+        componentName: documentComponentName,
         variableUpdates: {
           submissionNumber: { changes: documentComponent.state.previousSubmissionNumber + 1 },
           submittedAnswerComponentName: { changes: this.componentName }

@@ -1,16 +1,11 @@
 import MathComponent from '../Math';
-import me from 'math-expressions';
 
 export default class MathOperator extends MathComponent {
   static componentType = "_mathoperator";
 
-  static returnChildLogic ({standardComponentTypes, allComponentClasses, components}) {
-    let childLogic = super.returnChildLogic({
-      standardComponentTypes: standardComponentTypes,
-      allComponentClasses: allComponentClasses,
-      components: components,
-    });
-    
+  static returnChildLogic (args) {
+    let childLogic = super.returnChildLogic(args);
+  
     childLogic.deleteAllLogic();
 
     childLogic.newLeaf({

@@ -5,6 +5,7 @@ import crypto from 'crypto';
 import nanoid from 'nanoid';
 import "./chooser.css";
 import DoenetHeader from './DoenetHeader';
+<<<<<<< HEAD
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faDotCircle, faFileAlt, faEdit, faCaretRight, faCaretDown, 
   faChalkboard, faArrowCircleLeft, faTimesCircle, faPlusCircle, faFolder} 
@@ -12,6 +13,9 @@ import { faPlus, faDotCircle, faFileAlt, faEdit, faCaretRight, faCaretDown,
 import IndexedDB from '../services/IndexedDB';
 import DoenetBranchBrowser from './DoenetBranchBrowser';
 import SpinningLoader from './SpinningLoader';
+=======
+
+>>>>>>> v0.4
 
 
 class DoenetChooser extends Component {
@@ -21,15 +25,9 @@ class DoenetChooser extends Component {
     this.state = {
       error: null,
       errorInfo: null,
-      selectedDrive: "Content",
-      selectedCourse: null,
-      selectedItems: [],
-      selectedItemsType: [],
-      showNewButtonMenu: false,
-      activeSection: "chooser",
-      directoryStack: [],
     };
 
+<<<<<<< HEAD
 
     this.loadUserContentBranches();
     this.loadUserFoldersAndRepo();
@@ -333,11 +331,15 @@ class DoenetChooser extends Component {
 
   loadAllCourses(callback=(()=>{})) {
     const loadCoursesUrl='/api/loadAllCourses.php';
+=======
+    const loadBranchesUrl='/api/loadAllBranches.php';
+>>>>>>> v0.4
     const data={
     }
     const payload = {
       params: data
     }
+<<<<<<< HEAD
 
     axios.get(loadCoursesUrl,payload)
     .then(resp=>{
@@ -471,10 +473,20 @@ class DoenetChooser extends Component {
       this.folders_loaded = true;
       callback();
       this.updateNumber++;
+=======
+    
+    axios.get(loadBranchesUrl,payload)
+    .then(resp=>{
+      
+      console.log(resp.data);
+      this.branchId_info = resp.data.branchId_info;
+      this.sort_order = this.publishDate_sort_order = resp.data.sort_order;
+      this.data_loaded = true;
+>>>>>>> v0.4
       this.forceUpdate();
     });
-  }
 
+<<<<<<< HEAD
   addNewFolder(title) {
     let folderId = nanoid();
     this.saveFolder(folderId, title, [], [], "insert", false, () => {
@@ -619,6 +631,30 @@ class DoenetChooser extends Component {
 
   getAllSelectedItems = () => {
     this.browser.current.getAllSelectedItems();
+=======
+    this.data_loaded = false;
+
+  }
+
+
+  buildBranchBoxes(){
+    this.branchBoxes = [];
+    for(let branchId of this.sort_order){
+      let title = this.branchId_info[branchId].title;
+      let pubDate = this.branchId_info[branchId].publishDate;
+      this.branchBoxes.push(
+      <div key={"branchIdBox"+branchId} className="branchBox">
+
+        <div style={{position: "relative", width: 0, height: 0}}>
+        <button className="editButton" onClick={()=> {window.location.href=`/editor?branchId=${branchId}`}}>Edit</button>
+        </div>
+
+      {title}
+      <div style={{"marginTop":"8px"}}>Publication Date</div>
+      <div> {pubDate}</div>
+      </div>);
+    }
+>>>>>>> v0.4
   }
 
   updateIndexedDBCourseContent(courseId) {
@@ -644,6 +680,7 @@ class DoenetChooser extends Component {
 
   render(){
 
+<<<<<<< HEAD
     if (!this.courses_loaded){
       return <div style={{display:"flex",justifyContent:"center",alignItems:"center", height:"100vh"}}>
                 <SpinningLoader/>
@@ -956,16 +993,24 @@ class AccordionSection extends Component {
           {isOpen? <FontAwesomeIcon className="menuTwirlIcon" icon={faCaretDown}/> :
           <FontAwesomeIcon className="menuTwirlIcon" icon={faCaretRight}/>}
           {label}
+=======
+    if (!this.data_loaded){
+    return <p>Loading...</p>
+    }
+
+    this.buildBranchBoxes();
+
+    return (<React.Fragment>
+      <DoenetHeader toolTitle="Chooser" headingTitle={"Choose Branches"} />
+      <div id="chooserContainer">  
+       
+        <div id="chooserBoxes">
+        {this.branchBoxes}
+>>>>>>> v0.4
         </div>
-        {isOpen && (
-          <div>
-            {this.props.children}
-          </div>
-        )}
       </div>
-    );
+    </React.Fragment>);
   }
 }
-
 
 export default DoenetChooser;

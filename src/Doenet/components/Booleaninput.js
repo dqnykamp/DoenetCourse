@@ -3,22 +3,16 @@ import Input from './abstract/Input';
 export default class Booleaninput extends Input {
   static componentType = "booleaninput";
 
-  static createPropertiesObject({standardComponentTypes}) {
-    let properties = super.createPropertiesObject({
-      standardComponentTypes: standardComponentTypes
-    });
+  static createPropertiesObject(args) {
+    let properties = super.createPropertiesObject(args);
     properties.prefill = {default: ""};
     properties.label = {default: ""};
     return properties;
   }
 
 
-  static returnChildLogic ({standardComponentTypes, allComponentClasses, components}) {
-    let childLogic = super.returnChildLogic({
-      standardComponentTypes: standardComponentTypes,
-      allComponentClasses: allComponentClasses,
-      components: components,
-    });
+  static returnChildLogic (args) {
+    let childLogic = super.returnChildLogic(args);
 
     childLogic.newLeaf({
       name: "atMostOneBoolean",
@@ -136,29 +130,29 @@ export default class Booleaninput extends Input {
       delete this.unresolvedState.includeCheckWork;
       delete this.unresolvedDependencies;
 
-      if (this.ancestorsWhoGathered === undefined){
+      // if (this.ancestorsWhoGathered === undefined){
         //booleaninput not inside an answer component
         this.state.includeCheckWork = false;
-      }else{
-        this.state.answerAncestor = undefined;
-        for (let componentName of this.ancestorsWhoGathered){
-          if (this.components[componentName].componentType === "answer"){
-            this.state.answerAncestor = this.components[componentName];
-            break;
-          }
-        }
-        if (this.state.answerAncestor === undefined){
-          //booleaninput not inside an answer component
-          this.state.includeCheckWork = false;
-        }else{
-          this.state.allAwardsJustSubmitted = this.state.answerAncestor.state.allAwardsJustSubmitted;
-          if (this.state.answerAncestor.state.delegateCheckWork){
-            this.state.includeCheckWork = true;
-          }else{
-            this.state.includeCheckWork = false;
-          }
-        }
-      }
+      // }else{
+      //   this.state.answerAncestor = undefined;
+      //   for (let componentName of this.ancestorsWhoGathered){
+      //     if (this.components[componentName].componentType === "answer"){
+      //       this.state.answerAncestor = this.components[componentName];
+      //       break;
+      //     }
+      //   }
+      //   if (this.state.answerAncestor === undefined){
+      //     //booleaninput not inside an answer component
+      //     this.state.includeCheckWork = false;
+      //   }else{
+      //     this.state.allAwardsJustSubmitted = this.state.answerAncestor.state.allAwardsJustSubmitted;
+      //     if (this.state.answerAncestor.state.delegateCheckWork){
+      //       this.state.includeCheckWork = true;
+      //     }else{
+      //       this.state.includeCheckWork = false;
+      //     }
+      //   }
+      // }
     }
     this.state.valueHasBeenValidated = false;
 
@@ -202,7 +196,7 @@ export default class Booleaninput extends Input {
   allowDownstreamUpdates(status) {
     // since can't change via parents, 
     // only non-initial change can be due to reference
-    return(status.initialChange === true || this.state.modifybyreference === true);
+    return(status.initialChange === true || this.state.modifyIndirectly === true);
   }
 
   get variablesUpdatableDownstream() {
