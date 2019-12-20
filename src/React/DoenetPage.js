@@ -21,12 +21,14 @@ class DoenetPage extends Component {
     const data={
       contentId: this.contentId,
     }
-    const payload = {
-      params: data
-    }
-    axios.get(loadFromContentIdUrl,payload)
+    // const payload = {
+    //   params: data
+    // }
+    // console.log(payload);
+    
+    // axios.get(loadFromContentIdUrl,payload)
+    axios.post(loadFromContentIdUrl,data)
     .then(resp=>{
-      console.log(resp.data);
       this.doenetML = resp.data.doenetML;
       this.forceUpdate();
     });
