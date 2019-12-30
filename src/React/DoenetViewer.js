@@ -4,7 +4,7 @@ import Doenet from './Doenet';
 import axios from 'axios';
 import crypto from 'crypto';
 import { serializedStateReplacer, serializedStateReviver } from '../Doenet/utils/serializedStateProcessing';
-
+import generate from 'nanoid/generate';
 
 class DoenetViewer extends Component {
   constructor(props) {
@@ -14,7 +14,9 @@ class DoenetViewer extends Component {
 
     this.saveSerializedTimer = null;
 
-    let code = this.props.free.doenetCode;
+    let code = this.props.free.doenetCode
+ 
+    
     // console.log(` code before ${code}`);
     // code = this.removeComments({ code: code });
     // console.log(` code after ${code}`);
@@ -36,6 +38,10 @@ class DoenetViewer extends Component {
     }
 
     this.callSubmitAllAnswersCounter = 0;
+
+    this.state = {
+      collaborateWindowOpen: false,
+    }
 
     this.recordSolutionView = this.recordSolutionView.bind(this);
     this.contentIdsToDoenetMLs = this.contentIdsToDoenetMLs.bind(this);
@@ -121,7 +127,6 @@ class DoenetViewer extends Component {
     }
     // this.update({ doenetTags: this.core.doenetState, init: true });
   }
-
 
   remoteStateChanged(event,state) {
 
@@ -461,6 +466,11 @@ class DoenetViewer extends Component {
     this.props.free.requestedVariant = undefined;
   }
 
+  goToGroup(groupName){
+    //Check if group is already defined, if it is replace it
+    window.location.href = window.location.href + "&group=" +groupName;
+  }
+
   render() {
     // console.log('DoenetView Render Refreshed--')
   
@@ -469,7 +479,45 @@ class DoenetViewer extends Component {
       this.core.document.submitAllAnswers();
     }
 
+    let collaborationWindow = null;
+    if (this.props.showCollaboration){
+      let collabWindowWidth = "100px";
+      if (this.state.collaborateWindowOpen){
+        collabWindowWidth = "320px";
+      }
+      collaborationWindow = <div style={{
+        backgroundColor: "#f5f5f5",
+        width: collabWindowWidth,
+        position: "fixed",
+        right: "200px",
+        top: "0px",
+        textAlign: "center",
+      }}><div onClick={()=>this.setState({collaborateWindowOpen:!this.state.collaborateWindowOpen})}>Collaborate</div>
+      {this.state.collaborateWindowOpen ? <div>
+
+      <div style={{margin:"20px 0px 20px 0px"}}>Join Existing Group
+      <input 
+      onKeyDown={((e)=>{
+        if (e.key === 'Enter'){
+          this.goToGroup(this.state.joinGroupText);
+        }
+      })}
+      onChange={(e)=>{
+        this.setState({joinGroupText:e.target.value})
+      }}
+      maxLength="5" style={{marginLeft:"10px",width:"80px"}} type="text" />
+      </div>
+      <div style={{marginBottom:"10px"}}><button 
+      onClick={()=>{this.goToGroup(generate('abcdefghijklmnopqrstuvwxyz',5))}}>Create New Group</button></div>
+
+      </div> : null}
+      
+      </div>
+    }
+    
+
     return (<React.Fragment>
+      {collaborationWindow}
       <div style={{ margin: "10px" }}>
         {this.tags}
 

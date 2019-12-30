@@ -57,7 +57,9 @@ class DoenetPage extends Component {
             <DoenetViewer 
             key={"doenetviewer"} 
             free={{doenetCode: this.doenetML}} 
-            contentId={this.contentId} />
+            contentId={this.contentId} 
+            showCollaboration={true}
+            />
       </React.Fragment>);
   }
 }
