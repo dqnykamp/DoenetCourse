@@ -6,7 +6,6 @@ import crypto from 'crypto';
 import { serializedStateReplacer, serializedStateReviver } from '../Doenet/utils/serializedStateProcessing';
 
 
-
 class DoenetViewer extends Component {
   constructor(props) {
     super(props);
@@ -43,6 +42,8 @@ class DoenetViewer extends Component {
     this.delayedSaveSerializedState = this.delayedSaveSerializedState.bind(this);
     this.saveSerializedState = this.saveSerializedState.bind(this);
     this.allAnswersSubmitted = this.allAnswersSubmitted.bind(this);
+    this.localStateChanged = this.localStateChanged.bind(this);
+    this.remoteStateChanged = this.remoteStateChanged.bind(this);
     this.update = this.update.bind(this);
 
     //Modes Listed:
@@ -92,6 +93,7 @@ class DoenetViewer extends Component {
       delayedSaveSerializedState: this.delayedSaveSerializedState,
       saveSerializedState: this.saveSerializedState,
       allAnswersSubmitted: this.allAnswersSubmitted,
+      localStateChanged: this.localStateChanged,
     };
 
     this.core = new Core({
@@ -104,15 +106,71 @@ class DoenetViewer extends Component {
       postConstructionCallBack: this.update
     });
 
+    //Integration with Doenet Library
+    this.worksheet = new window.doenet.Worksheet();
     
-    
-    
+    if(this.props.collaborate) {
+      this.worksheet.addEventListener( 'globalState', this.remoteStateChanged);
+    } else {
+      this.worksheet.addEventListener( 'state', this.remoteStateChanged);
+    }
 
     if(this.props.functionsSuppliedByChild){
 
       this.props.functionsSuppliedByChild.submitAllAnswers = () => this.core.document.submitAllAnswers();
     }
     // this.update({ doenetTags: this.core.doenetState, init: true });
+  }
+
+
+  remoteStateChanged(event,state) {
+
+    let newStateVariableValues = {};
+
+    //Rehydrate for serializing when functions that are in variables
+    for(let componentName in state) {
+      newStateVariableValues[componentName] = {};
+      for(let varName in state[componentName]) {
+        newStateVariableValues[componentName][varName] = JSON.parse(state[componentName][varName], serializedStateReviver);
+      }
+    }
+
+    this.core.executeUpdateStateVariables({newStateVariableValues })
+
+  }
+
+  localStateChanged({newStateVariableValues }) {
+
+    if(!this.worksheet.progress) {
+      this.worksheet.progress = 0;
+    }
+    
+    this.worksheet.progress += 0.1;
+
+    let theState;
+
+    // // Note: uncomment these lines and change an element to reset state
+    // this.worksheet.globalState = {};
+    // this.worksheet.state = {};
+    
+    if(this.props.collaborate) {
+      theState = this.worksheet.globalState;
+    } else {
+      theState = this.worksheet.state;
+    }
+
+    for(let componentName in newStateVariableValues) {
+      let componentState = theState[componentName];
+      if(componentState === undefined) {
+        componentState = theState[componentName] = {};
+      }
+
+      //Stringify for serializing when functions that are in variables
+      for(let varName in newStateVariableValues[componentName]) {
+        componentState[varName] = JSON.stringify(newStateVariableValues[componentName][varName], serializedStateReplacer)
+      }
+    }
+
   }
 
   delayedSaveSerializedState({ document }) {
