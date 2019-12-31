@@ -119,7 +119,7 @@ class DoenetViewer extends Component {
     //Integration with Doenet Library
     this.worksheet = new window.doenet.Worksheet();
     
-    if(this.props.collaborate) {
+    if(this.group) {
       this.worksheet.addEventListener( 'globalState', this.remoteStateChanged);
     } else {
       this.worksheet.addEventListener( 'state', this.remoteStateChanged);
@@ -162,7 +162,7 @@ class DoenetViewer extends Component {
     // this.worksheet.globalState = {};
     // this.worksheet.state = {};
     
-    if(this.props.collaborate) {
+    if(this.group) {
       theState = this.worksheet.globalState;
     } else {
       theState = this.worksheet.state;
