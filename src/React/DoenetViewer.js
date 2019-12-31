@@ -14,7 +14,11 @@ class DoenetViewer extends Component {
 
     this.saveSerializedTimer = null;
 
-    let code = this.props.free.doenetCode
+    let code = this.props.free.doenetCode;
+
+    let url_string = window.location.href;
+    var url = new URL(url_string);
+    this.group = url.searchParams.get("group");
  
     
     // console.log(` code before ${code}`);
@@ -467,8 +471,7 @@ class DoenetViewer extends Component {
   }
 
   goToGroup(groupName){
-    //Check if group is already defined, if it is replace it
-    window.location.href = window.location.href + "&group=" +groupName;
+    window.location.href = URL_add_parameter(location.href, 'group', groupName.toString().toLowerCase());
   }
 
   render() {
@@ -482,6 +485,8 @@ class DoenetViewer extends Component {
     let collaborationWindow = null;
     if (this.props.showCollaboration){
       let collabWindowWidth = "100px";
+      let groupName = this.group;
+
       if (this.state.collaborateWindowOpen){
         collabWindowWidth = "320px";
       }
@@ -492,7 +497,9 @@ class DoenetViewer extends Component {
         right: "200px",
         top: "0px",
         textAlign: "center",
-      }}><div onClick={()=>this.setState({collaborateWindowOpen:!this.state.collaborateWindowOpen})}>Collaborate</div>
+      }}><div style={{textDecoration:"underline"}}
+      onClick={()=>this.setState({collaborateWindowOpen:!this.state.collaborateWindowOpen})}>Collaborate</div>
+      {groupName ? <div>Group <b>{groupName}</b></div> : null}
       {this.state.collaborateWindowOpen ? <div>
 
       <div style={{margin:"20px 0px 20px 0px"}}>Join Existing Group
@@ -505,7 +512,8 @@ class DoenetViewer extends Component {
       onChange={(e)=>{
         this.setState({joinGroupText:e.target.value})
       }}
-      maxLength="5" style={{marginLeft:"10px",width:"80px"}} type="text" />
+      maxLength="5" style={{marginLeft:"10px",marginRight:"5px",width:"80px"}} type="text" /> 
+      <button onClick={()=>this.goToGroup(this.state.joinGroupText)}>go</button>
       </div>
       <div style={{marginBottom:"10px"}}><button 
       onClick={()=>{this.goToGroup(generate('abcdefghijklmnopqrstuvwxyz',5))}}>Create New Group</button></div>
@@ -529,6 +537,33 @@ class DoenetViewer extends Component {
 // TODO: what's the best way to make a function asynchronous?
 function makeAsynchronous() {
   return new Promise(resolve => resolve(true));
+}
+
+function URL_add_parameter(url, param, value){
+  var hash       = {};
+  var parser     = document.createElement('a');
+
+  parser.href    = url;
+
+  var parameters = parser.search.split(/\?|&/);
+
+  for(var i=0; i < parameters.length; i++) {
+      if(!parameters[i])
+          continue;
+
+      var ary      = parameters[i].split('=');
+      hash[ary[0]] = ary[1];
+  }
+
+  hash[param] = value;
+
+  var list = [];  
+  Object.keys(hash).forEach(function (key) {
+      list.push(key + '=' + hash[key]);
+  });
+
+  parser.search = '?' + list.join('&');
+  return parser.href;
 }
 
 export default DoenetViewer;
