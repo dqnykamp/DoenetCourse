@@ -17,7 +17,7 @@ class DoenetPage extends Component {
     this.contentId = url.searchParams.get("contentId");
 
 
-    const loadFromContentIdUrl='/api/loadFromContentId.php';
+    const loadFromContentIdUrl='/open_api/loadFromContentId.php';
     const data={
       contentId: this.contentId,
     }
