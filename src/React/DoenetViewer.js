@@ -19,6 +19,11 @@ class DoenetViewer extends Component {
     let url_string = window.location.href;
     var url = new URL(url_string);
     this.group = url.searchParams.get("group");
+
+
+    
+    
+    
  
     
     // console.log(` code before ${code}`);
@@ -119,11 +124,29 @@ class DoenetViewer extends Component {
     //Integration with Doenet Library
     this.worksheet = new window.doenet.Worksheet();
     
+    
     if(this.group) {
       this.worksheet.addEventListener( 'globalState', this.remoteStateChanged);
     } else {
       this.worksheet.addEventListener( 'state', this.remoteStateChanged);
     }
+
+    //Transfer beyond refresh
+    // if(typeof window.sessionStorage.transferToGlobal !== 'undefined'){
+    //   console.log("Transfer to global");
+    //   console.log(window.sessionStorage.transferToGlobal);
+      
+    //   this.worksheet.globalState = JSON.parse(window.sessionStorage.transferToGlobal);
+    //   delete window.sessionStorage.transferToGlobal;
+    // }
+
+    // if (typeof window.sessionStorage.transferToLocal !== 'undefined'){
+    //   console.log("Transfer to local");
+    //   console.log(window.sessionStorage.transferToLocal);
+      
+    //   this.worksheet.state = JSON.parse(window.sessionStorage.transferToLocal);
+    //   delete window.sessionStorage.transferToLocal;
+    // }
 
     if(this.props.functionsSuppliedByChild){
 
@@ -241,8 +264,8 @@ class DoenetViewer extends Component {
         contentIds: contentIds,
       }
  
-      console.log("contentIdsToDoenetMLs data");
-      console.log(data);
+      // console.log("contentIdsToDoenetMLs data");
+      // console.log(data);
 
       axios.post(url, data)
         .then(resp => {
@@ -289,10 +312,10 @@ class DoenetViewer extends Component {
   }
 
   recordSolutionView({ itemNumber, scoredComponent, callBack }) {
-    console.log(`-----External Function: reveal solution "${itemNumber}" ------`);
-    console.log(`this.props.attemptNumber ${this.props.attemptNumber}`);
-    console.log(`this.props.assignmentId ${this.props.assignmentId}`);
-    console.log(`allowViewSolutionWithoutRoundTrip ${this.allowViewSolutionWithoutRoundTrip}`);
+    // console.log(`-----External Function: reveal solution "${itemNumber}" ------`);
+    // console.log(`this.props.attemptNumber ${this.props.attemptNumber}`);
+    // console.log(`this.props.assignmentId ${this.props.assignmentId}`);
+    // console.log(`allowViewSolutionWithoutRoundTrip ${this.allowViewSolutionWithoutRoundTrip}`);
 
     // Note: made all calls to callBack asynchronous so that have same behavior
     // regardless of what option gets triggered
@@ -378,9 +401,9 @@ class DoenetViewer extends Component {
         learnerUsername: this.props.learnerUsername,
       }
 
-      console.log("data");
-      console.log(data);
-      console.log(`this.props.course ${this.props.course}`);
+      // console.log("data");
+      // console.log(data);
+      // console.log(`this.props.course ${this.props.course}`);
       
 
       if (this.props.course){
@@ -470,11 +493,24 @@ class DoenetViewer extends Component {
     this.props.free.requestedVariant = undefined;
   }
 
-  goToGroup(activeGroupCode){
-    window.location.href = URL_add_parameter(location.href, 'group', activeGroupCode.toString().toLowerCase());
+  goToGroup({groupCode,transferState=false}){
+    if (transferState){
+      //Local State to Global State
+  //    window.sessionStorage.transferToGlobal = JSON.stringify(this.worksheet.state);
+      // let localState = this.worksheet.state;
+      // this.worksheet.globalState = Object.assign({},this.worksheet.state);
+      
+      // this.worksheet.globalState = this.worksheet.state;
+    }
+    window.location.href = URL_add_parameter(location.href, 'group', groupCode.toString().toLowerCase());
   }
 
   leavegroup(){
+    //Global State to Local State
+    //  this.worksheet.state = this.worksheet.globalState;
+    
+ //  window.sessionStorage.transferToLocal = JSON.stringify(this.worksheet.globalState);
+
     window.location.href = URL_remove_parameter(location.href, 'group');
   }
 
@@ -517,7 +553,7 @@ class DoenetViewer extends Component {
           <input 
           onKeyDown={((e)=>{
             if (e.key === 'Enter'){
-              this.goToGroup(this.state.joinGroupText);
+              this.goToGroup({groupCode:this.state.joinGroupText});
             }
           })}
           onChange={(e)=>{
@@ -529,10 +565,10 @@ class DoenetViewer extends Component {
           type="text" 
           value={joinGroupText.toLowerCase()}
           /> 
-          <button disabled={joinGroupDisabled} onClick={()=>this.goToGroup(this.state.joinGroupText)}>Join Group</button>
+          <button disabled={joinGroupDisabled} onClick={()=>this.goToGroup({groupCode:this.state.joinGroupText})}>Join Group</button>
           </div>
           <div style={{marginTop:"10px",marginBottom:"10px"}}><button 
-          onClick={()=>{this.goToGroup(generate('abcdefghijklmnopqrstuvwxyz',5))}}>Create Group</button></div>
+          onClick={()=>{this.goToGroup({groupCode:generate('abcdefghijklmnopqrstuvwxyz',5),transferState:true})}}>Create Group</button></div>
     
           </div> 
         }
