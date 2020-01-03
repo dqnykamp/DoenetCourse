@@ -470,8 +470,12 @@ class DoenetViewer extends Component {
     this.props.free.requestedVariant = undefined;
   }
 
-  goToGroup(groupName){
-    window.location.href = URL_add_parameter(location.href, 'group', groupName.toString().toLowerCase());
+  goToGroup(activeGroupCode){
+    window.location.href = URL_add_parameter(location.href, 'group', activeGroupCode.toString().toLowerCase());
+  }
+
+  leavegroup(){
+    window.location.href = URL_remove_parameter(location.href, 'group');
   }
 
   render() {
@@ -485,11 +489,56 @@ class DoenetViewer extends Component {
     let collaborationWindow = null;
     if (this.props.showCollaboration){
       let collabWindowWidth = "100px";
-      let groupName = this.group;
+      let activeGroupCode = this.group;
+      let joinGroupText = this.state.joinGroupText;
+      if (!joinGroupText) {joinGroupText = "";}
+      let joinGroupDisabled = true;
+      if (joinGroupText.length === 5){
+        joinGroupDisabled = false;
+      }
+
+      let collaborateTools = null;
 
       if (this.state.collaborateWindowOpen){
-        collabWindowWidth = "320px";
+        collabWindowWidth = "150px";
+
+        if (activeGroupCode){
+          //User is interacting with a group
+
+          collaborateTools = <div style={{margin:"10px 0px 10px 0px"}}>
+            <button onClick={this.leavegroup}>Leave Group</button>
+            </div>
+          
+        }else{
+
+          collaborateTools = <div>
+
+          <div style={{margin:"10px 0px 10px 0px"}}>
+          <input 
+          onKeyDown={((e)=>{
+            if (e.key === 'Enter'){
+              this.goToGroup(this.state.joinGroupText);
+            }
+          })}
+          onChange={(e)=>{
+            this.setState({joinGroupText:e.target.value})
+          }}
+          maxLength="5" 
+          placeholder="Group Code"
+          style={{marginLeft:"10px",marginRight:"5px",width:"120px",fontSize: "14pt",textAlign: "center"}} 
+          type="text" 
+          value={joinGroupText.toLowerCase()}
+          /> 
+          <button disabled={joinGroupDisabled} onClick={()=>this.goToGroup(this.state.joinGroupText)}>Join Group</button>
+          </div>
+          <div style={{marginTop:"10px",marginBottom:"10px"}}><button 
+          onClick={()=>{this.goToGroup(generate('abcdefghijklmnopqrstuvwxyz',5))}}>Create Group</button></div>
+    
+          </div> 
+        }
+       
       }
+
       collaborationWindow = <div style={{
         backgroundColor: "#f5f5f5",
         width: collabWindowWidth,
@@ -497,28 +546,11 @@ class DoenetViewer extends Component {
         right: "200px",
         top: "0px",
         textAlign: "center",
-      }}><div style={{textDecoration:"underline"}}
+        
+      }}><div style={{textDecoration:"underline",fontSize: "12pt"}}
       onClick={()=>this.setState({collaborateWindowOpen:!this.state.collaborateWindowOpen})}>Collaborate</div>
-      {groupName ? <div>Group <b>{groupName}</b></div> : null}
-      {this.state.collaborateWindowOpen ? <div>
-
-      <div style={{margin:"20px 0px 20px 0px"}}>Join Existing Group
-      <input 
-      onKeyDown={((e)=>{
-        if (e.key === 'Enter'){
-          this.goToGroup(this.state.joinGroupText);
-        }
-      })}
-      onChange={(e)=>{
-        this.setState({joinGroupText:e.target.value})
-      }}
-      maxLength="5" style={{marginLeft:"10px",marginRight:"5px",width:"80px"}} type="text" /> 
-      <button onClick={()=>this.goToGroup(this.state.joinGroupText)}>go</button>
-      </div>
-      <div style={{marginBottom:"10px"}}><button 
-      onClick={()=>{this.goToGroup(generate('abcdefghijklmnopqrstuvwxyz',5))}}>Create New Group</button></div>
-
-      </div> : null}
+      {activeGroupCode ? <div>Group <b>{activeGroupCode}</b></div> : null}
+      {collaborateTools}
       
       </div>
     }
@@ -537,6 +569,33 @@ class DoenetViewer extends Component {
 // TODO: what's the best way to make a function asynchronous?
 function makeAsynchronous() {
   return new Promise(resolve => resolve(true));
+}
+
+function URL_remove_parameter(url, param){
+  var hash       = {};
+  var parser     = document.createElement('a');
+
+  parser.href    = url;
+
+  var parameters = parser.search.split(/\?|&/);
+
+  for(var i=0; i < parameters.length; i++) {
+    if(!parameters[i])
+          continue;
+
+      var ary      = parameters[i].split('=');
+      if(ary[0] == param)
+      continue;
+      hash[ary[0]] = ary[1];
+  }
+
+  var list = [];  
+  Object.keys(hash).forEach(function (key) {
+      list.push(key + '=' + hash[key]);
+  });
+
+  parser.search = '?' + list.join('&');
+  return parser.href;
 }
 
 function URL_add_parameter(url, param, value){
