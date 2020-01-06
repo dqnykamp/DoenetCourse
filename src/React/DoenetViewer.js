@@ -48,9 +48,7 @@ class DoenetViewer extends Component {
 
     this.callSubmitAllAnswersCounter = 0;
 
-    this.state = {
-      collaborateWindowOpen: false,
-    }
+    
 
     this.recordSolutionView = this.recordSolutionView.bind(this);
     this.contentIdsToDoenetMLs = this.contentIdsToDoenetMLs.bind(this);
@@ -124,11 +122,18 @@ class DoenetViewer extends Component {
     //Integration with Doenet Library
     this.worksheet = new window.doenet.Worksheet();
     
-    
+    let collaborationPanelState = "join or create";
     if(this.group) {
+      collaborationPanelState = "group is active";
       this.worksheet.addEventListener( 'globalState', this.remoteStateChanged);
     } else {
       this.worksheet.addEventListener( 'state', this.remoteStateChanged);
+    }
+
+    this.state = {
+      collaborateWindowOpen: false,
+      joinGroupText: "",
+      collaborationPanelState: collaborationPanelState,
     }
 
     //Transfer beyond refresh
@@ -515,7 +520,6 @@ class DoenetViewer extends Component {
   }
 
   render() {
-    // console.log('DoenetView Render Refreshed--')
   
     if(this.props.viewerFlags && this.props.viewerFlags.callSubmitAllAnswersCounter !== this.callSubmitAllAnswersCounter) {
       this.callSubmitAllAnswersCounter = this.props.viewerFlags.callSubmitAllAnswersCounter;
@@ -524,69 +528,86 @@ class DoenetViewer extends Component {
 
     let collaborationWindow = null;
     if (this.props.showCollaboration){
-      let collabWindowWidth = "100px";
-      let activeGroupCode = this.group;
-      let joinGroupText = this.state.joinGroupText;
-      if (!joinGroupText) {joinGroupText = "";}
-      let joinGroupDisabled = true;
-      if (joinGroupText.length === 5){
-        joinGroupDisabled = false;
-      }
+      let collaborationPane = null;
+      let activeGroupPane = null;
 
-      let collaborateTools = null;
 
       if (this.state.collaborateWindowOpen){
-        collabWindowWidth = "150px";
 
-        if (activeGroupCode){
-          //User is interacting with a group
+        if (this.state.collaborationPanelState === "join or create"){
+         collaborationPane = <React.Fragment>
+            <div style={{margin:"10px 0px 10px 0px"}}>
+            <button onClick={()=>this.setState({collaborationPanelState:"joining group"})}>Join Group</button>
+            </div>
+            <div style={{marginTop:"10px",marginBottom:"10px"}}><button 
+            onClick={()=>{this.goToGroup({groupCode:generate('abcdefghijklmnopqrstuvwxyz',5),transferState:true})}}>Create Group</button></div>
+       </React.Fragment>
+        }
+        if (this.state.collaborationPanelState === "joining group"){
+            let joinGroupText = this.state.joinGroupText;
+            if (!joinGroupText) {joinGroupText = "";}
+            let joinGroupDisabled = true;
+            if (joinGroupText.length === 5){
+              joinGroupDisabled = false;
+            }
+                collaborationPane = 
+              <div style={{margin:"10px 0px 10px 0px"}}>
+              <input 
+              onKeyDown={((e)=>{
+                if (e.key === 'Enter'){
+                  this.goToGroup({groupCode:this.state.joinGroupText});
+                }
+              })}
+              onChange={(e)=>{
+                this.setState({joinGroupText:e.target.value})
+              }}
+              maxLength="5" 
+              placeholder="Group Code"
+              style={{marginLeft:"10px",marginRight:"5px",width:"120px",fontSize: "14pt",textAlign: "center"}} 
+              type="text" 
+              value={joinGroupText.toLowerCase()}
+              /> 
+              <button disabled={joinGroupDisabled} onClick={()=>this.goToGroup({groupCode:this.state.joinGroupText})}>Join</button>
+              </div>
+        }
 
-          collaborateTools = <div style={{margin:"10px 0px 10px 0px"}}>
+
+        if (this.state.collaborationPanelState === "group is active"){
+          collaborationPane = <React.Fragment>
+            <div style={{margin:"10px 0px 10px 0px"}}>
             <button onClick={this.leavegroup}>Leave Group</button>
             </div>
-          
-        }else{
-
-          collaborateTools = <div>
-
-          <div style={{margin:"10px 0px 10px 0px"}}>
-          <input 
-          onKeyDown={((e)=>{
-            if (e.key === 'Enter'){
-              this.goToGroup({groupCode:this.state.joinGroupText});
-            }
-          })}
-          onChange={(e)=>{
-            this.setState({joinGroupText:e.target.value})
-          }}
-          maxLength="5" 
-          placeholder="Group Code"
-          style={{marginLeft:"10px",marginRight:"5px",width:"120px",fontSize: "14pt",textAlign: "center"}} 
-          type="text" 
-          value={joinGroupText.toLowerCase()}
-          /> 
-          <button disabled={joinGroupDisabled} onClick={()=>this.goToGroup({groupCode:this.state.joinGroupText})}>Join Group</button>
-          </div>
-          <div style={{marginTop:"10px",marginBottom:"10px"}}><button 
-          onClick={()=>{this.goToGroup({groupCode:generate('abcdefghijklmnopqrstuvwxyz',5),transferState:true})}}>Create Group</button></div>
-    
-          </div> 
+          </React.Fragment>
+            
         }
-       
       }
+
+      if (this.state.collaborationPanelState === "group is active"){
+        let activeGroupCode = this.group;
+        if (!activeGroupCode){
+          activeGroupCode = "";
+        }
+          activeGroupCode = activeGroupCode.toLowerCase();
+
+        activeGroupPane = <div>Group <b>{activeGroupCode}</b></div>;
+      }
+      
+    
 
       collaborationWindow = <div style={{
         backgroundColor: "#f5f5f5",
-        width: collabWindowWidth,
+        width: "150px",
         position: "fixed",
         right: "200px",
         top: "0px",
         textAlign: "center",
         
-      }}><div style={{textDecoration:"underline",fontSize: "12pt"}}
-      onClick={()=>this.setState({collaborateWindowOpen:!this.state.collaborateWindowOpen})}>Collaborate</div>
-      {activeGroupCode ? <div>Group <b>{activeGroupCode}</b></div> : null}
-      {collaborateTools}
+      }}><div style={{padding:"5px"}}
+      onClick={()=>this.setState({collaborateWindowOpen:!this.state.collaborateWindowOpen})}>
+        <div style={{textDecoration:"underline",fontSize: "12pt"}}>Collaborate</div>
+      {activeGroupPane}
+      </div>
+      {collaborationPane}
       
       </div>
     }
