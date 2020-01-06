@@ -605,7 +605,7 @@ class DoenetViewer extends Component {
         
       }}><div style={{padding:"5px"}}
       onClick={()=>this.setState({collaborateWindowOpen:!this.state.collaborateWindowOpen})}>
-        <div style={{textDecoration:"underline",fontSize: "12pt"}}>Collaborate</div>
+        <div style={{cursor: "pointer",textDecoration:"underline",fontSize: "12pt"}}>Collaborate</div>
       {activeGroupPane}
       </div>
       {collaborationPane}
