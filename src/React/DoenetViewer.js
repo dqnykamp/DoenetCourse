@@ -20,16 +20,6 @@ class DoenetViewer extends Component {
     var url = new URL(url_string);
     this.group = url.searchParams.get("group");
 
-
-    
-    
-    
- 
-    
-    // console.log(` code before ${code}`);
-    // code = this.removeComments({ code: code });
-    // console.log(` code after ${code}`);
-
     let doenetState;
     
     if(props.free.doenetState) {
@@ -58,6 +48,11 @@ class DoenetViewer extends Component {
     this.localStateChanged = this.localStateChanged.bind(this);
     this.remoteStateChanged = this.remoteStateChanged.bind(this);
     this.update = this.update.bind(this);
+
+    this.goToGroup = this.goToGroup.bind(this);
+    this.leavegroup = this.leavegroup.bind(this);
+    this.apiStateReady = this.apiStateReady.bind(this);
+
 
     //Modes Listed:
     //Gradebook
@@ -136,28 +131,40 @@ class DoenetViewer extends Component {
       collaborationPanelState: collaborationPanelState,
     }
 
-    //Transfer beyond refresh
-    // if(typeof window.sessionStorage.transferToGlobal !== 'undefined'){
-    //   console.log("Transfer to global");
-    //   console.log(window.sessionStorage.transferToGlobal);
-      
-    //   this.worksheet.globalState = JSON.parse(window.sessionStorage.transferToGlobal);
-    //   delete window.sessionStorage.transferToGlobal;
-    // }
-
-    // if (typeof window.sessionStorage.transferToLocal !== 'undefined'){
-    //   console.log("Transfer to local");
-    //   console.log(window.sessionStorage.transferToLocal);
-      
-    //   this.worksheet.state = JSON.parse(window.sessionStorage.transferToLocal);
-    //   delete window.sessionStorage.transferToLocal;
-    // }
+    
 
     if(this.props.functionsSuppliedByChild){
 
       this.props.functionsSuppliedByChild.submitAllAnswers = () => this.core.document.submitAllAnswers();
     }
     // this.update({ doenetTags: this.core.doenetState, init: true });
+
+   
+    setTimeout(this.apiStateReady,1000);  //wait fro worksheet from Doenet API to be ready
+  }
+
+  apiStateReady(){
+    
+ //Transfer beyond refresh
+    if(typeof window.sessionStorage.transferToGlobal !== 'undefined'){
+      //Transfer session state to global API state
+
+      let newGlobalState = JSON.parse(window.sessionStorage.transferToGlobal);
+      this.remoteStateChanged(null,newGlobalState);
+      
+      this.worksheet.globalState = newGlobalState;
+      delete window.sessionStorage.transferToGlobal;
+    }
+
+    if (typeof window.sessionStorage.transferToLocal !== 'undefined'){
+      //Transfer session state to local API state
+
+      let newLocalState = JSON.parse(window.sessionStorage.transferToLocal);
+      this.remoteStateChanged(null,newLocalState);
+
+      this.worksheet.state = newLocalState;
+      delete window.sessionStorage.transferToLocal;
+    }
   }
 
   remoteStateChanged(event,state) {
@@ -501,20 +508,14 @@ class DoenetViewer extends Component {
   goToGroup({groupCode,transferState=false}){
     if (transferState){
       //Local State to Global State
-  //    window.sessionStorage.transferToGlobal = JSON.stringify(this.worksheet.state);
-      // let localState = this.worksheet.state;
-      // this.worksheet.globalState = Object.assign({},this.worksheet.state);
-      
-      // this.worksheet.globalState = this.worksheet.state;
+     window.sessionStorage.transferToGlobal = JSON.stringify(this.worksheet.state);
     }
     window.location.href = URL_add_parameter(location.href, 'group', groupCode.toString().toLowerCase());
   }
 
   leavegroup(){
     //Global State to Local State
-    //  this.worksheet.state = this.worksheet.globalState;
-    
- //  window.sessionStorage.transferToLocal = JSON.stringify(this.worksheet.globalState);
+    window.sessionStorage.transferToLocal = JSON.stringify(this.worksheet.globalState);
 
     window.location.href = URL_remove_parameter(location.href, 'group');
   }
