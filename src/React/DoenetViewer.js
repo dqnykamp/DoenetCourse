@@ -53,6 +53,19 @@ class DoenetViewer extends Component {
     this.leavegroup = this.leavegroup.bind(this);
     this.apiStateReady = this.apiStateReady.bind(this);
 
+       //Integration with Doenet Library
+       this.worksheet = new window.doenet.Worksheet();
+    
+       let collaborationPanelState = "join or create";
+       if(this.group) {
+         collaborationPanelState = "group is active";
+         this.worksheet.addEventListener( 'globalState', this.remoteStateChanged);
+       } else {
+         this.worksheet.addEventListener( 'state', this.remoteStateChanged);
+       }
+
+
+
 
     //Modes Listed:
     //Gradebook
@@ -114,16 +127,7 @@ class DoenetViewer extends Component {
       postConstructionCallBack: this.update
     });
 
-    //Integration with Doenet Library
-    this.worksheet = new window.doenet.Worksheet();
-    
-    let collaborationPanelState = "join or create";
-    if(this.group) {
-      collaborationPanelState = "group is active";
-      this.worksheet.addEventListener( 'globalState', this.remoteStateChanged);
-    } else {
-      this.worksheet.addEventListener( 'state', this.remoteStateChanged);
-    }
+ 
 
     this.state = {
       collaborateWindowOpen: false,
@@ -144,6 +148,24 @@ class DoenetViewer extends Component {
   }
 
   apiStateReady(){
+
+    console.log("##################");
+    if (!this.worksheet.globalState.users){
+      this.worksheet.globalState.users = [];
+    }
+    this.worksheet.userId;
+    let playerNumber = 1;
+    let index = this.worksheet.globalState.users.indexOf(this.worksheet.userId);
+    if (index === -1){
+      this.worksheet.globalState.users.push(this.worksheet.userId);
+    }else{
+      playerNumber = index + 1;
+    }
+    let numberOfGroups = this.worksheet.globalState.users.length;
+    console.log(`Number of players ${numberOfGroups}`);
+    console.log(`Player number ${playerNumber}`);
+    console.log("##################");
+    
     
  //Transfer beyond refresh
     if(typeof window.sessionStorage.transferToGlobal !== 'undefined'){
@@ -152,7 +174,7 @@ class DoenetViewer extends Component {
       let newGlobalState = JSON.parse(window.sessionStorage.transferToGlobal);
       this.remoteStateChanged(null,newGlobalState);
       
-      this.worksheet.globalState = newGlobalState;
+      this.worksheet.globalState.doenetMLState = newGlobalState;
       delete window.sessionStorage.transferToGlobal;
     }
 
@@ -162,7 +184,7 @@ class DoenetViewer extends Component {
       let newLocalState = JSON.parse(window.sessionStorage.transferToLocal);
       this.remoteStateChanged(null,newLocalState);
 
-      this.worksheet.state = newLocalState;
+      this.worksheet.state.doenetMLState = newLocalState;
       delete window.sessionStorage.transferToLocal;
     }
   }
@@ -185,11 +207,11 @@ class DoenetViewer extends Component {
 
   localStateChanged({newStateVariableValues }) {
 
-    if(!this.worksheet.progress) {
-      this.worksheet.progress = 0;
-    }
+    // if(!this.worksheet.progress) {
+    //   this.worksheet.progress = 0;
+    // }
     
-    this.worksheet.progress += 0.1;
+    // this.worksheet.progress += 0.1;
 
     let theState;
 
@@ -198,9 +220,9 @@ class DoenetViewer extends Component {
     // this.worksheet.state = {};
     
     if(this.group) {
-      theState = this.worksheet.globalState;
+      theState = this.worksheet.globalState.doenetMLState;
     } else {
-      theState = this.worksheet.state;
+      theState = this.worksheet.state.doenetMLState;
     }
 
     for(let componentName in newStateVariableValues) {
@@ -508,14 +530,14 @@ class DoenetViewer extends Component {
   goToGroup({groupCode,transferState=false}){
     if (transferState){
       //Local State to Global State
-     window.sessionStorage.transferToGlobal = JSON.stringify(this.worksheet.state);
+     window.sessionStorage.transferToGlobal = JSON.stringify(this.worksheet.state.doenetMLState);
     }
     window.location.href = URL_add_parameter(location.href, 'group', groupCode.toString().toLowerCase());
   }
 
   leavegroup(){
     //Global State to Local State
-    window.sessionStorage.transferToLocal = JSON.stringify(this.worksheet.globalState);
+    window.sessionStorage.transferToLocal = JSON.stringify(this.worksheet.globalState.doenetMLState);
 
     window.location.href = URL_remove_parameter(location.href, 'group');
   }
