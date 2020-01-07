@@ -14,23 +14,22 @@ class DoenetViewer extends Component {
 
     this.saveSerializedTimer = null;
 
-    let code = this.props.free.doenetCode;
-
     let url_string = window.location.href;
     var url = new URL(url_string);
     this.group = url.searchParams.get("group");
 
-    let doenetState;
+    this.doenetState;
     
     if(props.free.doenetState) {
-      doenetState = JSON.parse(props.free.doenetState, serializedStateReviver);
+      this.doenetState = JSON.parse(props.free.doenetState, serializedStateReviver);
 
       // TODO: remove this once we can ensure that serialized state is always an array
-      if(!Array.isArray(doenetState)) {
-        doenetState = [doenetState];
+      if(!Array.isArray(this.doenetState)) {
+        this.doenetState = [doenetState];
       }
     }
 
+    
     this.viewerExternalFunctions = {};
     if(props.viewerExternalFunctions) {
       this.viewerExternalFunctions = props.viewerExternalFunctions;
@@ -55,6 +54,7 @@ class DoenetViewer extends Component {
 
        //Integration with Doenet Library
        this.worksheet = new window.doenet.Worksheet();
+       this.worksheet.addEventListener('ready',this.apiStateReady);
     
        let collaborationPanelState = "join or create";
        if(this.group) {
@@ -65,77 +65,12 @@ class DoenetViewer extends Component {
        }
 
 
-
-
-    //Modes Listed:
-    //Gradebook
-    //Offline
-    //dev vs prod
-    //Demo
-    //Exam
-    //dontAllowViewingOfSolution
-    //Read Only
-
-    //Possible flags
-    //Show Hints (t/f)
-    //Solution - "none","button","displayed"
-    //Answers are fixed
-    // console.log('**DoenetViewer flags**');
-    // console.log(`solutionType ${props.mode.solutionType}`);
-
-    this.flags = {};
-    this.flags.showHints = true;
-    this.flags.showFeedback = true;
-    this.flags.showCorrectness = true;
-    this.flags.solutionType = "button";
-    this.allowViewSolutionWithoutRoundTrip = true;
-    if (props.mode !== undefined){
-      if(props.mode.showHints !== undefined){
-        this.flags.showHints = props.mode.showHints;
-      }
-      if(props.mode.showFeedback !== undefined){
-        this.flags.showFeedback = props.mode.showFeedback;
-      }
-      if(props.mode.showCorrectness !== undefined){
-        this.flags.showCorrectness = props.mode.showCorrectness;
-      }
-      if (props.mode.solutionType !== undefined) {
-        this.flags.solutionType = props.mode.solutionType;
-      }
-      if (props.mode.allowViewSolutionWithoutRoundTrip !== undefined) {
-        this.allowViewSolutionWithoutRoundTrip = props.mode.allowViewSolutionWithoutRoundTrip;
-      }
-    }
-    
-    let externalFunctions = {
-      submitResults: this.submitResults,
-      recordSolutionView: this.recordSolutionView,
-      contentIdsToDoenetMLs: this.contentIdsToDoenetMLs,
-      delayedSaveSerializedState: this.delayedSaveSerializedState,
-      saveSerializedState: this.saveSerializedState,
-      allAnswersSubmitted: this.allAnswersSubmitted,
-      localStateChanged: this.localStateChanged,
-    };
-
-    this.core = new Core({
-      doenetML: code,
-      doenetState: doenetState,
-      update: this.update,
-      requestedVariant: this.props.free.requestedVariant,
-      externalFunctions: externalFunctions,
-      flags: this.flags,
-      postConstructionCallBack: this.update
-    });
-
- 
-
     this.state = {
+      apiStateReady: false,
       collaborateWindowOpen: false,
       joinGroupText: "",
       collaborationPanelState: collaborationPanelState,
     }
-
-    
 
     if(this.props.functionsSuppliedByChild){
 
@@ -143,8 +78,6 @@ class DoenetViewer extends Component {
     }
     // this.update({ doenetTags: this.core.doenetState, init: true });
 
-   
-    setTimeout(this.apiStateReady,1000);  //wait fro worksheet from Doenet API to be ready
   }
 
   apiStateReady(){
@@ -181,7 +114,6 @@ class DoenetViewer extends Component {
      
     }
 
-    console.log("##################");
     if (!this.worksheet.globalState.users){
       this.worksheet.globalState.users = [];
     }
@@ -193,11 +125,76 @@ class DoenetViewer extends Component {
     }else{
       this.playerNumber = index + 1;
     }
-    let numberOfGroups = this.worksheet.globalState.users.length;
-    console.log(`Number of players ${numberOfGroups}`);
-    console.log(`Player number ${this.playerNumber}`);
-    console.log("##################");
-    this.forceUpdate();
+    // let numberOfPlayers = this.worksheet.globalState.users.length;
+
+
+    //Modes Listed:
+    //Gradebook
+    //Offline
+    //dev vs prod
+    //Demo
+    //Exam
+    //dontAllowViewingOfSolution
+    //Read Only
+
+    //Possible flags
+    //Show Hints (t/f)
+    //Solution - "none","button","displayed"
+    //Answers are fixed
+    // console.log('**DoenetViewer flags**');
+    // console.log(`solutionType ${props.mode.solutionType}`);
+
+    this.flags = {};
+    this.flags.showHints = true;
+    this.flags.showFeedback = true;
+    this.flags.showCorrectness = true;
+    this.flags.solutionType = "button";
+    this.flags.collaboration = { numberOfGroups:3, groupNumber:this.playerNumber }
+
+
+    this.allowViewSolutionWithoutRoundTrip = true;
+    if (this.props.mode !== undefined){
+      if(this.props.mode.showHints !== undefined){
+        this.flags.showHints = this.props.mode.showHints;
+      }
+      if(this.props.mode.showFeedback !== undefined){
+        this.flags.showFeedback = this.props.mode.showFeedback;
+      }
+      if(this.props.mode.showCorrectness !== undefined){
+        this.flags.showCorrectness = this.props.mode.showCorrectness;
+      }
+      if (this.props.mode.solutionType !== undefined) {
+        this.flags.solutionType = this.props.mode.solutionType;
+      }
+      if (this.props.mode.allowViewSolutionWithoutRoundTrip !== undefined) {
+        this.allowViewSolutionWithoutRoundTrip = this.props.mode.allowViewSolutionWithoutRoundTrip;
+      }
+    }
+    
+    let externalFunctions = {
+      submitResults: this.submitResults,
+      recordSolutionView: this.recordSolutionView,
+      contentIdsToDoenetMLs: this.contentIdsToDoenetMLs,
+      delayedSaveSerializedState: this.delayedSaveSerializedState,
+      saveSerializedState: this.saveSerializedState,
+      allAnswersSubmitted: this.allAnswersSubmitted,
+      localStateChanged: this.localStateChanged,
+    };
+
+    this.core = new Core({
+      doenetML: this.props.free.doenetCode,
+      doenetState: this.doenetState,
+      update: this.update,
+      requestedVariant: this.props.free.requestedVariant,
+      externalFunctions: externalFunctions,
+      flags: this.flags,
+      postConstructionCallBack: this.update
+    });
+
+
+
+
+    this.setState({apiStateReady:true});
 
   }
 
@@ -219,36 +216,44 @@ class DoenetViewer extends Component {
   }
 
   localStateChanged({newStateVariableValues }) {
-
+    
     // if(!this.worksheet.progress) {
     //   this.worksheet.progress = 0;
     // }
     
     // this.worksheet.progress += 0.1;
 
-    let theState;
 
     // // Note: uncomment these lines and change an element to reset state
     // this.worksheet.globalState = {};
     // this.worksheet.state = {};
+    console.log("###############");
     
-    if(this.group) {
-      theState = this.worksheet.globalState.doenetMLState;
-    } else {
-      theState = this.worksheet.state.doenetMLState;
-    }
+    console.log('state');
+    
+    console.log(this.worksheet.state);
+    console.log("###############");
+    
+            // let theState;
+    
+            // if(this.group) {
+            //   theState = this.worksheet.globalState.doenetMLState;
+            // } else {
+            //   theState = this.worksheet.state.doenetMLState;
+            // }
 
-    for(let componentName in newStateVariableValues) {
-      let componentState = theState[componentName];
-      if(componentState === undefined) {
-        componentState = theState[componentName] = {};
-      }
 
-      //Stringify for serializing when functions that are in variables
-      for(let varName in newStateVariableValues[componentName]) {
-        componentState[varName] = JSON.stringify(newStateVariableValues[componentName][varName], serializedStateReplacer)
-      }
-    }
+            // for(let componentName in newStateVariableValues) {
+            //   let componentState = theState[componentName];
+            //   if(componentState === undefined) {
+            //     componentState = theState[componentName] = {};
+            //   }
+
+            //   //Stringify for serializing when functions that are in variables
+            //   for(let varName in newStateVariableValues[componentName]) {
+            //     componentState[varName] = JSON.stringify(newStateVariableValues[componentName][varName], serializedStateReplacer)
+            //   }
+            // }
 
   }
 
@@ -556,7 +561,8 @@ class DoenetViewer extends Component {
   }
 
   render() {
-  console.log("*********RENDER**********");
+
+    if (!this.state.apiStateReady){ return <div>Loading..</div>; }
   
     if(this.props.viewerFlags && this.props.viewerFlags.callSubmitAllAnswersCounter !== this.callSubmitAllAnswersCounter) {
       this.callSubmitAllAnswersCounter = this.props.viewerFlags.callSubmitAllAnswersCounter;
@@ -655,6 +661,7 @@ class DoenetViewer extends Component {
 
     return (<React.Fragment>
       {collaborationWindow}
+      Version 9
       <div style={{ margin: "10px" }}>
         {this.tags}
 
