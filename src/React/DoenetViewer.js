@@ -148,45 +148,57 @@ class DoenetViewer extends Component {
   }
 
   apiStateReady(){
+    
+    //Transfer state
+    if(typeof window.sessionStorage.transferToGlobal !== 'undefined'){
+      
+      if(window.sessionStorage.transferToGlobal === 'undefined'){
+        //Clean up if state was not defined
+        delete window.sessionStorage.transferToGlobal;
+      }else{
+        //Transfer session state to global API state
+        let newGlobalState = JSON.parse(window.sessionStorage.transferToGlobal);
+        this.remoteStateChanged(null,newGlobalState);
+
+        this.worksheet.globalState.doenetMLState = newGlobalState;
+        delete window.sessionStorage.transferToGlobal;
+      }
+      
+    }
+
+    if (typeof window.sessionStorage.transferToLocal !== 'undefined'){
+      if(window.sessionStorage.transferToLocal === 'undefined'){
+        //Clean up if state was not defined
+        delete window.sessionStorage.transferToLocal;
+      }else{
+        //Transfer session state to local API state
+        let newLocalState = JSON.parse(window.sessionStorage.transferToLocal);
+        this.remoteStateChanged(null,newLocalState);
+
+        this.worksheet.state.doenetMLState = newLocalState;
+        delete window.sessionStorage.transferToLocal;
+      }
+     
+    }
 
     console.log("##################");
     if (!this.worksheet.globalState.users){
       this.worksheet.globalState.users = [];
     }
     this.worksheet.userId;
-    let playerNumber = 1;
+    this.playerNumber = 1;
     let index = this.worksheet.globalState.users.indexOf(this.worksheet.userId);
     if (index === -1){
       this.worksheet.globalState.users.push(this.worksheet.userId);
     }else{
-      playerNumber = index + 1;
+      this.playerNumber = index + 1;
     }
     let numberOfGroups = this.worksheet.globalState.users.length;
     console.log(`Number of players ${numberOfGroups}`);
-    console.log(`Player number ${playerNumber}`);
+    console.log(`Player number ${this.playerNumber}`);
     console.log("##################");
-    
-    
- //Transfer beyond refresh
-    if(typeof window.sessionStorage.transferToGlobal !== 'undefined'){
-      //Transfer session state to global API state
+    this.forceUpdate();
 
-      let newGlobalState = JSON.parse(window.sessionStorage.transferToGlobal);
-      this.remoteStateChanged(null,newGlobalState);
-      
-      this.worksheet.globalState.doenetMLState = newGlobalState;
-      delete window.sessionStorage.transferToGlobal;
-    }
-
-    if (typeof window.sessionStorage.transferToLocal !== 'undefined'){
-      //Transfer session state to local API state
-
-      let newLocalState = JSON.parse(window.sessionStorage.transferToLocal);
-      this.remoteStateChanged(null,newLocalState);
-
-      this.worksheet.state.doenetMLState = newLocalState;
-      delete window.sessionStorage.transferToLocal;
-    }
   }
 
   remoteStateChanged(event,state) {
@@ -194,7 +206,8 @@ class DoenetViewer extends Component {
     let newStateVariableValues = {};
 
     //Rehydrate for serializing when functions that are in variables
-    for(let componentName in state) {
+    
+    for(let componentName in state.doenetMLState) {
       newStateVariableValues[componentName] = {};
       for(let varName in state[componentName]) {
         newStateVariableValues[componentName][varName] = JSON.parse(state[componentName][varName], serializedStateReviver);
@@ -543,6 +556,7 @@ class DoenetViewer extends Component {
   }
 
   render() {
+  console.log("*********RENDER**********");
   
     if(this.props.viewerFlags && this.props.viewerFlags.callSubmitAllAnswersCounter !== this.callSubmitAllAnswersCounter) {
       this.callSubmitAllAnswersCounter = this.props.viewerFlags.callSubmitAllAnswersCounter;
@@ -605,6 +619,7 @@ class DoenetViewer extends Component {
         }
       }
 
+      let playerNumberPane = null;
       if (this.state.collaborationPanelState === "group is active"){
         let activeGroupCode = this.group;
         if (!activeGroupCode){
@@ -612,7 +627,8 @@ class DoenetViewer extends Component {
         }
           activeGroupCode = activeGroupCode.toLowerCase();
 
-        activeGroupPane = <div>Group <b>{activeGroupCode}</b></div>;
+        activeGroupPane = <div>Group <b>{activeGroupCode}</b> </div>;
+        playerNumberPane = <div>Player {this.playerNumber}</div>;
       }
       
     
@@ -629,6 +645,7 @@ class DoenetViewer extends Component {
       onClick={()=>this.setState({collaborateWindowOpen:!this.state.collaborateWindowOpen})}>
         <div style={{cursor: "pointer",textDecoration:"underline",fontSize: "12pt"}}>Collaborate</div>
       {activeGroupPane}
+      {playerNumberPane}
       </div>
       {collaborationPane}
       
