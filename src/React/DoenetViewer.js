@@ -79,7 +79,7 @@ class DoenetViewer extends Component {
   }
 
   continueConstruction() {
-
+    
     
 
     if (!this.worksheet.globalState.users) {
@@ -205,17 +205,18 @@ class DoenetViewer extends Component {
 
     for (let componentName in state.doenetMLState) {
       newStateVariableValues[componentName] = {};
-      for (let varName in state[componentName]) {
-        newStateVariableValues[componentName][varName] = JSON.parse(state[componentName][varName], serializedStateReviver);
+      for (let varName in state.doenetMLState[componentName]) {
+        newStateVariableValues[componentName][varName] = JSON.parse(state.doenetMLState[componentName][varName], serializedStateReviver);
       }
     }
+    
 
     this.core.executeUpdateStateVariables({ newStateVariableValues })
 
   }
 
   localStateChanged({ newStateVariableValues }) {
-
+    
     // if(!this.worksheet.progress) {
     //   this.worksheet.progress = 0;
     // }
@@ -231,19 +232,21 @@ class DoenetViewer extends Component {
 
     let theState;
 
+
     if (this.group) {
       theState = this.worksheet.globalState.doenetMLState;
+
       if (theState === undefined) {
         theState = this.worksheet.globalState.doenetMLState = {};
       }
     } else {
       theState = this.worksheet.state.doenetMLState;
+      
       if (theState === undefined) {
         theState = this.worksheet.state.doenetMLState = {};
       }
     }
 
-   
 
     for (let componentName in newStateVariableValues) {
       let componentState = theState[componentName];
