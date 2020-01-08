@@ -666,7 +666,6 @@ class DoenetViewer extends Component {
 
     return (<React.Fragment>
       {collaborationWindow}
-      Version 10
       <div style={{ margin: "10px" }}>
         {this.tags}
 
