@@ -52,7 +52,9 @@ class DoenetViewer extends Component {
 
     //Integration with Doenet Library
     this.worksheet = new window.doenet.Worksheet();
-    this.worksheet.addEventListener('ready', this.continueConstruction);
+    // this.worksheet.addEventListener('ready', this.continueConstruction);
+    setTimeout(this.continueConstruction,1000);
+
 
     let collaborationPanelState = "join or create";
     if (this.group) {
@@ -80,7 +82,6 @@ class DoenetViewer extends Component {
 
   continueConstruction() {
     
-    
 
     if (!this.worksheet.globalState.users) {
       this.worksheet.globalState.users = [];
@@ -94,6 +95,9 @@ class DoenetViewer extends Component {
       this.playerNumber = index + 1;
     }
     // let numberOfPlayers = this.worksheet.globalState.users.length;
+console.log(`Your userid ${this.worksheet.userId}`);
+console.log(this.worksheet.globalState.users);
+
 
 
     //Modes Listed:
