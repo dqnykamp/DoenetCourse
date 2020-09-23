@@ -330,10 +330,11 @@ export default function DoenetProfile(props) {
     >
       <ToolLayoutPanel>
         <div>
-          <button onClick={() => { alert('scroll to Public') }}>Public</button><br />
+          Comming soon
+          {/* <button onClick={() => { alert('scroll to Public') }}>Public</button><br />
           <button onClick={() => { alert('scroll to Private') }}>Private</button><br />
           <button onClick={() => { alert('scroll to Tracking') }}>Tracking</button><br />
-          <button onClick={() => { alert('scroll to Roles') }}>Roles</button>
+          <button onClick={() => { alert('scroll to Roles') }}>Roles</button> */}
         </div>
 
       </ToolLayoutPanel>
@@ -381,7 +382,7 @@ export default function DoenetProfile(props) {
       Email Address: {profile.email}
 
 
-
+{/* 
           <SectionHeader>Tracking</SectionHeader>
           <StyledSwitch
             id="trackingConsent"
@@ -408,10 +409,10 @@ export default function DoenetProfile(props) {
               Revoking your consent may impact your ability to recieve credit
               for coursework.
             </em>
-          </p>
+          </p> */}
 
 
-
+{/* 
           <SectionHeader>Your Roles</SectionHeader>
           <StyledSwitch
             id="student"
@@ -441,7 +442,7 @@ export default function DoenetProfile(props) {
             checked={Number(profile.roleCourseDesigner)}
           >
             Course Designer
-          </StyledSwitch>
+          </StyledSwitch> */}
           {/* <StyledSwitch
     id="watchdog"
     onChange={e =>
@@ -470,8 +471,8 @@ export default function DoenetProfile(props) {
   >
     Live Data Community
   </StyledSwitch> */}
-          <h4>{"You have access to:"}</h4>
-          {toolAccess}
+          {/* <h4>{"You have access to:"}</h4>
+          {toolAccess} */}
 
 
           {/* <SectionHeader>Invites</SectionHeader> */}

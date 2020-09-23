@@ -40,7 +40,7 @@ export default function DoenetSignIn(props) {
 
   //If already signed in go to dashboard
   if (Object.keys(jwt).includes("JWT_JS")) {
-    location.href = "/dashboard";
+    location.href = "/course";
   }
 
   // ** *** *** *** *** **
