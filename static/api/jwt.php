@@ -76,7 +76,7 @@ if ($row['minutes'] > 10){
         if ($newAccount == 1){
             header("Location: /accountsettings");
         }else{
-            header("Location: /course");
+            header("Location: /course/#/assignments");
 
         }
     }

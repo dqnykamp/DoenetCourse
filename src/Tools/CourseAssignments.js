@@ -19,11 +19,10 @@ export function CourseAssignments(props) {
     <div>
     <h1>Assignments</h1>
 
-    <p 
-  onDoubleClick={()=>{props.setAssignmentId('4P7WK6V4HvxS9fIT8IY42');props.setModalOpen(true)}}
-  onClick={()=>{props.setAssignmentId('4P7WK6V4HvxS9fIT8IY42')}}
-  >Quiz 1</p>
-  <p 
+    <button 
+  onClick={()=>{props.setAssignmentId('4P7WK6V4HvxS9fIT8IY42');props.setModalOpen(true)}}
+  >Launch Activity</button>
+  {/* <p 
   onDoubleClick={()=>{props.setAssignmentId('4P7WK6V4HvxS9fIT8IY4i');props.setModalOpen(true)}}
   onClick={()=>{props.setAssignmentId('4P7WK6V4HvxS9fIT8IY4i')}}
   >Assignment1</p>
@@ -31,7 +30,7 @@ export function CourseAssignments(props) {
   onDoubleClick={()=>{props.setAssignmentId('yfP_Pslr-WC1D8g2rEqhF');props.setModalOpen(true)}}
   onClick={()=>{props.setAssignmentId('yfP_Pslr-WC1D8g2rEqhF')}}
   >Assignment2</p>
-  student or Instructor = {props.studentInstructor}
+  student or Instructor = {props.studentInstructor} */}
     </div>
   
   </ToolLayoutPanel>)
