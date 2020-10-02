@@ -29,15 +29,13 @@ import {CourseAssignments,CourseAssignmentControls} from "./courseAssignments";
 import LearnerAssignment from './LearnerAssignment';
 
 export default function DoenetCourse(props) {
-  console.log(JSON.parse(JSON.stringify()));
   
   const [selectedCourse, setSelectedCourse] = useState({});
   const [studentInstructor,setStudentInstructor] = useState("Student")
   const [modalOpen, setModalOpen] = useState(false)
   const [assignmentObj,setAssignmentObj] = useState({title:"test title"})
   const [assignmentId,setAssignmentId] = useState("");
-  const [activityType,setActivityType] = useState("");
-  const [exp,setActivityType] = useState("");
+  // const [activityType,setActivityType] = useState("");
   useEffect(() => {
     getCourses_CI((courseListArray, selectedCourseObj) => { setSelectedCourse(selectedCourseObj) })
   }, [])
@@ -65,8 +63,8 @@ export default function DoenetCourse(props) {
   let overlaycontent = (<LearnerAssignment 
     assignmentId={assignmentId}
     assignmentObj={assignmentObj}
-    experimentId={experimentId}
-    activityType={activityType}
+    // experimentId={experimentId}
+    // activityType={activityType}
   />)
 
   if (studentInstructor === "Instructor"){
