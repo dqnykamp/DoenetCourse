@@ -72,7 +72,6 @@ class DoenetViewer extends Component {
     this.loadState(this.createCore);
   }
   
-
   createCore({ stateVariables, variant }) {
 
     if (stateVariables === undefined) {
@@ -116,7 +115,6 @@ class DoenetViewer extends Component {
     // this.databaseItemsToReload = props.databaseItemsToReload;
 
   }
-
 
   coreReady() {
 
@@ -343,10 +341,10 @@ class DoenetViewer extends Component {
     itemCreditAchieved,
     callBack,
   }){
-    // console.log('CALLED!',
-    //   itemNumber,
-    //   itemCreditAchieved
-    // )
+    console.log('>>>CALLED!',
+      itemNumber,
+      itemCreditAchieved
+    )
     //
     if (this.assignmentId){
       const payload = { 

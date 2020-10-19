@@ -12047,7 +12047,9 @@ export default class Core {
     //   }
     // });
 
-    if (updatesNeeded.itemScoreChanges.length > 0) {
+    console.log(">>>updatesNeeded",updatesNeeded,updatesNeeded.itemScoreChanges.size)
+    if (updatesNeeded.itemScoreChanges.size > 0) {
+      console.log(">>>HERE")
       if (event) {
         if (!event.context) {
           event.context = {};

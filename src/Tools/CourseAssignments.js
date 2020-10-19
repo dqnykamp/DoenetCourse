@@ -19,8 +19,10 @@ export function CourseAssignments(props) {
     <div>
     <h1>Assignments</h1>
 
-    <button 
-  onClick={()=>{props.setAssignmentId('4P7WK6V4HvxS9fIT8IY42');props.setModalOpen(true)}}
+
+
+  <button 
+  onClick={()=>{props.setModalOpen(true)}}
   >Launch Activity</button>
   {/* <p 
   onDoubleClick={()=>{props.setAssignmentId('4P7WK6V4HvxS9fIT8IY4i');props.setModalOpen(true)}}

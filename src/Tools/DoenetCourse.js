@@ -1,7 +1,7 @@
 // import DoenetViewer from '../Tools/DoenetViewer';
 // import axios from 'axios';
 // import './course.css';
-// import nanoid from 'nanoid';
+import nanoid from 'nanoid';
 // import query from '../queryParamFuncs';
 // import DoenetBox from '../Tools/DoenetBox';
 // import DoenetAssignmentTree from "./DoenetAssignmentTree"
@@ -29,10 +29,12 @@ import {CourseAssignments,CourseAssignmentControls} from "./courseAssignments";
 import LearnerAssignment from './LearnerAssignment';
 
 export default function DoenetCourse(props) {
+  // let ID = nanoid();
+  // console.log("nanoid",ID)
   
   const [selectedCourse, setSelectedCourse] = useState({});
   const [studentInstructor,setStudentInstructor] = useState("Student")
-  const [modalOpen, setModalOpen] = useState(false)
+  const [modalOpen, setModalOpen] = useState(true)
   const [assignmentObj,setAssignmentObj] = useState({title:"test title"})
   const [assignmentId,setAssignmentId] = useState("");
   // const [activityType,setActivityType] = useState("");
@@ -59,20 +61,28 @@ export default function DoenetCourse(props) {
   let leftNavDrives = ['assignments']
   if (studentInstructor === "Instructor"){ leftNavDrives.push('enrollment'); }
 
+  function getIdFromUrl(url) {
+    if(!url) url = location.search;
+    var query = url.substr(1);
+    var result = "";
+    query.split("&").forEach(function(part) {
+      var item = part.split("=");
+      result = decodeURIComponent(item[1]);
+    });
+    return result;
+  }
+
+  const url = window.location.href;
+  const id = getIdFromUrl(url)
+
   //Assume student assignment in overlay
   let overlaycontent = (<LearnerAssignment 
-    assignmentId={assignmentId}
+    assignmentId={id}
     assignmentObj={assignmentObj}
     // experimentId={experimentId}
     // activityType={activityType}
   />)
 
-  if (studentInstructor === "Instructor"){
-  overlaycontent = (<DoenetEditor hideHeader={true} 
-        branchId={"6soU1bOi77NmxYQz8nfnf"}
-        contentId={"18029ced9d03f2629636c4fdbdf5b6da76ecc624d51250863638f617045bb8be"}
-        headerTitleChange={"title here"}/> )
-  }
   // panelHeaderControls={[contextPanelMenu]}
   return (<>
     <Overlay 
