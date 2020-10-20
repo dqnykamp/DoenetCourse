@@ -49,13 +49,16 @@ const OverlayHeaderWrapper = styled.div`
 
 `;
 const OverlayContainer = styled.div`
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  height: calc(100vh - 40px);
+  // display: flex;
+  // justify-content: center;
+  // align-items: center;
+  // flex-wrap: wrap;
+  // height: calc(100vh - 40px);
+  width: 100%;
+  height: 100%;
   overflow: scroll;
-  background-color:white;
+  background-color:#fcfcfc;
+  padding: 18px;
 `;
 
 const OverlayName = styled.span`
