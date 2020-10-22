@@ -74,7 +74,8 @@ if ($row['minutes'] > 10){
         setcookie("JWT_JS", 1, $expirationTime, $path, $domain, $isSecure, 0);
 
         if ($newAccount == 1){
-            header("Location: /accountsettings");
+            // header("Location: /accountsettings");
+            header("Location: /course/#/assignments");
         }else{
             header("Location: /course/#/assignments");
 

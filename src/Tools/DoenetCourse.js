@@ -1,11 +1,11 @@
 // import DoenetViewer from '../Tools/DoenetViewer';
-// import axios from 'axios';
+import axios from 'axios';
 // import './course.css';
-import nanoid from 'nanoid';
+// import nanoid from 'nanoid';
 // import query from '../queryParamFuncs';
 // import DoenetBox from '../Tools/DoenetBox';
 // import DoenetAssignmentTree from "./DoenetAssignmentTree"
-import DoenetEditor from './DoenetEditor';
+// import DoenetEditor from './DoenetEditor';
 import {
   HashRouter as Router,
   Switch,
@@ -27,15 +27,16 @@ import MenuDropDown from '../imports/MenuDropDown.js';
 import Overlay from "../imports/Overlay";
 import {CourseAssignments,CourseAssignmentControls} from "./courseAssignments";
 import LearnerAssignment from './LearnerAssignment';
+import { useCookies } from 'react-cookie';
 
 export default function DoenetCourse(props) {
   // let ID = nanoid();
   // console.log("nanoid",ID)
-  
+  const [jwt, setJwt] = useCookies('JWT_JS');
   const [selectedCourse, setSelectedCourse] = useState({});
   const [studentInstructor,setStudentInstructor] = useState("Student")
   const [modalOpen, setModalOpen] = useState(true)
-  const [assignmentObj,setAssignmentObj] = useState({title:"test title"})
+  const [assignmentObj,setAssignmentObj] = useState({title:""})
   const [assignmentId,setAssignmentId] = useState("");
   // const [activityType,setActivityType] = useState("");
   useEffect(() => {
@@ -52,6 +53,9 @@ export default function DoenetCourse(props) {
       {id:"Instructor", label:"Instructor", callBackFunction:()=>{setStudentInstructor("Instructor")}},
   ]} />;
   }
+
+
+
   function overlayOnClose() {
     setModalOpen(false)
     // const { location: { pathname = '' } } = this.history
@@ -73,12 +77,35 @@ export default function DoenetCourse(props) {
   }
 
   const url = window.location.href;
-  const id = getIdFromUrl(url)
+  let id = getIdFromUrl(url)
+  // console.log(">>>id",id,jwt)
+
+  //If not signed in save assignmentId in a cookie
+  if (!Object.keys(jwt).includes("JWT_JS")) {
+    let maxAge = "2147483647"
+    let cookieSettingsObj = { path: "/", maxAge };
+    setJwt('assignmentId', id, cookieSettingsObj);
+    location.href = "/signin";
+  }
+  if (id === "undefined" || id === ""){
+    //Use cookie assignmentId if not defined in an url parameter
+    id = jwt.assignmentId;
+  }
+  useEffect(()=>{
+    const payload = { params: {assignmentId:id} }
+      // console.log(">>>payload getAssignmentTitle",payload)
+          axios.get('/api/getAssignmentTitle.php',payload)
+            .then(resp=>{
+            setAssignmentObj({title:resp.data.title})
+            })
+            .catch(error=>{console.warn(error)});
+  },[])
 
   //Assume student assignment in overlay
   let overlaycontent = (<LearnerAssignment 
     assignmentId={id}
     assignmentObj={assignmentObj}
+    
     // experimentId={experimentId}
     // activityType={activityType}
   />)

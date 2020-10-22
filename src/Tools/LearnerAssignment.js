@@ -12,7 +12,7 @@ export default function LearnerAssignment(props) {
   const [updateNumber,setUpdateNumber] = useState(0);
   
   useEffect(()=>{
-    console.log(">>>props",props,assignmentId,props.assignmentId !== assignmentId)
+    // console.log(">>>props",props,assignmentId,props.assignmentId !== assignmentId)
     if (props.assignmentId !== assignmentId){
       const payload = { params: {assignmentId:props.assignmentId} }
       console.log("payload",payload)
@@ -35,8 +35,10 @@ export default function LearnerAssignment(props) {
     key={"doenetviewer"+updateNumber} //each component has their own key, change the key will trick Reach to look for new component
     // free={{doenetCode: this.state.viewerDoenetML}} 
     doenetML={doenetML} 
+    assignmentId={props.assignmentId}
+    
     // requestedVariant={{index:3}}
-    requestedVariant={{value:"Eggplant"}}
+    // requestedVariant={{value:"Eggplant"}}
 //     mode={{
 //     solutionType:this.state.solutionType,
 //     allowViewSolutionWithoutRoundTrip:this.state.allowViewSolutionWithoutRoundTrip,

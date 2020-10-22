@@ -156,10 +156,10 @@ class DoenetViewer extends Component {
         assignmentId: this.assignmentId,
         attemptNumber: this.attemptNumber
       }
-      console.log("core ready payload:",payload)
+      // console.log("core ready-->> payload:",payload,this.resultingVariant)
       axios.post('/api/saveAssignmentWeights.php', payload)
         .then(resp => {
-          console.log('saveAssignmentWeights-->>',resp.data);
+          console.log('core ready-->> resp:',resp.data);
       
         });
     }
@@ -345,7 +345,7 @@ class DoenetViewer extends Component {
       itemNumber,
       itemCreditAchieved
     )
-    //
+    
     if (this.assignmentId){
       const payload = { 
         assignmentId: this.assignmentId,
@@ -353,9 +353,10 @@ class DoenetViewer extends Component {
         credit:itemCreditAchieved,
         itemNumber,
       }
+      console.log(">>>payload",payload)
       axios.post('/api/saveCreditForItem.php', payload)
         .then(resp => {
-          // console.log('saveCreditForItem-->>>',resp.data);
+          console.log('saveCreditForItem-->>>',resp.data);
       
         });
     }

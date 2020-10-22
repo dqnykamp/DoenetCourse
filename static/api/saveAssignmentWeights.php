@@ -25,6 +25,53 @@ $weights = array_map(function($item) use($conn) {
 
   //TODO: Test if weights dynamically changed then store updates
 
+//MODIFIED for experiment
+
+
+//Initiate user_assignment
+ $sql = "SELECT userId
+          FROM user_assignment
+          WHERE userId = '$userId'
+          AND assignmentId = '$assignmentId'
+          ";
+
+$result = $conn->query($sql);
+
+//Insert into user_assignment if it's missing
+if ($result->num_rows < 1){
+
+  $sql = "
+  INSERT INTO user_assignment
+  SET assignmentId='$assignmentId',
+  userId='$userId'
+  ";
+$result = $conn->query($sql);
+  
+}
+
+//Check if attempt has been stored
+$sql = "SELECT userId
+FROM user_assignment_attempt
+WHERE userId = '$userId'
+AND assignmentId = '$assignmentId'
+AND attemptNumber = '$attemptNumber'
+";
+$result = $conn->query($sql);
+//Insert into user_assignment_attempt if it's missing
+if ($result->num_rows < 1){
+
+  $sql = "
+  INSERT INTO user_assignment_attempt
+  SET assignmentId='$assignmentId',
+  userId='$userId',
+  attemptNumber='$attemptNumber',
+  began=NOW()
+  ";
+$result = $conn->query($sql);
+  
+}
+
+//Regular code
 
   $sql = "SELECT userId
           FROM  user_assignment_attempt_item
@@ -33,23 +80,22 @@ $weights = array_map(function($item) use($conn) {
           AND attemptNumber = '$attemptNumber'
   ";
 $result = $conn->query($sql);
-
 //If already stored, don't store
 if ($result->num_rows < 1){
 
 
-  $sql = "UPDATE user_assignment_attempt 
-      SET contentId='$contentId'
-      WHERE userId = '$userId'
-      AND assignmentId = '$assignmentId'
-      AND attemptNumber = '$attemptNumber'
-      ";
-$result = $conn->query($sql);
+//   $sql = "UPDATE user_assignment_attempt 
+//       SET contentId='$contentId'
+//       WHERE userId = '$userId'
+//       AND assignmentId = '$assignmentId'
+//       AND attemptNumber = '$attemptNumber'
+//       ";
+// $result = $conn->query($sql);
 
   for ($itemNumber = 1; $itemNumber < count($weights) + 1; $itemNumber++){
       //Store Item  weights
       $weight = $weights[($itemNumber -1)];
-      $sql = "INSERT INTO user_assignment_attempt_item 
+    $sql = "INSERT INTO user_assignment_attempt_item 
       (userId,assignmentId,attemptNumber,itemNumber,weight)
       values
       ('$userId','$assignmentId','$attemptNumber','$itemNumber','$weight')
