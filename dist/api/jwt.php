@@ -72,10 +72,12 @@ if ($row['minutes'] > 10){
         $isHttpOnly = true;
         setcookie("JWT", $value, $expirationTime, $path, $domain, $isSecure, $isHttpOnly);
         setcookie("JWT_JS", 1, $expirationTime, $path, $domain, $isSecure, 0);
+
         if ($newAccount == 1){
-            header("Location: /accountsettings");
+            // header("Location: /accountsettings");
+            header("Location: /course/#/assignments");
         }else{
-            header("Location: /dashboard");
+            header("Location: /course/#/assignments");
 
         }
     }

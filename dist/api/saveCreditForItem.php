@@ -95,11 +95,13 @@ $credit_for_attempt = $total_credits / $total_weights;
 
 // Store credit in user_assignment_attempt
 $sql = "UPDATE user_assignment_attempt
-        SET credit='$credit_for_attempt'
+        SET credit='$credit_for_attempt',
+        finished=NOW()
         WHERE userId = '$userId'
         AND assignmentId = '$assignmentId'
         AND attemptNumber = '$attemptNumber'
         ";
+        echo $sql;
 $result = $conn->query($sql);
 
 
