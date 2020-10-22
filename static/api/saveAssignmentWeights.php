@@ -56,6 +56,7 @@ WHERE userId = '$userId'
 AND assignmentId = '$assignmentId'
 AND attemptNumber = '$attemptNumber'
 ";
+echo $sql;
 $result = $conn->query($sql);
 //Insert into user_assignment_attempt if it's missing
 if ($result->num_rows < 1){
@@ -67,7 +68,8 @@ if ($result->num_rows < 1){
   attemptNumber='$attemptNumber',
   began=NOW()
   ";
-$result = $conn->query($sql);
+echo $sql;
+$result  = $conn->query($sql);
   
 }
 
