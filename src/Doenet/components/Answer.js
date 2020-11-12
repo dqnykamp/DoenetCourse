@@ -54,7 +54,7 @@ export default class Answer extends InlineComponent {
     properties.splitIntoOptions = { default: false, propagateToDescendants: true };
     properties.nSignErrorsMatched = { default: 0, propagateToDescendants: true };
     properties.feedbackDefinitions = { propagateToDescendants: true, mergeArrays: true }
-    
+
     properties.prefill = { propagateToDescendants: true, default: "" };
 
     properties.prefill = { propagateToDescendants: true, default: "" };
