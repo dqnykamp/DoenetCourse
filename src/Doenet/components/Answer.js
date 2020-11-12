@@ -48,7 +48,14 @@ export default class Answer extends InlineComponent {
       propagateToDescendants: true,
     };
     properties.unorderedCompare = { default: false, propagateToDescendants: true };
+    properties.allowedErrorInNumbers = { default: 0, propagateToDescendants: true };
+    properties.includeErrorInNumberExponents = { default: false, propagateToDescendants: true };
+    properties.allowedErrorIsAbsolute = { default: false, propagateToDescendants: true };
+    properties.splitIntoOptions = { default: false, propagateToDescendants: true };
+    properties.nSignErrorsMatched = { default: 0, propagateToDescendants: true };
     properties.feedbackDefinitions = { propagateToDescendants: true, mergeArrays: true }
+
+    properties.prefill = { propagateToDescendants: true, default: "" };
 
     return properties;
   }
@@ -582,13 +589,20 @@ export default class Answer extends InlineComponent {
       number: 0,
     })
 
+    let atMostOneShowCorrectness = childLogic.newLeaf({
+      name: "atMostOneShowCorrectness",
+      componentType: "showCorrectness",
+      comparison: "atMost",
+      number: 1,
+    })
+
     let awardsInputResponses = childLogic.newOperator({
       name: "awardsInputResponses",
       operator: 'and',
       propositions: [incompleteXorCompleteAwards, atMostOneInput, atLeastZeroConsiderAsResponses]
     });
 
-    childLogic.newOperator({
+    let answerOptions = childLogic.newOperator({
       name: "completeXorSugared",
       operator: 'xor',
       propositions: [
@@ -598,8 +612,14 @@ export default class Answer extends InlineComponent {
         exactlyOneText,
         // atLeastOneChoice,
       ],
-      setAsBase: true,
     });
+
+    childLogic.newOperator({
+      name: "answerChildLogic",
+      operator: "and",
+      propositions: [answerOptions, atMostOneShowCorrectness],
+      setAsBase: true,
+    })
 
     return childLogic;
   }
@@ -1307,9 +1327,9 @@ export default class Answer extends InlineComponent {
           ]
         }
       }),
-      definition({dependencyValues}) {
+      definition({ dependencyValues }) {
 
-        if(dependencyValues.submitAllAnswersAtAncestor) {
+        if (dependencyValues.submitAllAnswersAtAncestor) {
           let ancestorState = dependencyValues.sectionAncestor.stateValues;
           return {
             newValues: {
@@ -1318,10 +1338,12 @@ export default class Answer extends InlineComponent {
             }
           }
         } else {
-          return {newValues: {
-            creditAchievedForSubmitButton: dependencyValues.creditAchieved,
-            justSubmittedForSubmitButton: dependencyValues.justSubmitted
-          }}
+          return {
+            newValues: {
+              creditAchievedForSubmitButton: dependencyValues.creditAchieved,
+              justSubmittedForSubmitButton: dependencyValues.justSubmitted
+            }
+          }
         }
       }
     }
@@ -1370,10 +1392,20 @@ export default class Answer extends InlineComponent {
         showCorrectnessFlag: {
           dependencyType: "flag",
           flagName: "showCorrectness"
+        },
+        showCorrectnessChild: {
+          dependencyType: "childStateVariables",
+          childLogicName: "atMostOneShowCorrectness",
+          variableNames: ["value",]
         }
       }),
       definition({ dependencyValues }) {
-        let showCorrectness = dependencyValues.showCorrectnessFlag !== false;
+        let showCorrectness;
+        if (dependencyValues.showCorrectnessChild.length === 1) {
+          showCorrectness = dependencyValues.showCorrectnessChild[0].stateValues.value;
+        } else {
+          showCorrectness = dependencyValues.showCorrectnessFlag !== false;
+        }
         return { newValues: { showCorrectness } }
       }
     }
