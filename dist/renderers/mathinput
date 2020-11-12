@@ -1,6 +1,526 @@
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([[27,2],{
 
-/***/ 642:
+/***/ 1363:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.Text = exports.Context = exports.Node = undefined;
+
+var _Node = __webpack_require__(1364);
+
+var _Node2 = _interopRequireDefault(_Node);
+
+var _Context = __webpack_require__(1365);
+
+var _Context2 = _interopRequireDefault(_Context);
+
+var _Text = __webpack_require__(1367);
+
+var _Text2 = _interopRequireDefault(_Text);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+exports.Node = _Node2.default;
+exports.Context = _Context2.default;
+exports.Text = _Text2.default;
+exports.default = { Node: _Node2.default, Context: _Context2.default, Text: _Text2.default };
+
+/***/ }),
+
+/***/ 1364:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _propTypes = __webpack_require__(17);
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var types = {
+  ascii: 'asciimath',
+  tex: 'tex'
+};
+
+var Node = function (_React$Component) {
+  _inherits(Node, _React$Component);
+
+  function Node() {
+    _classCallCheck(this, Node);
+
+    return _possibleConstructorReturn(this, (Node.__proto__ || Object.getPrototypeOf(Node)).apply(this, arguments));
+  }
+
+  _createClass(Node, [{
+    key: 'componentDidMount',
+
+    /**
+     * Render the math once the node is mounted
+     */
+    value: function componentDidMount() {
+      this.typeset();
+    }
+
+    /**
+     * Update the jax, force update if the display mode changed
+     */
+
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate(prevProps) {
+      var forceUpdate = prevProps.inline !== this.props.inline || prevProps.children !== this.props.children;
+      this.typeset(forceUpdate);
+    }
+
+    /**
+     * Prevent update when the source has not changed
+     */
+
+  }, {
+    key: 'shouldComponentUpdate',
+    value: function shouldComponentUpdate(nextProps, nextState, nextContext) {
+      return nextProps.children !== this.props.children || nextProps.inline !== this.props.inline;
+    }
+
+    /**
+     * Clear the math when unmounting the node
+     */
+
+  }, {
+    key: 'componentWillUnmount',
+    value: function componentWillUnmount() {
+      this.clear();
+    }
+
+    /**
+     * Clear the jax
+     */
+
+  }, {
+    key: 'clear',
+    value: function clear() {
+      var MathJax = this.context.MathJax;
+
+      if (!this.script) {
+        return;
+      }
+
+      var jax = MathJax.Hub.getJaxFor(this.script);
+
+      if (jax) {
+        jax.Remove();
+      }
+    }
+
+    /**
+     * Update math in the node
+     * @param { Boolean } forceUpdate
+     */
+
+  }, {
+    key: 'typeset',
+    value: function typeset(forceUpdate) {
+      var MathJax = this.context.MathJax;
+
+
+      if (!MathJax) {
+        throw Error("Could not find MathJax while attempting typeset! Probably MathJax script hasn't been loaded or MathJax.Context is not in the hierarchy");
+      }
+
+      var text = this.props.children;
+
+      if (forceUpdate) {
+        this.clear();
+      }
+
+      if (forceUpdate || !this.script) {
+        this.setScriptText(text);
+      }
+
+      MathJax.Hub.Queue(MathJax.Hub.Reprocess(this.script, this.props.onRender));
+    }
+
+    /**
+     * Create a script
+     * @param { String } text
+     */
+
+  }, {
+    key: 'setScriptText',
+    value: function setScriptText(text) {
+      var inline = this.props.inline;
+      var type = types[this.context.input];
+      if (!this.script) {
+        this.script = document.createElement('script');
+        this.script.type = 'math/' + type + '; ' + (inline ? '' : 'mode=display');
+        this.refs.node.appendChild(this.script);
+      }
+
+      if ('text' in this.script) {
+        // IE8, etc
+        this.script.text = text;
+      } else {
+        this.script.textContent = text;
+      }
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      return _react2.default.createElement('span', { ref: 'node' });
+    }
+  }]);
+
+  return Node;
+}(_react2.default.Component);
+
+Node.propTypes = {
+  inline: _propTypes2.default.bool,
+  children: _propTypes2.default.node.isRequired,
+  onRender: _propTypes2.default.func
+};
+
+Node.contextTypes = {
+  MathJax: _propTypes2.default.object,
+  input: _propTypes2.default.string
+};
+
+Node.defaultProps = {
+  inline: false,
+  onRender: function onRender() {}
+};
+
+exports.default = Node;
+
+/***/ }),
+
+/***/ 1365:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _propTypes = __webpack_require__(17);
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
+var _loadScript = __webpack_require__(1366);
+
+var _loadScript2 = _interopRequireDefault(_loadScript);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; } /* global MathJax */
+
+/**
+ * Context for loading MathJax
+ */
+var Context = function (_React$Component) {
+  _inherits(Context, _React$Component);
+
+  function Context(props) {
+    _classCallCheck(this, Context);
+
+    var _this = _possibleConstructorReturn(this, (Context.__proto__ || Object.getPrototypeOf(Context)).call(this, props));
+
+    _this.state = { loaded: false };
+    _this.onLoad = _this.onLoad.bind(_this);
+    return _this;
+  }
+
+  _createClass(Context, [{
+    key: 'getChildContext',
+    value: function getChildContext() {
+      return {
+        MathJax: typeof MathJax === 'undefined' ? undefined : MathJax,
+        input: this.props.input
+      };
+    }
+  }, {
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      var script = this.props.script;
+
+      if (!script) {
+        return this.onLoad();
+      }
+
+      (0, _loadScript2.default)(script, this.onLoad);
+    }
+  }, {
+    key: 'onLoad',
+    value: function onLoad() {
+      var _this2 = this;
+
+      var options = this.props.options;
+
+      MathJax.Hub.Config(options);
+
+      MathJax.Hub.Register.StartupHook('End', function () {
+        MathJax.Hub.processSectionDelay = _this2.props.delay;
+
+        if (_this2.props.didFinishTypeset) {
+          _this2.props.didFinishTypeset();
+        }
+
+        if (_this2.props.onLoad) {
+          _this2.props.onLoad();
+        }
+
+        _this2.setState({
+          loaded: true
+        });
+      });
+
+      MathJax.Hub.Register.MessageHook("Math Processing Error", function (message) {
+        if (_this2.props.onError) {
+          _this2.props.onError(MathJax, message);
+        }
+      });
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      if (!this.state.loaded && !this.props.noGate) {
+        return this.props.loading;
+      }
+
+      var children = this.props.children;
+
+      return _react2.default.Children.only(children);
+    }
+  }]);
+
+  return Context;
+}(_react2.default.Component);
+
+Context.propTypes = {
+  children: _propTypes2.default.node.isRequired,
+  didFinishTypeset: _propTypes2.default.func,
+  script: _propTypes2.default.oneOfType([_propTypes2.default.string, _propTypes2.default.oneOf([false])]),
+  input: _propTypes2.default.oneOf(['ascii', 'tex']),
+  delay: _propTypes2.default.number,
+  options: _propTypes2.default.object,
+  loading: _propTypes2.default.node,
+  noGate: _propTypes2.default.bool
+};
+
+Context.childContextTypes = {
+  MathJax: _propTypes2.default.object,
+  input: _propTypes2.default.string
+};
+
+Context.defaultProps = {
+  script: 'https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML',
+  input: 'ascii',
+  delay: 0,
+  options: {},
+  loading: null,
+  noGate: false
+};
+
+exports.default = Context;
+
+/***/ }),
+
+/***/ 1366:
+/***/ (function(module, exports) {
+
+
+module.exports = function load (src, opts, cb) {
+  var head = document.head || document.getElementsByTagName('head')[0]
+  var script = document.createElement('script')
+
+  if (typeof opts === 'function') {
+    cb = opts
+    opts = {}
+  }
+
+  opts = opts || {}
+  cb = cb || function() {}
+
+  script.type = opts.type || 'text/javascript'
+  script.charset = opts.charset || 'utf8';
+  script.async = 'async' in opts ? !!opts.async : true
+  script.src = src
+
+  if (opts.attrs) {
+    setAttributes(script, opts.attrs)
+  }
+
+  if (opts.text) {
+    script.text = '' + opts.text
+  }
+
+  var onend = 'onload' in script ? stdOnEnd : ieOnEnd
+  onend(script, cb)
+
+  // some good legacy browsers (firefox) fail the 'in' detection above
+  // so as a fallback we always set onload
+  // old IE will ignore this and new IE will set onload
+  if (!script.onload) {
+    stdOnEnd(script, cb);
+  }
+
+  head.appendChild(script)
+}
+
+function setAttributes(script, attrs) {
+  for (var attr in attrs) {
+    script.setAttribute(attr, attrs[attr]);
+  }
+}
+
+function stdOnEnd (script, cb) {
+  script.onload = function () {
+    this.onerror = this.onload = null
+    cb(null, script)
+  }
+  script.onerror = function () {
+    // this.onload = null here is necessary
+    // because even IE9 works not like others
+    this.onerror = this.onload = null
+    cb(new Error('Failed to load ' + this.src), script)
+  }
+}
+
+function ieOnEnd (script, cb) {
+  script.onreadystatechange = function () {
+    if (this.readyState != 'complete' && this.readyState != 'loaded') return
+    this.onreadystatechange = null
+    cb(null, script) // there is no way to catch loading errors in IE8
+  }
+}
+
+
+/***/ }),
+
+/***/ 1367:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _propTypes = __webpack_require__(17);
+
+var _propTypes2 = _interopRequireDefault(_propTypes);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Text = function (_React$Component) {
+  _inherits(Text, _React$Component);
+
+  function Text() {
+    _classCallCheck(this, Text);
+
+    return _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).apply(this, arguments));
+  }
+
+  _createClass(Text, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      this.refreshMathJax();
+    }
+  }, {
+    key: 'componentDidUpdate',
+    value: function componentDidUpdate() {
+      this.refreshMathJax();
+    }
+  }, {
+    key: 'refreshMathJax',
+    value: function refreshMathJax() {
+      var MathJax = this.context.MathJax;
+
+      if (!MathJax) {
+        throw Error("Could not find MathJax while attempting typeset! Probably MathJax script hasn't been loaded or MathJax.Context is not in the hierarchy");
+      }
+
+      MathJax.Hub.Queue(MathJax.Hub.Typeset(this.div, this.props.onRender));
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      var _this2 = this;
+
+      var _props = this.props,
+          classes = _props.classes,
+          options = _props.options;
+
+
+      return _react2.default.createElement(
+        'div',
+        { key: this.props.text, ref: function ref(div) {
+            return _this2.div = div;
+          } },
+        this.props.text
+      );
+    }
+  }]);
+
+  return Text;
+}(_react2.default.Component);
+
+Text.contextTypes = {
+  MathJax: _propTypes2.default.object
+};
+
+exports.default = Text;
+
+/***/ }),
+
+/***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -183,7 +703,7 @@ _defineProperty(DoenetRenderer, "initializeChildrenOnConstruction", true);
 
 /***/ }),
 
-/***/ 668:
+/***/ 669:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -193,11 +713,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(159);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_1__);
-/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(642);
+/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(643);
 /* harmony import */ var math_expressions__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(1);
 /* harmony import */ var math_expressions__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(math_expressions__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var _fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(35);
 /* harmony import */ var _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(33);
+/* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(26);
+/* harmony import */ var react_mathjax2__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(1363);
+/* harmony import */ var react_mathjax2__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(react_mathjax2__WEBPACK_IMPORTED_MODULE_7__);
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -222,12 +745,31 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 
 function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
 
+function _templateObject() {
+  var data = _taggedTemplateLiteral(["\n  font-size: 23px;\n  // min-height: 30px;\n  background: rgba(0, 0, 0, 0.8);\n  width: auto;\n  display: inline-block;\n  border-radius: 5px;\n  color: white;\n  // line-height: 0px;\n  z-index: 10;\n  padding: 3px;\n  // position: absolute;\n  user-select: none;\n  // left: ", ";\n  // top: ", ";\n"]);
+
+  _templateObject = function _templateObject() {
+    return data;
+  };
+
+  return data;
+}
+
+function _taggedTemplateLiteral(strings, raw) { if (!raw) { raw = strings.slice(0); } return Object.freeze(Object.defineProperties(strings, { raw: { value: Object.freeze(raw) } })); }
 
 
 
 
 
 
+
+
+
+var Prev = styled_components__WEBPACK_IMPORTED_MODULE_6__[/* default */ "b"].div(_templateObject(), function (props) {
+  return "".concat(props.left, "px");
+}, function (props) {
+  return "".concat(props.top, "px");
+});
 
 var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
   _inherits(MathInput, _DoenetRenderer);
@@ -245,10 +787,23 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
     _this.handleBlur = _this.handleBlur.bind(_assertThisInitialized(_this));
     _this.handleFocus = _this.handleFocus.bind(_assertThisInitialized(_this));
     _this.onChangeHandler = _this.onChangeHandler.bind(_assertThisInitialized(_this));
+    _this.handleDragEnter = _this.handleDragEnter.bind(_assertThisInitialized(_this));
+    _this.handleDragThrough = _this.handleDragThrough.bind(_assertThisInitialized(_this));
+    _this.handleDragExit = _this.handleDragExit.bind(_assertThisInitialized(_this));
     _this.mathExpression = _this.doenetSvData.value;
     _this.textValue = _this.doenetSvData.value.toString();
+    _this.state = {
+      isDragging: false,
+      previewLeftOffset: _this.doenetSvData.size * 10 + 80,
+      previewTopOffset: 0,
+      clickXOffset: 0,
+      clickYOffset: 0
+    };
+    _this.inputRef = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createRef(); // this.mathInputRef = React.createRef();
+
     _this.valueToRevertTo = _this.mathExpression;
-    _this.textValueToRevertTo = _this.textValue; //Remove __ value so it doesn't show
+    _this.textValueToRevertTo = _this.textValue;
+    _this.previewValue = ""; //Remove __ value so it doesn't show
 
     if (_this.textValue === "\uFF3F") {
       _this.textValue = "";
@@ -258,6 +813,14 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
   }
 
   _createClass(MathInput, [{
+    key: "componentDidMount",
+    value: function componentDidMount() {// if (this && this.mathInputRef){
+      //   let rect = this.mathInputRef.current.getBoundingClientRect();
+      // // this.setState({previewLeftOffset: rect.width + rect.left + 2, previewTopOffset: rect.top -17}); 
+      // this.setState({previewLeftOffset: rect.left, previewTopOffset: rect.height + rect.top - 2 });
+      // }
+    }
+  }, {
     key: "calculateMathExpressionFromText",
     value: function calculateMathExpressionFromText(text) {
       var expression;
@@ -274,6 +837,8 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
   }, {
     key: "updateImmediateValueFromText",
     value: function updateImmediateValueFromText(text) {
+      var _this2 = this;
+
       this.textValue = text;
       var newMathExpression = this.calculateMathExpressionFromText(text);
 
@@ -282,6 +847,23 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
         this.actions.updateImmediateValue({
           mathExpression: newMathExpression
         });
+      } //evalute math expression
+
+
+      var nextPreviewValue = newMathExpression.toLatex();
+
+      if (nextPreviewValue === "＿") {
+        //Error
+        clearTimeout(this.timer);
+        this.timer = setTimeout(function () {
+          _this2.previewValue = "Err";
+
+          _this2.forceUpdate();
+        }, 1000);
+      } else {
+        //No Error
+        clearTimeout(this.timer);
+        this.previewValue = nextPreviewValue;
       }
     }
   }, {
@@ -298,6 +880,35 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
           this.validationState = "partialcorrect";
         }
       }
+    }
+  }, {
+    key: "handleDragEnter",
+    value: function handleDragEnter(e) {
+      this.setState({
+        isDragging: true,
+        clickXOffset: e.pageX - this.state.previewLeftOffset,
+        clickYOffset: e.pageY - this.state.previewTopOffset
+      });
+    }
+  }, {
+    key: "handleDragThrough",
+    value: function handleDragThrough(e) {
+      if (this.state.isDragging) {
+        // console.log();
+        this.setState({
+          previewLeftOffset: e.pageX - this.state.clickXOffset,
+          previewTopOffset: e.pageY - this.state.clickYOffset
+        });
+      }
+    }
+  }, {
+    key: "handleDragExit",
+    value: function handleDragExit(e) {
+      this.setState({
+        isDragging: false,
+        clickXOffset: 0,
+        clickYOffset: 0
+      });
     }
   }, {
     key: "handleKeyPress",
@@ -359,9 +970,9 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
   }, {
     key: "render",
     value: function render() {
-      var _this2 = this;
+      var _this3 = this;
 
-      if (this.doenetSvData.hide) {
+      if (this.doenetSvData.hidden) {
         return null;
       }
 
@@ -383,21 +994,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
 
         this.valueToRevertTo = this.doenetSvData.value;
         this.textValueToRevertTo = this.textValue;
-      } // TODO: how to fix case where have readyonly?
-      // need to revert mathExpression in that case
-      // else if(!this.mathExpression.equalsViaSyntax(this.doenetSvData.immediateValue)) {
-      //   console.log(`for ${this.componentName}`)
-      //   console.log(`math expression: ${this.mathExpression.toString()}`)
-      //   console.log(`immediateValue: ${this.doenetSvData.immediateValue.toString()}`)
-      //   this.mathExpression = this.doenetSvData.value;
-      //   this.textValue = this.mathExpression.toString();
-      //   if (this.textValue === '\uFF3F') {
-      //     this.textValue = "";
-      //   }
-      //   this.valueToRevertTo = this.doenetSvData.value;
-      //   this.textValueToRevertTo = this.textValue;
-      // }
-
+      }
 
       var checkWorkStyle = {
         position: "relative",
@@ -409,7 +1006,8 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
         display: "inline-block",
         textAlign: "center",
         top: "3px",
-        padding: "2px"
+        padding: "2px",
+        zIndex: "0"
       }; //Assume we don't have a check work button
 
       var checkWorkButton = null;
@@ -421,13 +1019,13 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
             id: this.componentName + '_submit',
             tabIndex: "0",
             ref: function ref(c) {
-              _this2.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
+              _this3.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
             },
             style: checkWorkStyle,
             onClick: this.actions.submitAnswer,
             onKeyPress: function onKeyPress(e) {
               if (e.key === 'Enter') {
-                _this2.actions.submitAnswer();
+                _this3.actions.submitAnswer();
               }
             }
           }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_4__[/* FontAwesomeIcon */ "a"], {
@@ -444,7 +1042,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
                 id: this.componentName + '_correct',
                 style: checkWorkStyle,
                 ref: function ref(c) {
-                  _this2.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
+                  _this3.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
                 }
               }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_4__[/* FontAwesomeIcon */ "a"], {
                 icon: _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_5__[/* faCheck */ "o"]
@@ -459,7 +1057,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
                 id: this.componentName + '_partial',
                 style: checkWorkStyle,
                 ref: function ref(c) {
-                  _this2.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
+                  _this3.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
                 }
               }, partialCreditContents);
             } else {
@@ -469,7 +1067,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
                 id: this.componentName + '_incorrect',
                 style: checkWorkStyle,
                 ref: function ref(c) {
-                  _this2.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
+                  _this3.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
                 }
               }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_4__[/* FontAwesomeIcon */ "a"], {
                 icon: _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_5__[/* faTimes */ "V"]
@@ -482,7 +1080,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
               id: this.componentName + '_saved',
               style: checkWorkStyle,
               ref: function ref(c) {
-                _this2.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
+                _this3.target = c && react_dom__WEBPACK_IMPORTED_MODULE_1___default.a.findDOMNode(c);
               }
             }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_4__[/* FontAwesomeIcon */ "a"], {
               icon: _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_5__[/* faCloud */ "s"]
@@ -499,6 +1097,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("input", {
         key: inputKey,
         id: inputKey,
+        ref: this.inputRef,
         value: this.textValue,
         disabled: this.doenetSvData.disabled,
         onChange: this.onChangeHandler,
@@ -512,14 +1111,42 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
           fontSize: "14px",
           borderWidth: "1px",
           borderColor: surroundingBorderColor,
-          padding: "4px"
+          padding: "4px" // position: "absolute",
+
         }
-      }), checkWorkButton));
+      }), checkWorkButton, this.textValue ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(Prev, {
+        style: {
+          top: this.state.previewTopOffset + "px",
+          left: this.state.previewLeftOffset + "px"
+        },
+        onMouseDown: this.handleDragEnter,
+        onMouseMove: this.handleDragThrough,
+        onMouseUp: this.handleDragExit,
+        onMouseLeave: this.handleDragExit
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_mathjax2__WEBPACK_IMPORTED_MODULE_7___default.a.Context, {
+        input: "tex"
+      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_mathjax2__WEBPACK_IMPORTED_MODULE_7___default.a.Node, {
+        inline: true
+      }, this.textValue ? this.previewValue : ''))))) : null));
     }
   }]);
 
   return MathInput;
-}(_DoenetRenderer__WEBPACK_IMPORTED_MODULE_2__["default"]);
+}(_DoenetRenderer__WEBPACK_IMPORTED_MODULE_2__["default"]); // TODO: how to fix case where have readyonly?
+// need to revert mathExpression in that case
+// else if(!this.mathExpression.equalsViaSyntax(this.doenetSvData.immediateValue)) {
+//   console.log(`for ${this.componentName}`)
+//   console.log(`math expression: ${this.mathExpression.toString()}`)
+//   console.log(`immediateValue: ${this.doenetSvData.immediateValue.toString()}`)
+//   this.mathExpression = this.doenetSvData.value;
+//   this.textValue = this.mathExpression.toString();
+//   if (this.textValue === '\uFF3F') {
+//     this.textValue = "";
+//   }
+//   this.valueToRevertTo = this.doenetSvData.value;
+//   this.textValueToRevertTo = this.textValue;
+// }
+
 
 _defineProperty(MathInput, "initializeChildrenOnConstruction", false);
 

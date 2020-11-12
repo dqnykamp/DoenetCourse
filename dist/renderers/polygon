@@ -1,6 +1,6 @@
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([[35,2],{
 
-/***/ 642:
+/***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -183,7 +183,7 @@ _defineProperty(DoenetRenderer, "initializeChildrenOnConstruction", true);
 
 /***/ }),
 
-/***/ 676:
+/***/ 677:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -191,7 +191,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Polygon; });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(642);
+/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(643);
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
@@ -291,7 +291,7 @@ var Polygon = /*#__PURE__*/function (_DoenetRenderer) {
 
       this.jsxPolygonAttributes = {
         name: this.doenetSvData.label,
-        visible: !this.doenetSvData.hide,
+        visible: !this.doenetSvData.hidden,
         withLabel: this.doenetSvData.showLabel && this.doenetSvData.label !== "",
         fixed: this.doenetSvData.draggable !== true,
         layer: 10 * this.doenetSvData.layer + 7,
@@ -497,7 +497,7 @@ var Polygon = /*#__PURE__*/function (_DoenetRenderer) {
         this.polygonJXG.vertices[_i2].update();
       }
 
-      var visibleNow = !this.doenetSvData.hide;
+      var visibleNow = !this.doenetSvData.hidden;
 
       if (!validCoords) {
         visibleNow = false;
@@ -530,17 +530,20 @@ var Polygon = /*#__PURE__*/function (_DoenetRenderer) {
   }, {
     key: "render",
     value: function render() {
-      if (this.doenetSvData.hide) {
-        return null;
-      }
-
       if (this.props.board) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
           name: this.componentName
         }), this.children);
       }
 
-      return null;
+      if (this.doenetSvData.hidden) {
+        return null;
+      } // don't think we want to return anything if not in board
+
+
+      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
+        name: this.componentName
+      }));
     }
   }]);
 

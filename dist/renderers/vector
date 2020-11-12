@@ -1,6 +1,6 @@
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([[51,2],{
 
-/***/ 642:
+/***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -183,7 +183,7 @@ _defineProperty(DoenetRenderer, "initializeChildrenOnConstruction", true);
 
 /***/ }),
 
-/***/ 691:
+/***/ 692:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -191,7 +191,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return Vector; });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(642);
+/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(643);
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _toConsumableArray(arr) { return _arrayWithoutHoles(arr) || _iterableToArray(arr) || _unsupportedIterableToArray(arr) || _nonIterableSpread(); }
@@ -275,7 +275,7 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
 
       var jsxVectorAttributes = {
         name: this.doenetSvData.label,
-        visible: !this.doenetSvData.hide,
+        visible: !this.doenetSvData.hidden,
         withLabel: this.doenetSvData.showLabel && this.doenetSvData.label !== "",
         fixed: this.doenetSvData.draggable !== true,
         layer: layer,
@@ -381,14 +381,34 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
 
       this.vectorJXG.point1.coords.setCoordinates(JXG.COORDS_BY_USER, this.doenetSvData.numericalEndpoints[0]);
       this.vectorJXG.point2.coords.setCoordinates(JXG.COORDS_BY_USER, this.doenetSvData.numericalEndpoints[1]);
-      var visible = !this.doenetSvData.hide;
+      var visible = !this.doenetSvData.hidden;
 
       if (validPoints) {
         this.vectorJXG.visProp["visible"] = visible;
         this.vectorJXG.visPropCalc["visible"] = visible; // this.vectorJXG.setAttribute({visible: visible})
+
+        this.point1JXG.visProp["visible"] = visible;
+        this.point1JXG.visPropCalc["visible"] = visible;
+        this.point2JXG.visProp["visible"] = visible;
+        this.point2JXG.visPropCalc["visible"] = visible;
       } else {
         this.vectorJXG.visProp["visible"] = false;
         this.vectorJXG.visPropCalc["visible"] = false; // this.vectorJXG.setAttribute({visible: false})
+
+        this.point1JXG.visProp["visible"] = false;
+        this.point1JXG.visPropCalc["visible"] = false;
+        this.point2JXG.visProp["visible"] = false;
+        this.point2JXG.visPropCalc["visible"] = false;
+      }
+
+      if (this.componentName in sourceOfUpdate.sourceInformation) {
+        var sourceInfo = sourceOfUpdate.sourceInformation[this.componentName];
+
+        if (sourceInfo.vertex === 1) {
+          this.props.board.updateInfobox(this.point1JXG);
+        } else if (sourceInfo.vertex === 2) {
+          this.props.board.updateInfobox(this.point2JXG);
+        }
       }
 
       this.vectorJXG.name = this.doenetSvData.label; // this.vectorJXG.visProp.withlabel = this.showlabel && this.label !== "";
@@ -445,6 +465,12 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
         instructions.tailcoords = [this.vectorJXG.point1.X(), this.vectorJXG.point1.Y()];
       }
 
+      if (i == 1 || i == 2) {
+        instructions.sourceInformation = {
+          vertex: i
+        };
+      }
+
       if (!_transient) {
         this.headBeingDragged = false;
         this.tailBeingDragged = false;
@@ -478,14 +504,14 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
   }, {
     key: "render",
     value: function render() {
-      if (this.doenetSvData.hide) {
-        return null;
-      }
-
       if (this.props.board) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
           name: this.componentName
         }), this.children);
+      }
+
+      if (this.doenetSvData.hidden) {
+        return null;
       }
 
       var mathJaxify = "\\(" + this.doenetSvData.displacementCoords + "\\)";

@@ -1,6 +1,6 @@
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([[26,2],{
 
-/***/ 642:
+/***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -183,7 +183,7 @@ _defineProperty(DoenetRenderer, "initializeChildrenOnConstruction", true);
 
 /***/ }),
 
-/***/ 667:
+/***/ 668:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -191,7 +191,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return MathRenderer; });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(642);
+/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(643);
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -214,8 +214,6 @@ function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Re
 
 function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) { return o.__proto__ || Object.getPrototypeOf(o); }; return _getPrototypeOf(o); }
 
-function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
-
 
 
 
@@ -232,6 +230,7 @@ var MathRenderer = /*#__PURE__*/function (_DoenetRenderer) {
 
   _createClass(MathRenderer, [{
     key: "componentDidMount",
+    // static initializeChildrenOnConstruction = false;
     value: function componentDidMount() {
       window.MathJax.Hub.Config({
         showProcessingMessages: false,
@@ -250,39 +249,77 @@ var MathRenderer = /*#__PURE__*/function (_DoenetRenderer) {
   }, {
     key: "render",
     value: function render() {
-      if (this.doenetSvData.hide) {
+      var _this = this;
+
+      if (this.doenetSvData.hidden) {
         return null;
       }
 
-      var mathJaxify = this.doenetSvData.latex;
+      var beginDelim, endDelim;
 
       if (this.doenetSvData.renderMode === "inline") {
-        mathJaxify = "\\(" + mathJaxify + "\\)";
+        beginDelim = "\\(";
+        endDelim = "\\)";
       } else if (this.doenetSvData.renderMode === "display") {
-        mathJaxify = "\\[" + mathJaxify + "\\]";
+        beginDelim = "\\[";
+        endDelim = "\\]";
       } else if (this.doenetSvData.renderMode === "numbered") {
-        mathJaxify = "\\begin{gather}" + mathJaxify + "\\end{gather}";
+        beginDelim = "\\begin{gather}";
+        endDelim = "\\end{gather}";
       } else if (this.doenetSvData.renderMode === "align") {
-        mathJaxify = "\\begin{align*}" + mathJaxify + "\\end{align*}";
+        beginDelim = "\\begin{align*}";
+        endDelim = "\\end{align*}";
       } else if (this.doenetSvData.renderMode === "alignnumbered") {
-        mathJaxify = "\\begin{align}" + mathJaxify + "\\end{align}";
+        beginDelim = "\\begin{align}";
+        endDelim = "\\end{align}";
       } else {
         // treat as inline if have unrecognized renderMode
-        mathJaxify = "\\(" + mathJaxify + "\\)";
-      }
+        beginDelim = "\\(";
+        endDelim = "\\)";
+      } // if element of latexOrInputChildren is a number,
+      // then that element is an index of which child (a mathinput) to render
+      // else, that element is a latex string
+      // TODO: we don't want deliminers around each piece,
+      // instead, we want to be able to put the mathinput inside mathjax
+      // This is just a stopgap solution that works in a few simple cases!!!
 
-      return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
-        name: this.componentName
-      }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
-        id: this.componentName
-      }, mathJaxify));
+
+      var latexOrInputChildren = this.doenetSvData.latexWithInputChildren.map(function (x) {
+        return typeof x === "number" ? _this.children[x] : beginDelim + x + endDelim;
+      }); // TODO: BADBADBAD
+      // Don't understand why MathJax isn't updating when using {latexOrInputChildren}
+      // so hard coded the only two cases using so far: with 1 or 2 entries
+
+      if (latexOrInputChildren.length === 0) {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
+          name: this.componentName
+        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          id: this.componentName
+        }));
+      } else if (latexOrInputChildren.length === 1) {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
+          name: this.componentName
+        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          id: this.componentName
+        }, latexOrInputChildren[0]));
+      } else if (latexOrInputChildren.length === 2) {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
+          name: this.componentName
+        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          id: this.componentName
+        }, latexOrInputChildren[0], latexOrInputChildren[1]));
+      } else {
+        return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
+          name: this.componentName
+        }), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          id: this.componentName
+        }, latexOrInputChildren[0]));
+      }
     }
   }]);
 
   return MathRenderer;
 }(_DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__["default"]);
-
-_defineProperty(MathRenderer, "initializeChildrenOnConstruction", false);
 
 
 

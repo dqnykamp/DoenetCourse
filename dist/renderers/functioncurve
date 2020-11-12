@@ -1,6 +1,6 @@
 (window["webpackJsonp"] = window["webpackJsonp"] || []).push([[18,2],{
 
-/***/ 642:
+/***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -183,7 +183,7 @@ _defineProperty(DoenetRenderer, "initializeChildrenOnConstruction", true);
 
 /***/ }),
 
-/***/ 659:
+/***/ 660:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -191,7 +191,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "default", function() { return FunctionCurve; });
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(0);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_0__);
-/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(642);
+/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(643);
 function _typeof(obj) { "@babel/helpers - typeof"; if (typeof Symbol === "function" && typeof Symbol.iterator === "symbol") { _typeof = function _typeof(obj) { return typeof obj; }; } else { _typeof = function _typeof(obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; }; } return _typeof(obj); }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -250,7 +250,7 @@ var FunctionCurve = /*#__PURE__*/function (_DoenetRenderer) {
       //things to be passed to JSXGraph as attributes
       var curveAttributes = {
         name: this.doenetSvData.label,
-        visible: !this.doenetSvData.hide,
+        visible: !this.doenetSvData.hidden,
         withLabel: this.doenetSvData.showLabel && this.doenetSvData.label !== "",
         fixed: true,
         //this.doenetSvData.draggable !== true,
@@ -338,7 +338,7 @@ var FunctionCurve = /*#__PURE__*/function (_DoenetRenderer) {
         this.props.board.itemsRenderedLowQuality[this._key] = this.curveJXG;
       }
 
-      var visible = !this.doenetSvData.hide;
+      var visible = !this.doenetSvData.hidden;
       this.curveJXG.name = this.doenetSvData.label;
       this.curveJXG.visProp["visible"] = visible;
       this.curveJXG.visPropCalc["visible"] = visible;
@@ -369,14 +369,14 @@ var FunctionCurve = /*#__PURE__*/function (_DoenetRenderer) {
   }, {
     key: "render",
     value: function render() {
-      if (this.doenetSvData.hide) {
-        return null;
-      }
-
       if (this.props.board) {
         return /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("a", {
           name: this.componentName
         }), this.children);
+      }
+
+      if (this.doenetSvData.hidden) {
+        return null;
       } // don't think we want to return anything if not in board
 
 
