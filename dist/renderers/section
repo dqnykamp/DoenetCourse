@@ -1,4 +1,4 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[40,2],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[42,4],{
 
 /***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -221,6 +221,8 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 
 
 
+
+
 var Section = /*#__PURE__*/function (_DoenetRenderer) {
   _inherits(Section, _DoenetRenderer);
 
@@ -255,34 +257,69 @@ var Section = /*#__PURE__*/function (_DoenetRenderer) {
 
       if (this.doenetSvData.collapsible) {
         if (this.doenetSvData.open) {
-          title = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, title, " (close section)");
+          title = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_2__[/* FontAwesomeIcon */ "a"], {
+            icon: _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_3__[/* faCaretDown */ "j"]
+          }), " ", title, " (click to close)");
         } else {
-          title = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, title, " (open section)");
+          title = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react__WEBPACK_IMPORTED_MODULE_0___default.a.Fragment, null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_2__[/* FontAwesomeIcon */ "a"], {
+            icon: _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_3__[/* faCaretRight */ "k"]
+          }), " ", title, " (click to open)");
         }
-      }
+      } // if (this.doenetSvData.level === 0) {
+      //   heading = <h1 id={id}>{title}</h1>;
+      // } else if (this.doenetSvData.level === 1) {
+      //   heading = <h2 id={id}>{title}</h2>;
+      // } else if (this.doenetSvData.level === 2) {
+      //   heading = <h3 id={id}>{title}</h3>;
+      // } else if (this.doenetSvData.level === 3) {
+      //   heading = <h4 id={id}>{title}</h4>;
+      // } else if (this.doenetSvData.level === 4) {
+      //   heading = <h5 id={id}>{title}</h5>;
+      // } else if (this.doenetSvData.level === 5) {
+      //   heading = <h6 id={id}>{title}</h6>;
+      // }
+
 
       if (this.doenetSvData.level === 0) {
-        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h1", {
+        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          style: {
+            fontSize: "30px"
+          },
           id: id
         }, title);
       } else if (this.doenetSvData.level === 1) {
-        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h2", {
+        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          style: {
+            fontSize: "26px"
+          },
           id: id
         }, title);
       } else if (this.doenetSvData.level === 2) {
-        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h3", {
+        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          style: {
+            fontSize: "22px"
+          },
           id: id
         }, title);
       } else if (this.doenetSvData.level === 3) {
-        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h4", {
+        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          style: {
+            fontSize: "18px"
+          },
           id: id
         }, title);
       } else if (this.doenetSvData.level === 4) {
-        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h5", {
+        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          style: {
+            fontSize: "14px"
+          },
           id: id
         }, title);
       } else if (this.doenetSvData.level === 5) {
-        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("h6", {
+        heading = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+          style: {
+            fontSize: "12px"
+          },
           id: id
         }, title);
       }
@@ -388,7 +425,7 @@ var Section = /*#__PURE__*/function (_DoenetRenderer) {
               display: "block",
               margin: "4px 4px 0px 4px",
               padding: "6px",
-              border: "1px solid #ebebeb",
+              border: "1px solid #C9C9C9",
               backgroundColor: "#ebebeb",
               cursor: "pointer"
             },
@@ -400,8 +437,8 @@ var Section = /*#__PURE__*/function (_DoenetRenderer) {
               display: "block",
               margin: "0px 4px 4px 4px",
               padding: "6px",
-              border: "1px solid #ebebeb",
-              backgroundColor: "#fcfcfc"
+              border: "1px solid #C9C9C9",
+              backgroundColor: "white"
             }
           }, childrenToRender, checkworkComponent));
         } else {
@@ -412,7 +449,7 @@ var Section = /*#__PURE__*/function (_DoenetRenderer) {
               display: "block",
               margin: "4px 4px 0px 4px",
               padding: "6px",
-              border: "1px solid #ebebeb",
+              border: "1px solid #C9C9C9",
               backgroundColor: "#ebebeb",
               cursor: "pointer"
             },

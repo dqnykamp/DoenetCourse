@@ -1,4 +1,4 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[5,2],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[7,4],{
 
 /***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -264,10 +264,14 @@ var Answer = /*#__PURE__*/function (_DoenetRenderer) {
           backgroundColor: "rgb(2, 117, 216)",
           padding: "1px 6px 1px 6px",
           color: "white",
-          fontWeight: "bold",
-          marginBottom: "30px" //Space after check work
+          fontWeight: "bold" //marginBottom: "30px",  //Space after check work
 
         };
+
+        if (this.doenetSvData.disabled) {
+          checkWorkStyle.backgroundColor = "rgb(200,200,200)";
+        }
+
         var checkWorkText = "Check Work";
 
         if (!this.doenetSvData.showCorrectness) {
@@ -277,6 +281,7 @@ var Answer = /*#__PURE__*/function (_DoenetRenderer) {
         var checkworkComponent = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("button", {
           id: this.componentName + "_submit",
           tabIndex: "0",
+          disabled: this.doenetSvData.disabled,
           style: checkWorkStyle,
           onClick: submitAnswer,
           onKeyPress: function onKeyPress(e) {

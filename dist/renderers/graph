@@ -1,4 +1,4 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[19,2],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[21,4],{
 
 /***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -259,10 +259,11 @@ var Graph = /*#__PURE__*/function (_DoenetRenderer) {
       this.board = window.JXG.JSXGraph.initBoard(this.componentName, {
         boundingbox: boundingbox,
         axis: false,
-        showCopyright: false
+        showCopyright: false,
+        showNavigation: this.doenetSvData.showNavigation
       });
 
-      if (this.doenetSvData.displayAxes) {
+      if (this.doenetSvData.displayXAxis) {
         var xaxisOptions = {};
 
         if (this.doenetSvData.xlabel) {
@@ -282,7 +283,15 @@ var Graph = /*#__PURE__*/function (_DoenetRenderer) {
           minorTicks: 5,
           precision: 4
         };
+
+        if (!this.doenetSvData.displayYAxis) {
+          xaxisOptions.ticks.drawZero = true;
+        }
+
         var xaxis = this.board.create('axis', [[0, 0], [1, 0]], xaxisOptions);
+      }
+
+      if (this.doenetSvData.displayYAxis) {
         var yaxisOptions = {};
 
         if (this.doenetSvData.ylabel) {
@@ -302,6 +311,11 @@ var Graph = /*#__PURE__*/function (_DoenetRenderer) {
           minorTicks: 4,
           precision: 4
         };
+
+        if (!this.doenetSvData.displayXAxis) {
+          yaxisOptions.ticks.drawZero = true;
+        }
+
         var yaxis = this.board.create('axis', [[0, 0], [0, 1]], yaxisOptions);
       }
 

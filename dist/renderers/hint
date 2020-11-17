@@ -1,4 +1,4 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[20,2],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[22,4],{
 
 /***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -223,6 +223,8 @@ function _getPrototypeOf(o) { _getPrototypeOf = Object.setPrototypeOf ? Object.g
 
 
 
+
+
 var Hint = /*#__PURE__*/function (_DoenetRenderer) {
   _inherits(Hint, _DoenetRenderer);
 
@@ -251,6 +253,9 @@ var Hint = /*#__PURE__*/function (_DoenetRenderer) {
         title = this.doenetSvData.title;
       }
 
+      var twirlIcon = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_2__[/* FontAwesomeIcon */ "a"], {
+        icon: _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_3__[/* faCaretRight */ "k"]
+      });
       var icon = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_2__[/* FontAwesomeIcon */ "a"], {
         icon: _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_3__[/* faLightbulb */ "F"]
       });
@@ -259,17 +264,22 @@ var Hint = /*#__PURE__*/function (_DoenetRenderer) {
         display: "none"
       };
       var onClickFunction;
+      var openCloseText = "open";
 
       if (this.doenetSvData.open) {
+        twirlIcon = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_2__[/* FontAwesomeIcon */ "a"], {
+          icon: _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_3__[/* faCaretDown */ "j"]
+        });
+        openCloseText = "close";
         icon = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(_fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_2__[/* FontAwesomeIcon */ "a"], {
-          icon: _fortawesome_free_regular_svg_icons__WEBPACK_IMPORTED_MODULE_4__[/* faLightbulb */ "a"]
+          icon: _fortawesome_free_regular_svg_icons__WEBPACK_IMPORTED_MODULE_4__[/* faLightbulb */ "b"]
         });
         info = childrenToRender;
         infoBlockStyle = {
           display: "block",
           margin: "0px 4px 4px 4px",
           padding: "6px",
-          border: "1px solid #ebebeb",
+          border: "1px solid #C9C9C9",
           backgroundColor: "#fcfcfc"
         };
         onClickFunction = this.actions.closeHint;
@@ -287,12 +297,12 @@ var Hint = /*#__PURE__*/function (_DoenetRenderer) {
           display: "block",
           margin: "4px 4px 0px 4px",
           padding: "6px",
-          border: "1px solid #ebebeb",
+          border: "1px solid #C9C9C9",
           backgroundColor: "#ebebeb",
           cursor: "pointer"
         },
         onClick: onClickFunction
-      }, icon, " ", title, " "), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
+      }, twirlIcon, " ", icon, " ", title, " (click to ", openCloseText, ")"), /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("span", {
         style: infoBlockStyle
       }, info));
     }

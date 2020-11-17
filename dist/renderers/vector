@@ -1,4 +1,4 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[51,2],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[53,4],{
 
 /***/ 643:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
@@ -300,32 +300,60 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
         layer: layer + 1
       });
 
-      if (this.doenetSvData.draggable !== true) {
+      if (!this.doenetSvData.draggable) {
         jsxPointAttributes.visible = false;
       } // create invisible points at endpoints
 
 
-      this.point1JXG = this.props.board.create('point', endpoints[0], jsxPointAttributes);
-      this.point2JXG = this.props.board.create('point', endpoints[1], jsxPointAttributes);
+      var tailPointAttributes = Object.assign({}, jsxPointAttributes);
+
+      if (!this.doenetSvData.tailDraggable) {
+        tailPointAttributes.visible = false;
+      }
+
+      this.point1JXG = this.props.board.create('point', endpoints[0], tailPointAttributes);
+      var headPointAttributes = Object.assign({}, jsxPointAttributes);
+
+      if (!this.doenetSvData.headDraggable) {
+        headPointAttributes.visible = false;
+      }
+
+      this.point2JXG = this.props.board.create('point', endpoints[1], headPointAttributes);
       this.vectorJXG = this.props.board.create('arrow', [this.point1JXG, this.point2JXG], jsxVectorAttributes);
-      this.point1JXG.on('drag', function () {
-        return _this2.onDragHandler(1, true);
+      this.point1JXG.on('drag', function (e) {
+        return _this2.onDragHandler(e, 0, true);
       });
-      this.point2JXG.on('drag', function () {
-        return _this2.onDragHandler(2, true);
+      this.point2JXG.on('drag', function (e) {
+        return _this2.onDragHandler(e, 1, true);
       });
-      this.vectorJXG.on('drag', function () {
-        return _this2.onDragHandler(0, true);
+      this.vectorJXG.on('drag', function (e) {
+        return _this2.onDragHandler(e, -1, true);
       });
-      this.point1JXG.on('up', function () {
-        return _this2.onDragHandler(1, false);
+      this.point1JXG.on('up', function (e) {
+        return _this2.onDragHandler(e, 0, false);
       });
-      this.point2JXG.on('up', function () {
-        return _this2.onDragHandler(2, false);
+      this.point2JXG.on('up', function (e) {
+        return _this2.onDragHandler(e, 1, false);
       });
-      this.vectorJXG.on('up', function () {
-        return _this2.onDragHandler(0, false);
+      this.vectorJXG.on('up', function (e) {
+        return _this2.onDragHandler(e, -1, false);
       });
+      this.point1JXG.on('down', function (e) {
+        this.headBeingDragged = false;
+        this.tailBeingDragged = false;
+      });
+      this.point2JXG.on('down', function (e) {
+        this.headBeingDragged = false;
+        this.tailBeingDragged = false;
+      }); // if drag vector, need to keep track of original point positions
+      // so that they won't get stuck in an attractor
+
+      this.vectorJXG.on('down', function (e) {
+        this.headBeingDragged = false;
+        this.tailBeingDragged = false;
+        this.pointerAtDown = [e.x, e.y];
+        this.pointsAtDown = [_toConsumableArray(this.vectorJXG.point1.coords.scrCoords), _toConsumableArray(this.vectorJXG.point2.coords.scrCoords)];
+      }.bind(this));
       return this.vectorJXG;
     }
   }, {
@@ -387,10 +415,37 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
         this.vectorJXG.visProp["visible"] = visible;
         this.vectorJXG.visPropCalc["visible"] = visible; // this.vectorJXG.setAttribute({visible: visible})
 
-        this.point1JXG.visProp["visible"] = visible;
-        this.point1JXG.visPropCalc["visible"] = visible;
-        this.point2JXG.visProp["visible"] = visible;
-        this.point2JXG.visPropCalc["visible"] = visible;
+        if (this.doenetSvData.draggable) {
+          this.vectorJXG.visProp["fixed"] = false;
+
+          if (this.doenetSvData.tailDraggable) {
+            this.point1JXG.visProp["visible"] = visible;
+            this.point1JXG.visPropCalc["visible"] = visible;
+            this.point1JXG.visProp["fixed"] = false;
+          } else {
+            this.point1JXG.visProp["visible"] = false;
+            this.point1JXG.visPropCalc["visible"] = false;
+            this.point1JXG.visProp["fixed"] = true;
+          }
+
+          if (this.doenetSvData.headDraggable) {
+            this.point2JXG.visProp["visible"] = visible;
+            this.point2JXG.visPropCalc["visible"] = visible;
+            this.point2JXG.visProp["fixed"] = false;
+          } else {
+            this.point2JXG.visProp["visible"] = false;
+            this.point2JXG.visPropCalc["visible"] = false;
+            this.point2JXG.visProp["fixed"] = true;
+          }
+        } else {
+          this.vectorJXG.visProp["fixed"] = true;
+          this.point1JXG.visProp["visible"] = false;
+          this.point1JXG.visPropCalc["visible"] = false;
+          this.point1JXG.visProp["fixed"] = true;
+          this.point2JXG.visProp["visible"] = false;
+          this.point2JXG.visPropCalc["visible"] = false;
+          this.point2JXG.visProp["fixed"] = true;
+        }
       } else {
         this.vectorJXG.visProp["visible"] = false;
         this.vectorJXG.visPropCalc["visible"] = false; // this.vectorJXG.setAttribute({visible: false})
@@ -404,9 +459,9 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
       if (this.componentName in sourceOfUpdate.sourceInformation) {
         var sourceInfo = sourceOfUpdate.sourceInformation[this.componentName];
 
-        if (sourceInfo.vertex === 1) {
+        if (sourceInfo.vertex === 0) {
           this.props.board.updateInfobox(this.point1JXG);
-        } else if (sourceInfo.vertex === 2) {
+        } else if (sourceInfo.vertex === 1) {
           this.props.board.updateInfobox(this.point2JXG);
         }
       }
@@ -438,11 +493,11 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
     }
   }, {
     key: "onDragHandler",
-    value: function onDragHandler(i, _transient) {
+    value: function onDragHandler(e, i, _transient) {
       if (_transient) {
-        if (i === 1) {
+        if (i === 0) {
           this.tailBeingDragged = true;
-        } else if (i === 2) {
+        } else if (i === 1) {
           this.headBeingDragged = true;
         } else {
           this.headBeingDragged = true;
@@ -457,28 +512,42 @@ var Vector = /*#__PURE__*/function (_DoenetRenderer) {
 
       if (this.headBeingDragged) {
         performMove = true;
-        instructions.headcoords = [this.vectorJXG.point2.X(), this.vectorJXG.point2.Y()];
+
+        if (i === -1) {
+          instructions.headcoords = this.calculatePointPosition(e, 1);
+        } else {
+          instructions.headcoords = [this.vectorJXG.point2.X(), this.vectorJXG.point2.Y()];
+        }
       }
 
       if (this.tailBeingDragged) {
         performMove = true;
-        instructions.tailcoords = [this.vectorJXG.point1.X(), this.vectorJXG.point1.Y()];
+
+        if (i === -1) {
+          instructions.tailcoords = this.calculatePointPosition(e, 0);
+        } else {
+          instructions.tailcoords = [this.vectorJXG.point1.X(), this.vectorJXG.point1.Y()];
+        }
       }
 
-      if (i == 1 || i == 2) {
+      if (i === 0 || i === 1) {
         instructions.sourceInformation = {
           vertex: i
         };
       }
 
-      if (!_transient) {
-        this.headBeingDragged = false;
-        this.tailBeingDragged = false;
-      }
-
       if (performMove) {
         this.actions.moveVector(instructions);
       }
+    }
+  }, {
+    key: "calculatePointPosition",
+    value: function calculatePointPosition(e, i) {
+      var o = this.props.board.origin.scrCoords;
+      var calculatedX = (this.pointsAtDown[i][1] + e.x - this.pointerAtDown[0] - o[1]) / this.props.board.unitX;
+      var calculatedY = (o[2] - (this.pointsAtDown[i][2] + e.y - this.pointerAtDown[1])) / this.props.board.unitY;
+      var pointCoords = [calculatedX, calculatedY];
+      return pointCoords;
     }
   }, {
     key: "componentDidMount",
