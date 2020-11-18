@@ -56,7 +56,7 @@ export default function LearnerAssignment(props) {
     // </>)
   }
 
-  return <div>{mainPanel}</div>
+  return <div style={{marginRight:"50px", maxWidth:"800px"}}>{mainPanel}</div>
 
 // return (<ToolLayout hideHeader={true}>
 //   <ToolLayoutPanel  panelName="Left Nav"> <div >Coming Soon</div> </ToolLayoutPanel>
