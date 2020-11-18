@@ -1114,20 +1114,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
           padding: "4px" // position: "absolute",
 
         }
-      }), checkWorkButton, this.textValue ? /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(Prev, {
-        style: {
-          top: this.state.previewTopOffset + "px",
-          left: this.state.previewLeftOffset + "px"
-        },
-        onMouseDown: this.handleDragEnter,
-        onMouseMove: this.handleDragThrough,
-        onMouseUp: this.handleDragExit,
-        onMouseLeave: this.handleDragExit
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_mathjax2__WEBPACK_IMPORTED_MODULE_7___default.a.Context, {
-        input: "tex"
-      }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement("div", null, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_0___default.a.createElement(react_mathjax2__WEBPACK_IMPORTED_MODULE_7___default.a.Node, {
-        inline: true
-      }, this.textValue ? this.previewValue : ''))))) : null));
+      }), checkWorkButton));
     }
   }]);
 
