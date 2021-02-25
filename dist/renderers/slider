@@ -1,6 +1,6 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[41,50],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[43,52],{
 
-/***/ 496:
+/***/ 501:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -131,7 +131,7 @@ function useDoenetRenderer(props) {
 
 /***/ }),
 
-/***/ 535:
+/***/ 540:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -146,12 +146,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(2);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_3__);
 /* harmony import */ var styled_components__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(16);
-/* harmony import */ var react_spring_renderprops__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1001);
+/* harmony import */ var react_spring_renderprops__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(1036);
 /* harmony import */ var react_spring_renderprops__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(react_spring_renderprops__WEBPACK_IMPORTED_MODULE_5__);
-/* harmony import */ var _useDoenetRenderer__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(496);
+/* harmony import */ var _useDoenetRenderer__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(501);
 
 
 
+
+var _templateObject, _templateObject2, _templateObject3, _templateObject4, _templateObject5, _templateObject6, _templateObject7;
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it["return"] != null) it["return"](); } finally { if (didErr) throw err; } } }; }
 
@@ -159,95 +161,25 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
-function _templateObject7() {
-  var data = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    position: absolute;\n    left: ", ";\n    color: #888888;\n    font-size: 15px;\n    user-select: none;\n"]);
-
-  _templateObject7 = function _templateObject7() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject6() {
-  var data = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    position: absolute;\n    border-left: solid #888888;\n    height: 10px;\n    width: 1px;\n    left: ", ";\n"]);
-
-  _templateObject6 = function _templateObject6() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject5() {
-  var data = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n  width: 10px;\n  height: 15px;\n  border-radius: 3px;\n  position: relative;\n  top: -5px;\n  opacity: 0.8;\n  background: ", ";\n  cursor: pointer;\n"]);
-
-  _templateObject5 = function _templateObject5() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject4() {
-  var data = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    display: inline;\n    user-select: none;\n"]);
-
-  _templateObject4 = function _templateObject4() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject3() {
-  var data = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n  position: relative;\n  border-radius: 3px;\n  background: #dddddd;\n  height: 5px;\n  width: ", ";\n"]);
-
-  _templateObject3 = function _templateObject3() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject2() {
-  var data = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    padding-top: 10px;\n    height: 50px;\n"]);
-
-  _templateObject2 = function _templateObject2() {
-    return data;
-  };
-
-  return data;
-}
-
-function _templateObject() {
-  var data = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    width: fit-content;\n    height: ", ";\n"]);
-
-  _templateObject = function _templateObject() {
-    return data;
-  };
-
-  return data;
-}
 
 
 
 
-
-var SliderContainer = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject(), function (props) {
+var SliderContainer = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject || (_templateObject = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    width: fit-content;\n    height: ", ";\n"])), function (props) {
   return props.labeled && props.noTicked ? "60px" : props.labeled ? "80px" : props.noTicked ? "40px" : "60px";
 });
-var SubContainer2 = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject2());
-var StyledSlider = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject3(), function (props) {
+var SubContainer2 = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject2 || (_templateObject2 = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    padding-top: 10px;\n    height: 50px;\n"])));
+var StyledSlider = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject3 || (_templateObject3 = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n  position: relative;\n  border-radius: 3px;\n  background: #dddddd;\n  height: 5px;\n  width: ", ";\n"])), function (props) {
   return props.width;
 });
-var StyledValueLabel = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].p(_templateObject4());
-var StyledThumb = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject5(), function (props) {
+var StyledValueLabel = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].p(_templateObject4 || (_templateObject4 = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    display: inline;\n    user-select: none;\n"])));
+var StyledThumb = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject5 || (_templateObject5 = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n  width: 10px;\n  height: 15px;\n  border-radius: 3px;\n  position: relative;\n  top: -5px;\n  opacity: 0.8;\n  background: ", ";\n  cursor: pointer;\n"])), function (props) {
   return props.disabled ? "#404040" : "#002266";
 });
-var Tick = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject6(), function (props) {
+var Tick = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].div(_templateObject6 || (_templateObject6 = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    position: absolute;\n    border-left: solid #888888;\n    height: 10px;\n    width: 1px;\n    left: ", ";\n"])), function (props) {
   return props.x;
 });
-var Label = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].p(_templateObject7(), function (props) {
+var Label = styled_components__WEBPACK_IMPORTED_MODULE_4__[/* default */ "b"].p(_templateObject7 || (_templateObject7 = _babel_runtime_helpers_taggedTemplateLiteral__WEBPACK_IMPORTED_MODULE_2___default()(["\n    position: absolute;\n    left: ", ";\n    color: #888888;\n    font-size: 15px;\n    user-select: none;\n"])), function (props) {
   return props.x;
 });
 

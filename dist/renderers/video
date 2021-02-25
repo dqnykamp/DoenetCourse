@@ -1,6 +1,124 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[52,2],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[54,4],{
 
-/***/ 495:
+/***/ 1027:
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/*! https://mths.be/cssesc v3.0.0 by @mathias */
+
+
+var object = {};
+var hasOwnProperty = object.hasOwnProperty;
+var merge = function merge(options, defaults) {
+	if (!options) {
+		return defaults;
+	}
+	var result = {};
+	for (var key in defaults) {
+		// `if (defaults.hasOwnProperty(key) { … }` is not needed here, since
+		// only recognized option names are used.
+		result[key] = hasOwnProperty.call(options, key) ? options[key] : defaults[key];
+	}
+	return result;
+};
+
+var regexAnySingleEscape = /[ -,\.\/:-@\[-\^`\{-~]/;
+var regexSingleEscape = /[ -,\.\/:-@\[\]\^`\{-~]/;
+var regexAlwaysEscape = /['"\\]/;
+var regexExcessiveSpaces = /(^|\\+)?(\\[A-F0-9]{1,6})\x20(?![a-fA-F0-9\x20])/g;
+
+// https://mathiasbynens.be/notes/css-escapes#css
+var cssesc = function cssesc(string, options) {
+	options = merge(options, cssesc.options);
+	if (options.quotes != 'single' && options.quotes != 'double') {
+		options.quotes = 'single';
+	}
+	var quote = options.quotes == 'double' ? '"' : '\'';
+	var isIdentifier = options.isIdentifier;
+
+	var firstChar = string.charAt(0);
+	var output = '';
+	var counter = 0;
+	var length = string.length;
+	while (counter < length) {
+		var character = string.charAt(counter++);
+		var codePoint = character.charCodeAt();
+		var value = void 0;
+		// If it’s not a printable ASCII character…
+		if (codePoint < 0x20 || codePoint > 0x7E) {
+			if (codePoint >= 0xD800 && codePoint <= 0xDBFF && counter < length) {
+				// It’s a high surrogate, and there is a next character.
+				var extra = string.charCodeAt(counter++);
+				if ((extra & 0xFC00) == 0xDC00) {
+					// next character is low surrogate
+					codePoint = ((codePoint & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000;
+				} else {
+					// It’s an unmatched surrogate; only append this code unit, in case
+					// the next code unit is the high surrogate of a surrogate pair.
+					counter--;
+				}
+			}
+			value = '\\' + codePoint.toString(16).toUpperCase() + ' ';
+		} else {
+			if (options.escapeEverything) {
+				if (regexAnySingleEscape.test(character)) {
+					value = '\\' + character;
+				} else {
+					value = '\\' + codePoint.toString(16).toUpperCase() + ' ';
+				}
+			} else if (/[\t\n\f\r\x0B]/.test(character)) {
+				value = '\\' + codePoint.toString(16).toUpperCase() + ' ';
+			} else if (character == '\\' || !isIdentifier && (character == '"' && quote == character || character == '\'' && quote == character) || isIdentifier && regexSingleEscape.test(character)) {
+				value = '\\' + character;
+			} else {
+				value = character;
+			}
+		}
+		output += value;
+	}
+
+	if (isIdentifier) {
+		if (/^-[-\d]/.test(output)) {
+			output = '\\-' + output.slice(1);
+		} else if (/\d/.test(firstChar)) {
+			output = '\\3' + firstChar + ' ' + output.slice(1);
+		}
+	}
+
+	// Remove spaces after `\HEX` escapes that are not followed by a hex digit,
+	// since they’re redundant. Note that this is only possible if the escape
+	// sequence isn’t preceded by an odd number of backslashes.
+	output = output.replace(regexExcessiveSpaces, function ($0, $1, $2) {
+		if ($1 && $1.length % 2) {
+			// It’s not safe to remove the space, so don’t.
+			return $0;
+		}
+		// Strip the space.
+		return ($1 || '') + $2;
+	});
+
+	if (!isIdentifier && options.wrap) {
+		return quote + output + quote;
+	}
+	return output;
+};
+
+// Expose default options (so they can be overridden globally).
+cssesc.options = {
+	'escapeEverything': false,
+	'isIdentifier': false,
+	'quotes': 'single',
+	'wrap': false
+};
+
+cssesc.version = '3.0.0';
+
+module.exports = cssesc;
+
+
+/***/ }),
+
+/***/ 500:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -22,8 +140,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(0);
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(2);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(56);
+/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(nanoid__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(2);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_9__);
 
 
 
@@ -42,6 +162,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_5___default()(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
 
 
 
@@ -154,8 +275,11 @@ var DoenetRenderer = /*#__PURE__*/function (_Component) {
   }, {
     key: "createChildFromInstructions",
     value: function createChildFromInstructions(childInstructions) {
+      // add nanoid to key so that will have unique key if recreate
+      // renderer for a component with the same name as an old one
+      // TODO: is this the best way to do it?
       var propsForChild = {
-        key: childInstructions.componentName,
+        key: childInstructions.componentName + nanoid__WEBPACK_IMPORTED_MODULE_8___default()(10),
         componentInstructions: childInstructions,
         rendererClasses: this.props.rendererClasses,
         rendererUpdateMethods: this.props.rendererUpdateMethods,
@@ -166,13 +290,13 @@ var DoenetRenderer = /*#__PURE__*/function (_Component) {
         Object.assign(propsForChild, this.doenetPropsForChildren);
       }
 
-      var child = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default.a.createElement(this.props.rendererClasses[childInstructions.rendererType], propsForChild);
+      var child = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_9___default.a.createElement(this.props.rendererClasses[childInstructions.rendererType], propsForChild);
       return child;
     }
   }]);
 
   return DoenetRenderer;
-}(react__WEBPACK_IMPORTED_MODULE_8__["Component"]);
+}(react__WEBPACK_IMPORTED_MODULE_9__["Component"]);
 
 _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default()(DoenetRenderer, "initializeChildrenOnConstruction", true);
 
@@ -180,7 +304,7 @@ _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default()(Doe
 
 /***/ }),
 
-/***/ 545:
+/***/ 550:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -200,8 +324,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(2);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(495);
-/* harmony import */ var cssesc__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(992);
+/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(500);
+/* harmony import */ var cssesc__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(1027);
 /* harmony import */ var cssesc__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(cssesc__WEBPACK_IMPORTED_MODULE_8__);
 
 
@@ -498,179 +622,49 @@ var Video = /*#__PURE__*/function (_DoenetRenderer) {
 
 /***/ }),
 
-/***/ 992:
+/***/ 56:
 /***/ (function(module, exports, __webpack_require__) {
 
-/* WEBPACK VAR INJECTION */(function(module, global) {var __WEBPACK_AMD_DEFINE_RESULT__;/*! http://mths.be/cssesc v0.1.0 by @mathias */
-;(function(root) {
+// This file replaces `index.js` in bundlers like webpack or Rollup,
+// according to `browser` config in `package.json`.
 
-	// Detect free variables `exports`
-	var freeExports =  true && exports;
+if (false) {}
 
-	// Detect free variable `module`
-	var freeModule =  true && module &&
-		module.exports == freeExports && module;
+var crypto = self.crypto || self.msCrypto
 
-	// Detect free variable `global`, from Node.js or Browserified code,
-	// and use it as `root`
-	var freeGlobal = typeof global == 'object' && global;
-	if (freeGlobal.global === freeGlobal || freeGlobal.window === freeGlobal) {
-		root = freeGlobal;
-	}
+// This alphabet uses a-z A-Z 0-9 _- symbols.
+// Symbols are generated for smaller size.
+// -_zyxwvutsrqponmlkjihgfedcba9876543210ZYXWVUTSRQPONMLKJIHGFEDCBA
+var url = '-_'
+// Loop from 36 to 0 (from z to a and 9 to 0 in Base36).
+var i = 36
+while (i--) {
+  // 36 is radix. Number.prototype.toString(36) returns number
+  // in Base36 representation. Base36 is like hex, but it uses 0–9 and a-z.
+  url += i.toString(36)
+}
+// Loop from 36 to 10 (from Z to A in Base36).
+i = 36
+while (i-- - 10) {
+  url += i.toString(36).toUpperCase()
+}
 
-	/*--------------------------------------------------------------------------*/
+module.exports = function (size) {
+  var id = ''
+  var bytes = crypto.getRandomValues(new Uint8Array(size || 21))
+  i = size || 21
 
-	var object = {};
-	var hasOwnProperty = object.hasOwnProperty;
-	var merge = function(options, defaults) {
-		if (!options) {
-			return defaults;
-		}
-		var key;
-		var result = {};
-		for (key in defaults) {
-			// `if (defaults.hasOwnProperty(key) { … }` is not needed here, since
-			// only recognized option names are used
-			result[key] = hasOwnProperty.call(options, key)
-				? options[key]
-				: defaults[key];
-		}
-		return result;
-	};
+  // Compact alternative for `for (var i = 0; i < size; i++)`
+  while (i--) {
+    // We can’t use bytes bigger than the alphabet. 63 is 00111111 bitmask.
+    // This mask reduces random byte 0-255 to 0-63 values.
+    // There is no need in `|| ''` and `* 1.6` hacks in here,
+    // because bitmask trim bytes exact to alphabet size.
+    id += url[bytes[i] & 63]
+  }
+  return id
+}
 
-	/*--------------------------------------------------------------------------*/
-
-	var regexAnySingleEscape = /[\x20-\x2C\x2E\x2F\x3B-\x40\x5B-\x5E\x60\x7B-\x7E]/;
-	var regexSingleEscape = /[\x20\x21\x23-\x26\x28-\x2C\x2E\x2F\x3B-\x40\x5B\x5D\x5E\x60\x7B-\x7E]/;
-	var regexAlwaysEscape = /['"\\]/;
-	var regexExcessiveSpaces = /(^|\\+)?(\\[A-F0-9]{1,6})\x20(?![a-fA-F0-9\x20])/g;
-
-	// http://mathiasbynens.be/notes/css-escapes#css
-	var cssesc = function(string, options) {
-
-		// Handle options
-		options = merge(options, cssesc.options);
-		if (options.quotes != 'single' && options.quotes != 'double') {
-			options.quotes = 'single';
-		}
-		var quote = options.quotes == 'double' ? '"' : '\'';
-		var isIdentifier = options.isIdentifier;
-
-		var firstChar = string.charAt(0);
-		var output = '';
-		var counter = 0;
-		var length = string.length;
-		var value;
-		var character;
-		var codePoint;
-		var extra; // used for potential low surrogates
-
-		while (counter < length) {
-			character = string.charAt(counter++);
-			codePoint = character.charCodeAt();
-			// if it’s not a printable ASCII character
-			if (codePoint < 0x20 || codePoint > 0x7E) {
-				if (codePoint >= 0xD800 && codePoint <= 0xDBFF && counter < length) {
-					// high surrogate, and there is a next character
-					extra = string.charCodeAt(counter++);
-					if ((extra & 0xFC00) == 0xDC00) { // next character is low surrogate
-						codePoint = ((codePoint & 0x3FF) << 10) + (extra & 0x3FF) + 0x10000;
-					} else {
-						// unmatched surrogate; only append this code unit, in case the next
-						// code unit is the high surrogate of a surrogate pair
-						counter--;
-					}
-				}
-				value = '\\' + codePoint.toString(16).toUpperCase() + ' ';
-			} else {
-				if (options.escapeEverything) {
-					if (regexAnySingleEscape.test(character)) {
-						value = '\\' + character;
-					} else {
-						value = '\\' + codePoint.toString(16).toUpperCase() + ' ';
-					}
-				// `:` can be escaped as `\:`, but that fails in IE < 8
-				} else if (/[\t\n\f\r\x0B:]/.test(character)) {
-					if (!isIdentifier && character == ':') {
-						value = character;
-					} else {
-						value = '\\' + codePoint.toString(16).toUpperCase() + ' ';
-					}
-				} else if (
-					character == '\\' ||
-					(
-						!isIdentifier &&
-						(
-							(character == '"' && quote == character) ||
-							(character == '\'' && quote == character)
-						)
-					) ||
-					(isIdentifier && regexSingleEscape.test(character))
-				) {
-					value = '\\' + character;
-				} else {
-					value = character;
-				}
-			}
-			output += value;
-		}
-
-		if (isIdentifier) {
-			if (/^_/.test(output)) {
-				// Prevent IE6 from ignoring the rule altogether (in case this is for an
-				// identifier used as a selector)
-				output = '\\_' + output.slice(1);
-			} else if (/^-[-\d]/.test(output)) {
-				output = '\\-' + output.slice(1);
-			} else if (/\d/.test(firstChar)) {
-				output = '\\3' + firstChar + ' ' + output.slice(1);
-			}
-		}
-
-		// Remove spaces after `\HEX` escapes that are not followed by a hex digit,
-		// since they’re redundant. Note that this is only possible if the escape
-		// sequence isn’t preceded by an odd number of backslashes.
-		output = output.replace(regexExcessiveSpaces, function($0, $1, $2) {
-			if ($1 && $1.length % 2) {
-				// it’s not safe to remove the space, so don’t
-				return $0;
-			}
-			// strip the space
-			return ($1 || '') + $2;
-		});
-
-		if (!isIdentifier && options.wrap) {
-			return quote + output + quote;
-		}
-		return output;
-	};
-
-	// Expose default options (so they can be overridden globally)
-	cssesc.options = {
-		'escapeEverything': false,
-		'isIdentifier': false,
-		'quotes': 'single',
-		'wrap': false
-	};
-
-	cssesc.version = '0.1.0';
-
-	/*--------------------------------------------------------------------------*/
-
-	// Some AMD build optimizers, like r.js, check for specific condition patterns
-	// like the following:
-	if (
-		true
-	) {
-		!(__WEBPACK_AMD_DEFINE_RESULT__ = (function() {
-			return cssesc;
-		}).call(exports, __webpack_require__, exports, module),
-				__WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-	}	else {}
-
-}(this));
-
-/* WEBPACK VAR INJECTION */}.call(this, __webpack_require__(47)(module), __webpack_require__(35)))
 
 /***/ })
 

@@ -1,6 +1,6 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[14,2],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[16,4],{
 
-/***/ 495:
+/***/ 500:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -22,8 +22,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(0);
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(2);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(56);
+/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(nanoid__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(2);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_9__);
 
 
 
@@ -42,6 +44,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_5___default()(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
 
 
 
@@ -154,8 +157,11 @@ var DoenetRenderer = /*#__PURE__*/function (_Component) {
   }, {
     key: "createChildFromInstructions",
     value: function createChildFromInstructions(childInstructions) {
+      // add nanoid to key so that will have unique key if recreate
+      // renderer for a component with the same name as an old one
+      // TODO: is this the best way to do it?
       var propsForChild = {
-        key: childInstructions.componentName,
+        key: childInstructions.componentName + nanoid__WEBPACK_IMPORTED_MODULE_8___default()(10),
         componentInstructions: childInstructions,
         rendererClasses: this.props.rendererClasses,
         rendererUpdateMethods: this.props.rendererUpdateMethods,
@@ -166,13 +172,13 @@ var DoenetRenderer = /*#__PURE__*/function (_Component) {
         Object.assign(propsForChild, this.doenetPropsForChildren);
       }
 
-      var child = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default.a.createElement(this.props.rendererClasses[childInstructions.rendererType], propsForChild);
+      var child = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_9___default.a.createElement(this.props.rendererClasses[childInstructions.rendererType], propsForChild);
       return child;
     }
   }]);
 
   return DoenetRenderer;
-}(react__WEBPACK_IMPORTED_MODULE_8__["Component"]);
+}(react__WEBPACK_IMPORTED_MODULE_9__["Component"]);
 
 _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default()(DoenetRenderer, "initializeChildrenOnConstruction", true);
 
@@ -180,7 +186,7 @@ _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default()(Doe
 
 /***/ }),
 
-/***/ 508:
+/***/ 513:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -200,7 +206,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_5__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(2);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_6__);
-/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(495);
+/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(500);
 
 
 
@@ -256,6 +262,52 @@ var Container = /*#__PURE__*/function (_DoenetRenderer) {
 
 _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_5___default()(Container, "initializeChildrenOnConstruction", false);
 
+
+
+/***/ }),
+
+/***/ 56:
+/***/ (function(module, exports, __webpack_require__) {
+
+// This file replaces `index.js` in bundlers like webpack or Rollup,
+// according to `browser` config in `package.json`.
+
+if (false) {}
+
+var crypto = self.crypto || self.msCrypto
+
+// This alphabet uses a-z A-Z 0-9 _- symbols.
+// Symbols are generated for smaller size.
+// -_zyxwvutsrqponmlkjihgfedcba9876543210ZYXWVUTSRQPONMLKJIHGFEDCBA
+var url = '-_'
+// Loop from 36 to 0 (from z to a and 9 to 0 in Base36).
+var i = 36
+while (i--) {
+  // 36 is radix. Number.prototype.toString(36) returns number
+  // in Base36 representation. Base36 is like hex, but it uses 0–9 and a-z.
+  url += i.toString(36)
+}
+// Loop from 36 to 10 (from Z to A in Base36).
+i = 36
+while (i-- - 10) {
+  url += i.toString(36).toUpperCase()
+}
+
+module.exports = function (size) {
+  var id = ''
+  var bytes = crypto.getRandomValues(new Uint8Array(size || 21))
+  i = size || 21
+
+  // Compact alternative for `for (var i = 0; i < size; i++)`
+  while (i--) {
+    // We can’t use bytes bigger than the alphabet. 63 is 00111111 bitmask.
+    // This mask reduces random byte 0-255 to 0-63 values.
+    // There is no need in `|| ''` and `* 1.6` hacks in here,
+    // because bitmask trim bytes exact to alphabet size.
+    id += url[bytes[i] & 63]
+  }
+  return id
+}
 
 
 /***/ })

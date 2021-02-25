@@ -1,6 +1,6 @@
-(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[27,2],{
+(window["webpackJsonp"] = window["webpackJsonp"] || []).push([[29],{
 
-/***/ 495:
+/***/ 500:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -22,8 +22,10 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(0);
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(2);
-/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(56);
+/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(nanoid__WEBPACK_IMPORTED_MODULE_8__);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(2);
+/* harmony import */ var react__WEBPACK_IMPORTED_MODULE_9___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_9__);
 
 
 
@@ -42,6 +44,7 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default()(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = _babel_runtime_helpers_getPrototypeOf__WEBPACK_IMPORTED_MODULE_6___default()(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return _babel_runtime_helpers_possibleConstructorReturn__WEBPACK_IMPORTED_MODULE_5___default()(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
 
 
 
@@ -154,8 +157,11 @@ var DoenetRenderer = /*#__PURE__*/function (_Component) {
   }, {
     key: "createChildFromInstructions",
     value: function createChildFromInstructions(childInstructions) {
+      // add nanoid to key so that will have unique key if recreate
+      // renderer for a component with the same name as an old one
+      // TODO: is this the best way to do it?
       var propsForChild = {
-        key: childInstructions.componentName,
+        key: childInstructions.componentName + nanoid__WEBPACK_IMPORTED_MODULE_8___default()(10),
         componentInstructions: childInstructions,
         rendererClasses: this.props.rendererClasses,
         rendererUpdateMethods: this.props.rendererUpdateMethods,
@@ -166,13 +172,13 @@ var DoenetRenderer = /*#__PURE__*/function (_Component) {
         Object.assign(propsForChild, this.doenetPropsForChildren);
       }
 
-      var child = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_8___default.a.createElement(this.props.rendererClasses[childInstructions.rendererType], propsForChild);
+      var child = /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_9___default.a.createElement(this.props.rendererClasses[childInstructions.rendererType], propsForChild);
       return child;
     }
   }]);
 
   return DoenetRenderer;
-}(react__WEBPACK_IMPORTED_MODULE_8__["Component"]);
+}(react__WEBPACK_IMPORTED_MODULE_9__["Component"]);
 
 _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default()(DoenetRenderer, "initializeChildrenOnConstruction", true);
 
@@ -180,7 +186,7 @@ _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_7___default()(Doe
 
 /***/ }),
 
-/***/ 521:
+/***/ 526:
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
@@ -202,16 +208,16 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6__);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(2);
 /* harmony import */ var react__WEBPACK_IMPORTED_MODULE_7___default = /*#__PURE__*/__webpack_require__.n(react__WEBPACK_IMPORTED_MODULE_7__);
-/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(71);
+/* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(70);
 /* harmony import */ var react_dom__WEBPACK_IMPORTED_MODULE_8___default = /*#__PURE__*/__webpack_require__.n(react_dom__WEBPACK_IMPORTED_MODULE_8__);
-/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(495);
+/* harmony import */ var _DoenetRenderer__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(500);
 /* harmony import */ var math_expressions__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(6);
 /* harmony import */ var math_expressions__WEBPACK_IMPORTED_MODULE_10___default = /*#__PURE__*/__webpack_require__.n(math_expressions__WEBPACK_IMPORTED_MODULE_10__);
 /* harmony import */ var _fortawesome_react_fontawesome__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(22);
 /* harmony import */ var _fortawesome_free_solid_svg_icons__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(20);
-/* harmony import */ var react_mathjax2__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(994);
+/* harmony import */ var react_mathjax2__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(1029);
 /* harmony import */ var react_mathjax2__WEBPACK_IMPORTED_MODULE_13___default = /*#__PURE__*/__webpack_require__.n(react_mathjax2__WEBPACK_IMPORTED_MODULE_13__);
-/* harmony import */ var react_mathquill__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(999);
+/* harmony import */ var react_mathquill__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(1034);
 /* harmony import */ var react_mathquill__WEBPACK_IMPORTED_MODULE_14___default = /*#__PURE__*/__webpack_require__.n(react_mathquill__WEBPACK_IMPORTED_MODULE_14__);
 
 
@@ -271,7 +277,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
     //   autoOperatorNames: "cos sin"
     // };
 
-    _this.handleKeyPress = _this.handleKeyPress.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
+    _this.handlePressEnter = _this.handlePressEnter.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.handleKeyDown = _this.handleKeyDown.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.handleBlur = _this.handleBlur.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
     _this.handleFocus = _this.handleFocus.bind(_babel_runtime_helpers_assertThisInitialized__WEBPACK_IMPORTED_MODULE_2___default()(_this));
@@ -280,16 +286,16 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
     // this.handleDragExit = this.handleDragExit.bind(this);
 
     _this.mathExpression = _this.doenetSvData.value;
-    _this.textValue = _this.doenetSvData.value.toString(); // this.state = {isDragging: false, previewLeftOffset: this.doenetSvData.size * 10 + 80, previewTopOffset: 0, clickXOffset: 0, clickYOffset: 0};
+    _this.latexValue = stripLatex(_this.doenetSvData.value.toLatex()); // this.state = {isDragging: false, previewLeftOffset: this.doenetSvData.size * 10 + 80, previewTopOffset: 0, clickXOffset: 0, clickYOffset: 0};
     // this.inputRef = React.createRef();
     // this.mathInputRef = React.createRef();
 
     _this.valueToRevertTo = _this.mathExpression;
-    _this.textValueToRevertTo = _this.textValue; // this.previewValue = "";
+    _this.latexValueToRevertTo = _this.latexValue; // this.previewValue = "";
     //Remove __ value so it doesn't show
 
-    if (_this.textValue === "\uFF3F") {
-      _this.textValue = "";
+    if (_this.latexValue === "\uFF3F") {
+      _this.latexValue = "";
     }
 
     return _this;
@@ -320,7 +326,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
   }, {
     key: "updateImmediateValueFromLatex",
     value: function updateImmediateValueFromLatex(text) {
-      this.textValue = text;
+      this.latexValue = text;
       var newMathExpression = this.calculateMathExpressionFromLatex(text);
 
       if (!newMathExpression.equalsViaSyntax(this.mathExpression)) {
@@ -380,29 +386,26 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
     // }
 
   }, {
-    key: "handleKeyPress",
-    value: function handleKeyPress(e) {
-      if (e.key === "Enter") {
-        this.valueToRevertTo = this.doenetSvData.immediateValue;
-        this.textValueToRevertTo = this.textValue;
+    key: "handlePressEnter",
+    value: function handlePressEnter(e) {
+      this.valueToRevertTo = this.doenetSvData.immediateValue;
+      this.latexValueToRevertTo = this.latexValue;
 
-        if (!this.doenetSvData.value.equalsViaSyntax(this.doenetSvData.immediateValue)) {
-          this.actions.updateValue();
-        }
-
-        if (this.doenetSvData.includeCheckWork && this.validationState === "unvalidated") {
-          this.actions.submitAnswer();
-        }
-
-        this.forceUpdate();
+      if (!this.doenetSvData.value.equalsViaSyntax(this.doenetSvData.immediateValue)) {
+        this.actions.updateValue();
       }
+
+      if (this.doenetSvData.includeCheckWork && this.validationState === "unvalidated") {
+        this.actions.submitAnswer();
+      }
+
+      this.forceUpdate();
     }
   }, {
     key: "handleKeyDown",
     value: function handleKeyDown(e) {
       if (e.key === "Escape") {
         if (!this.mathExpression.equalsViaSyntax(this.valueToRevertTo)) {
-          this.textValue = this.textValueToRevertTo;
           this.mathExpression = this.valueToRevertTo;
           this.actions.updateImmediateValue({
             mathExpression: this.valueToRevertTo
@@ -422,7 +425,7 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
     value: function handleBlur(e) {
       this.focused = false;
       this.valueToRevertTo = this.doenetSvData.immediateValue;
-      this.textValueToRevertTo = this.textValue;
+      this.latexValueToRevertTo = this.latexValue;
 
       if (!this.doenetSvData.value.equalsViaSyntax(this.doenetSvData.immediateValue)) {
         this.actions.updateValue();
@@ -455,14 +458,14 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
 
       if (!this.valueToRevertTo.equalsViaSyntax(this.doenetSvData.value)) {
         this.mathExpression = this.doenetSvData.value;
-        this.textValue = this.mathExpression.toString();
+        this.latexValue = stripLatex(this.mathExpression.toLatex());
 
-        if (this.textValue === "\uFF3F") {
-          this.textValue = "";
+        if (this.latexValue === "\uFF3F") {
+          this.latexValue = "";
         }
 
         this.valueToRevertTo = this.doenetSvData.value;
-        this.textValueToRevertTo = this.textValue;
+        this.latexValueToRevertTo = this.latexValue;
       }
 
       var checkWorkStyle = {
@@ -568,20 +571,34 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
           margin: "10px"
         }
       }, /*#__PURE__*/react__WEBPACK_IMPORTED_MODULE_7___default.a.createElement(react_mathquill__WEBPACK_IMPORTED_MODULE_14__["EditableMathField"], {
-        latex: "",
+        latex: this.latexValue,
         config: {
-          autoCommands: "sqrt pi theta integral"
+          autoCommands: "sqrt pi theta integral",
+          handlers: {
+            enter: this.handlePressEnter
+          }
         } //more commands go here
         ,
         onChange: function onChange(mathField) {
           _this2.onChangeHandler(mathField.latex());
-        }
+        },
+        onBlur: this.handleBlur,
+        onFocus: this.handleFocus
       })), checkWorkButton));
     }
   }]);
 
   return MathInput;
-}(_DoenetRenderer__WEBPACK_IMPORTED_MODULE_9__["default"]); // TODO: how to fix case where have readyonly?
+}(_DoenetRenderer__WEBPACK_IMPORTED_MODULE_9__["default"]);
+
+_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(MathInput, "initializeChildrenOnConstruction", false);
+
+
+
+function stripLatex(latex) {
+  var s = latex.replaceAll("\\,", '');
+  return s;
+} // TODO: how to fix case where have readyonly?
 // need to revert mathExpression in that case
 // else if(!this.mathExpression.equalsViaSyntax(this.doenetSvData.immediateValue)) {
 //   console.log(`for ${this.componentName}`)
@@ -595,11 +612,6 @@ var MathInput = /*#__PURE__*/function (_DoenetRenderer) {
 //   this.valueToRevertTo = this.doenetSvData.value;
 //   this.textValueToRevertTo = this.textValue;
 // }
-
-
-_babel_runtime_helpers_defineProperty__WEBPACK_IMPORTED_MODULE_6___default()(MathInput, "initializeChildrenOnConstruction", false);
-
-
 
 /***/ })
 
