@@ -38,7 +38,7 @@ export class DependencyHandler {
     // if component already has downstream dependencies
     // delete them, and the corresponding upstream dependencies
     if (this.downstreamDependencies[component.componentName]) {
-      this.deleteAllDownstreamDependencies({ component, updatesNeeded });
+      this.deleteAllDownstreamDependencies({ component });
     }
 
     // console.log(`set up component dependencies of ${component.componentName}`)
@@ -118,7 +118,7 @@ export class DependencyHandler {
 
   }
 
-  deleteAllDownstreamDependencies({ component, stateVariables = '__all__', updatesNeeded }) {
+  deleteAllDownstreamDependencies({ component, stateVariables = '__all__' }) {
     // console.log(`delete all downstream dependencies of ${component.componentName}, ${stateVariables.toString()}`)
     // console.log(deepClone(this.downstreamDependencies[component.componentName]))
     // console.log(deepClone(this.upstreamDependencies))
@@ -136,7 +136,7 @@ export class DependencyHandler {
       let downDeps = this.downstreamDependencies[componentName][stateVariable];
 
       for (let downDepName in downDeps) {
-        downDeps[downDepName].delete(updatesNeeded);
+        downDeps[downDepName].deleteDependency();
       }
 
       delete this.downstreamDependencies[componentName][stateVariable];
@@ -179,7 +179,17 @@ export class DependencyHandler {
           if (completelyDelete) {
             // Note: this completely deletes the dependency even if there
             // were other downstream components involved
-            upDep.delete(updatesNeeded);
+            for (let upVarName of upDep.upstreamVariableNames) {
+              if (this._components[upDep.upstreamComponentName].state[upVarName].isResolved) {
+                this.core.recordActualChangeInStateVariable({
+                  componentName: upDep.upstreamComponentName,
+                  varName: upVarName,
+                  updatesNeeded,
+                })
+              }
+            }
+            upDep.deleteDependency();
+
           } else {
             // Note: this keeps the downstream dependency in the upstream component
             // even if this is the last downstream component
@@ -632,7 +642,190 @@ export class DependencyHandler {
   }
 
 
-  updateDependencies(updatesNeeded, compositesBeingExpanded, prevUpdatesleft) {
+  updateDependencies({ component, stateVariable }) {
+
+    console.log(`update dependencies of ${stateVariable} of ${component.componentName}`)
+
+    let updatesNeeded = {
+      componentsTouched: [],
+      compositesToExpand: new Set([]),
+      compositesToUpdateReplacements: [],
+      unresolvedDependencies: {},
+      unresolvedByDependent: {},
+      deletedStateVariables: {},
+      deletedComponents: {},
+      recreatedComponents: {},
+      itemScoreChanges: new Set(),
+      parentsToUpdateDescendants: new Set(),
+    }
+
+    let compositesBeingExpanded = [];
+
+
+    let stateVarObj = component.state[stateVariable];
+
+    let allStateVariablesAffected = [stateVariable];
+    if (stateVarObj.additionalStateVariablesDefined) {
+      allStateVariablesAffected.push(...stateVarObj.additionalStateVariablesDefined)
+    }
+
+    let definitionArgs = this.getStateVariableDependencyValues({
+      component,
+      stateVariable: stateVarObj.determineDependenciesStateVariable
+    });
+
+    if (Object.keys(definitionArgs.changes).length === 0 &&
+      stateVarObj._previousValue !== undefined
+    ) {
+      console.log(`no changes for ${stateVariable}`)
+      console.log(definitionArgs)
+      console.log(stateVarObj._previousValue);
+      // no changes
+      return;
+    }
+
+    console.log(`actually updating`);
+
+    // TODO: should we change the output of returnDependencies
+    // to be an object with one key being dependencies?
+    // That way, we could add another attribute to the return value
+    // rather than having returnDependencies add the attribute
+    // changedDependency to the arguments
+    // (Currently array and array entry state variable could set
+    // returnDepArgs.changedDependency to true)
+    let returnDepArgs = {
+      stateValues: definitionArgs.dependencyValues,
+      componentInfoObjects: this.componentInfoObjects,
+      sharedParameters: component.sharedParameters,
+    }
+    let newDependencies = stateVarObj.returnDependencies(returnDepArgs);
+
+    console.log("newDependencies")
+    console.log(newDependencies)
+
+    let changeResult = this.replaceDependenciesIfChanged({
+      component, stateVariable, newDependencies, allStateVariablesAffected,
+      updatesNeeded, compositesBeingExpanded
+    });
+
+    console.log("changeResult")
+    console.log(changeResult)
+
+    if (!(changeResult.changedDependency || returnDepArgs.changedDependency)) {// || arraySizeChanged) {
+      console.log(`didn't actually change a dependency for ${stateVariable} of ${component.componentName}`)
+      return;
+    }
+
+    console.log(`actually did change a dependency for ${stateVariable} of ${component.componentName}`)
+
+
+    for (let dep of changeResult.newlyCreatedDependencies) {
+      dep.checkForCircular();
+    }
+
+
+    let haveUnresolved = Object.keys(updatesNeeded.unresolvedDependencies).length > 0;
+
+    for (let varName of allStateVariablesAffected) {
+      component.state[varName].isResolved = false;
+    }
+
+    let resolveResult = this.core.resolveStateVariables({
+      component,
+      stateVariables: allStateVariablesAffected,
+      updatesNeeded,
+      compositesBeingExpanded,
+    })
+
+    console.log(`resolveResult, length ${Object.keys(resolveResult.varsUnresolved).length}`)
+    console.log(resolveResult)
+    this.core.addUnresolvedDependencies({
+      varsUnresolved: resolveResult.varsUnresolved,
+      component,
+      updatesNeeded
+    });
+
+    for (let varName of allStateVariablesAffected) {
+      if (!component.state[varName].isResolved) {
+        haveUnresolved = true;
+        console.log(`now ${varName} of ${component.componentName} is unresolved`)
+        this.core.resetUpstreamDependentsUnresolved({
+          component,
+          varName,
+          updatesNeeded
+        })
+        console.log(this._components["/mid"].state.math1.isResolved)
+      }
+
+    }
+
+    if (haveUnresolved) {
+      this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+    }
+
+
+    // TODO: where should we look up the determine dependencies state variables value?
+    // If put it above where we resolve, can get an error
+    // where get a dependency to a new array entry variable
+    // that won't be created until after we resolve.
+    // However, will it always work doing it here?
+
+    // look up value of the determine dependencies state variables
+    // in order to freshen it
+    // (needed so that mark stale will be triggered next time it changes)
+    let determineDependenciesStateVariable = component.state[stateVariable].determineDependenciesStateVariable;
+    component.state[determineDependenciesStateVariable].value;
+
+
+    for (let varName of allStateVariablesAffected) {
+      this.checkForCircularDependency({
+        componentName: component.componentName,
+        varName,
+      });
+      component.state[varName].forceRecalculation = true;
+    }
+
+    // note: markStateVariableAndUpstreamDependentsStale includes
+    // any additionalStateVariablesDefined with stateVariable
+    this.core.markStateVariableAndUpstreamDependentsStale({
+      component,
+      varName: stateVariable,
+      updatesNeeded,
+    })
+
+    for (let varName of allStateVariablesAffected) {
+      this.recordActualChangeInUpstreamDependencies({
+        component,
+        varName
+      })
+    }
+
+
+    // check more more time for unresolved
+    // (Encountered case where composite wasn't ready to expand
+    // until after the final mark stale step, above.
+    // resolveAllDependencies tries to expand composites.)
+
+    if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
+      this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+    }
+
+    while (updatesNeeded.compositesToUpdateReplacements.length > 0) {
+
+      this.core.replacementChangesFromCompositesToUpdate({ updatesNeeded, compositesBeingExpanded })
+
+      if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
+        this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+      }
+
+    }
+
+    console.log(`finished updating dependencies of ${stateVariable} of ${component.componentName}`)
+    console.log(updatesNeeded)
+  }
+
+
+  updateDependenciesOld(updatesNeeded, compositesBeingExpanded, prevUpdatesleft) {
 
     // first update descendant dependencies
     if (updatesNeeded.parentsToUpdateDescendants.size > 0) {
@@ -795,7 +988,7 @@ export class DependencyHandler {
         for (let varName of updateObj.allStateVariablesAffected) {
           if (!component.state[varName].isResolved) {
             haveUnresolved = true;
-            this.resetUpstreamDependentsUnresolved({
+            this.core.resetUpstreamDependentsUnresolved({
               component,
               varName,
               updatesNeeded
@@ -893,7 +1086,8 @@ export class DependencyHandler {
 
   }
 
-  replaceDependenciesIfChanged({ component, stateVariable, newDependencies, allStateVariablesAffected,
+  replaceDependenciesIfChanged({
+    component, stateVariable, newDependencies, allStateVariablesAffected,
     updatesNeeded, compositesBeingExpanded
   }) {
 
@@ -908,7 +1102,7 @@ export class DependencyHandler {
     for (let dependencyName in currentDeps) {
       if (!(dependencyName in newDependencies)) {
         changedDependency = true;
-        currentDeps[dependencyName].delete(updatesNeeded);
+        currentDeps[dependencyName].deleteDependency();
       }
     }
 
@@ -918,7 +1112,7 @@ export class DependencyHandler {
         let currentDep = currentDeps[dependencyName];
         if (!deepCompare(dependencyDefinition, currentDep.definition)) {
           changedDependency = true;
-          currentDeps[dependencyName].delete(updatesNeeded);
+          currentDeps[dependencyName].deleteDependency();
 
           let dependencyDefinition = newDependencies[dependencyName];
 
@@ -994,6 +1188,10 @@ export class DependencyHandler {
   }
 
   getStateVariableDependencyValues({ component, stateVariable }) {
+
+    if (component.state[stateVariable].needDependenciesUpdated) {
+      this.updateDependencies({ component, stateVariable });
+    }
 
     let dependencyValues = {};
     let dependencyChanges = {};
@@ -1156,7 +1354,7 @@ export class DependencyHandler {
               updatesNeeded,
             })
 
-            for(let varName of dep.upstreamVariableNames) {
+            for (let varName of dep.upstreamVariableNames) {
               // have to force recalculation
               // since counter dep doesn't show values changed
               comp.state[varName].forceRecalculation = true;
@@ -1653,7 +1851,7 @@ class Dependency {
 
   }
 
-  delete(updatesNeeded) {
+  deleteDependency() {
 
     // console.log(`deleting dependency: ${this.dependencyName}`)
     // console.log(this.upstreamComponentName, this.representativeStateVariable);
@@ -1714,15 +1912,6 @@ class Dependency {
       }
     }
 
-    for (let upVarName of this.upstreamVariableNames) {
-      if (this.dependencyHandler._components[this.upstreamComponentName].state[upVarName].isResolved) {
-        this.dependencyHandler.core.recordActualChangeInStateVariable({
-          componentName: this.upstreamComponentName,
-          varName: upVarName,
-          updatesNeeded,
-        })
-      }
-    }
 
     this.deleteFromUpdateTriggers();
 
@@ -3618,54 +3807,6 @@ class DoenetAttributeDependency extends StateVariableDependency {
 }
 
 dependencyTypeArray.push(DoenetAttributeDependency);
-
-// class SwitchDependency extends Dependency {
-//   static dependencyType = "switch";
-
-//   setUpParameters() {
-//     this.switchName = this.definition.switchName;
-//   }
-
-//   initialize(args) {
-//     super.initialize(args);
-
-//     let switches = this.dependencyHandler.switchDependencies[this.switchName];
-//     if (!switches) {
-//       switches = this.dependencyHandler.switchDependencies[this.switchName] = [];
-//     }
-//     switches.push(this);
-//   }
-
-//   delete(args) {
-//     super.delete(args);
-
-//     let switches = this.dependencyHandler.switchDependencies[this.switchName];
-
-//     if (switches) {
-//       let ind = switches.indexOf(this);
-//       if (ind !== -1) {
-//         switches.splice(ind, 1);
-//       }
-//     }
-
-//   }
-
-//   getValue() {
-
-//     let changes = {};
-//     if (this.valuesChanged) {
-//       changes = { valuesChanged: this.valuesChanged };
-//       delete this.valuesChanged;
-//     }
-//     return {
-//       value: this.dependencyHandler.core.switches[this.switchName],
-//       changes
-//     }
-//   }
-
-// }
-
-// dependencyTypeArray.push(SwitchDependency);
 
 
 class SerializedChildrenDependency extends Dependency {

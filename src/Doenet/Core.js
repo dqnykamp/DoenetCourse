@@ -741,7 +741,6 @@ export default class Core {
       componentsTouched: [],
       compositesToExpand: new Set([]),
       compositesToUpdateReplacements: [],
-      componentsToUpdateDependencies: [],
       unresolvedDependencies: {},
       unresolvedByDependent: {},
       deletedStateVariables: {},
@@ -788,7 +787,7 @@ export default class Core {
     }
 
 
-    this.dependencies.updateDependencies(updatesNeeded, compositesBeingExpanded);
+    // this.dependencies.updateDependencies(updatesNeeded, compositesBeingExpanded);
 
 
     if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
@@ -6199,10 +6198,9 @@ export default class Core {
       }
 
       if (result.updateDependencies) {
-        updatesNeeded.componentsToUpdateDependencies.push({
-          componentName: component.componentName,
-          stateVariables: result.updateDependencies
-        })
+        for(let vName of result.updateDependencies) {
+          component.state[vName].needDependenciesUpdated = true;
+        }
       }
 
       if (result.itemScoreChanged) {
@@ -6610,10 +6608,9 @@ export default class Core {
             }
 
             if (result.updateDependencies) {
-              updatesNeeded.componentsToUpdateDependencies.push({
-                componentName: upDep.upstreamComponentName,
-                stateVariables: result.updateDependencies
-              })
+              for(let vName of result.updateDependencies) {
+                component.state[vName].needDependenciesUpdated = true;
+              }
             }
 
             if (result.itemScoreChanged) {
@@ -7046,7 +7043,7 @@ export default class Core {
         }
       }
 
-      this.dependencies.deleteAllDownstreamDependencies({ component, updatesNeeded });
+      this.dependencies.deleteAllDownstreamDependencies({ component });
 
       // record any upstream dependencies that depend directly on componentName
       // (componentIdentity, componentStateVariable*)
@@ -7095,7 +7092,6 @@ export default class Core {
     // remove deleted components from updatesNeeded arrays
     updatesNeeded.componentsTouched = [... new Set(updatesNeeded.componentsTouched)].filter(x => !(x in componentsToDelete))
     updatesNeeded.compositesToUpdateReplacements = [... new Set(updatesNeeded.compositesToUpdateReplacements)].filter(x => !(x in componentsToDelete))
-    updatesNeeded.componentsToUpdateDependencies = updatesNeeded.componentsToUpdateDependencies.filter(x => !(x.componentName in componentsToDelete))
 
     return {
       success: true,
@@ -8024,7 +8020,6 @@ export default class Core {
       componentsTouched: [],
       compositesToExpand: new Set([]),
       compositesToUpdateReplacements: [],
-      componentsToUpdateDependencies: [],
       unresolvedDependencies: {},
       unresolvedByDependent: {},
       deletedStateVariables: {},
@@ -8224,7 +8219,6 @@ export default class Core {
         componentsTouched: Object.keys(newStateVariableValues),
         compositesToExpand: new Set([]),
         compositesToUpdateReplacements: [],
-        componentsToUpdateDependencies: [],
         unresolvedDependencies: {},
         unresolvedByDependent: {},
         deletedStateVariables: {},
@@ -8250,7 +8244,7 @@ export default class Core {
     }
 
 
-    this.dependencies.updateDependencies(updatesNeeded, compositesBeingExpanded);
+    // this.dependencies.updateDependencies(updatesNeeded, compositesBeingExpanded);
 
     if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
       console.log("have some unresolved");

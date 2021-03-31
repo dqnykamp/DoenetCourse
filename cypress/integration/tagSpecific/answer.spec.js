@@ -85,7 +85,7 @@ describe('Answer Tag Tests', function () {
 
 
       cy.log("Press enter to submit")
-      cy.get(mathinputAnchor).type(`{enter}`, {force: true});
+      cy.get(mathinputAnchor).type(`{enter}`, { force: true });
 
       // wrap to change value of math2Anchor
       cy.window().then((win) => {
@@ -114,7 +114,7 @@ describe('Answer Tag Tests', function () {
 
 
         cy.log("Enter wrong answer")
-        cy.get(mathinputAnchor).type(`{end}{backspace}{backspace}{backspace}x`, {force: true}).blur();
+        cy.get(mathinputAnchor).type(`{end}{backspace}{backspace}{backspace}x`, { force: true }).blur();
 
         cy.log('Test value displayed in browser')
         // cy.get(mathinputAnchor).should('have.value', 'x');
@@ -291,6 +291,124 @@ describe('Answer Tag Tests', function () {
     })
   });
 
+  // test for bug where submitted response was not initially text
+  // when had only one copy of referring to all submitted responses
+  it.skip('answer sugar from one string, set to text, copy all responses', () => {
+    cy.window().then((win) => {
+      win.postMessage({
+        doenetML: `
+  <text>a</text>
+  <p><answer type="text">hello there</answer></p>
+  <p>Submitted responses: <copy prop="submittedResponses" tname="_answer1" includeUndefinedObjects /></p>
+
+  `}, "*");
+    });
+
+    cy.get('#\\/_text1').should('have.text', 'a');  // to wait until loaded
+
+    cy.window().then((win) => {
+      let components = Object.assign({}, win.state.components);
+      let textinputName = components['/_answer1'].stateValues.inputChild.componentName
+      let textinputAnchor = cesc('#' + textinputName + '_input');
+      let textinputSubmitAnchor = cesc('#' + textinputName + '_submit');
+
+      cy.get('#\\/_p2').should('have.text', 'Submitted responses: ')
+
+      cy.log("Type correct answer in")
+      cy.get(textinputAnchor).type(` hello there {enter}`)
+
+      cy.get('#\\/_p2').should('have.text', 'Submitted responses:  hello there ')
+
+      cy.window().then((win) => {
+        let text1 = components['/_copy1'].replacements[0];
+        let text1Anchor = cesc('#' + text1.componentName);
+        cy.get(textinputAnchor).should('have.value', ' hello there ');
+        cy.get(text1Anchor).should('have.text', ' hello there ')
+
+        cy.window().then((win) => {
+
+          expect(components['/_answer1'].stateValues.creditAchieved).eq(0);
+          expect(components['/_answer1'].stateValues.currentResponses).eqls(['']);
+          expect(components['/_answer1'].stateValues.submittedResponses).eqls([]);
+          expect(components[textinputName].stateValues.value).eq('');
+        });
+
+        cy.log('Test value displayed in browser')
+        cy.get(textinputAnchor).should('have.value', ' hello there ');
+        cy.get(text1Anchor).find('.mjx-mrow').eq(0).invoke('text').then((text) => {
+          expect(text.trim()).equal('＿')
+        });
+
+        cy.log('Test internal values')
+        cy.window().then((win) => {
+          expect(components['/_answer1'].stateValues.creditAchieved).eq(0);
+          expect(components['/_answer1'].stateValues.currentResponses).eqls([' hello there ']);
+          expect(components['/_answer1'].stateValues.submittedResponses).eqls([]);
+          expect(components[textinputName].stateValues.value).eq(' hello there ');
+        });
+
+
+        cy.log("Press enter to submit")
+        cy.get(textinputAnchor).type(`{enter}`);
+
+        // wrap to change value of text2Anchor
+        cy.window().then((win) => {
+          text2 = components['/_copy2'].replacements[0];
+          text2Anchor = cesc('#' + text2.componentName);
+
+          cy.log('Test value displayed in browser')
+          cy.get(textinputAnchor).should('have.value', ' hello there ');
+          cy.get(text1Anchor).should('have.text', ' hello there ')
+
+          cy.log('Test internal values')
+          cy.window().then((win) => {
+            expect(components['/_answer1'].stateValues.creditAchieved).eq(1);
+            expect(components['/_answer1'].stateValues.currentResponses).eqls([' hello there ']);
+            expect(components['/_answer1'].stateValues.submittedResponses).eqls([' hello there ']);
+            expect(components[textinputName].stateValues.value).eq(' hello there ');
+          });
+
+
+          cy.log("Enter wrong answer")
+          cy.get(textinputAnchor).clear().type(`hello  there`).blur();
+
+          cy.log('Test value displayed in browser')
+          cy.get(textinputAnchor).should('have.value', 'hello  there');
+          cy.get(text1Anchor).should('have.text', 'hello  there')
+          cy.get(text2Anchor).should('have.text', ' hello there ')
+          cy.get(number1Anchor).should('have.text', '1')
+
+          cy.log('Test internal values')
+          cy.window().then((win) => {
+            expect(components['/_answer1'].stateValues.creditAchieved).eq(1);
+            expect(components['/_answer1'].stateValues.currentResponses).eqls(['hello  there']);
+            expect(components['/_answer1'].stateValues.submittedResponses).eqls([' hello there ']);
+            expect(components[textinputName].stateValues.value).eq('hello  there');
+            // expect(components[textinputName].stateValues.submittedValue).eq(' hello there ');
+          });
+
+          cy.log("Submit answer")
+          cy.get(textinputSubmitAnchor).click();
+
+          cy.log('Test value displayed in browser')
+          cy.get(textinputAnchor).should('have.value', 'hello  there');
+          cy.get(text1Anchor).should('have.text', 'hello  there')
+          cy.get(text2Anchor).should('have.text', 'hello  there')
+          cy.get(number1Anchor).should('have.text', '0')
+
+          cy.log('Test internal values')
+          cy.window().then((win) => {
+            expect(components['/_answer1'].stateValues.creditAchieved).eq(0);
+            expect(components['/_answer1'].stateValues.currentResponses).eqls(['hello  there']);
+            expect(components['/_answer1'].stateValues.submittedResponses).eqls(['hello  there']);
+            expect(components[textinputName].stateValues.value).eq('hello  there');
+            // expect(components[textinputName].stateValues.submittedValue).eq('hello  there');
+          });
+        })
+      })
+    })
+  });
+
   it('answer sugar from one math', () => {
     cy.window().then((win) => {
       win.postMessage({
@@ -361,7 +479,7 @@ describe('Answer Tag Tests', function () {
 
 
       cy.log("Press enter to submit")
-      cy.get(mathinputAnchor).type(`{enter}`, {force:true});
+      cy.get(mathinputAnchor).type(`{enter}`, { force: true });
 
       // wrap to change value of math2Anchor
       cy.window().then((win) => {
@@ -389,7 +507,7 @@ describe('Answer Tag Tests', function () {
 
 
         cy.log("Enter wrong answer")
-        cy.get(mathinputAnchor).type(`{end}{backspace}{backspace}`, {force: true}).blur();
+        cy.get(mathinputAnchor).type(`{end}{backspace}{backspace}`, { force: true }).blur();
 
         cy.log('Test value displayed in browser')
         // cy.get(mathinputAnchor).should('have.value', 'x');
@@ -514,7 +632,7 @@ describe('Answer Tag Tests', function () {
 
 
       cy.log("Press enter to submit")
-      cy.get(mathinputAnchor).type(`{enter}`, {force:true});
+      cy.get(mathinputAnchor).type(`{enter}`, { force: true });
 
       // wrap to change value of math2Anchor
       cy.window().then((win) => {
@@ -542,7 +660,7 @@ describe('Answer Tag Tests', function () {
 
 
         cy.log("Enter wrong answer")
-        cy.get(mathinputAnchor).type(`{end}{backspace}{backspace}`, {force:true}).blur();
+        cy.get(mathinputAnchor).type(`{end}{backspace}{backspace}`, { force: true }).blur();
 
         cy.log('Test value displayed in browser')
         // cy.get(mathinputAnchor).should('have.value', 'x');
@@ -926,7 +1044,7 @@ describe('Answer Tag Tests', function () {
 
 
       cy.log("Press enter to submit")
-      cy.get(mathinputAnchor).type(`{enter}`, {force: true});
+      cy.get(mathinputAnchor).type(`{enter}`, { force: true });
 
       // wrap to change value of math2Anchor
       cy.window().then((win) => {
@@ -954,7 +1072,7 @@ describe('Answer Tag Tests', function () {
 
 
         cy.log("Enter partially correct answer")
-        cy.get(mathinputAnchor).type(`{end}{backspace}{backspace}`, {force:true}).blur();
+        cy.get(mathinputAnchor).type(`{end}{backspace}{backspace}`, { force: true }).blur();
 
         cy.log('Test value displayed in browser')
         // cy.get(mathinputAnchor).should('have.value', 'x');
