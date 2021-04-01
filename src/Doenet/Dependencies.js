@@ -33,7 +33,7 @@ export class DependencyHandler {
 
   }
 
-  setUpComponentDependencies({ component, updatesNeeded, compositesBeingExpanded }) {
+  setUpComponentDependencies(component) {
 
     // if component already has downstream dependencies
     // delete them, and the corresponding upstream dependencies
@@ -72,22 +72,18 @@ export class DependencyHandler {
 
       this.setUpStateVariableDependencies({
         component, stateVariable, allStateVariablesAffected,
-        updatesNeeded, compositesBeingExpanded
       });
     }
 
   }
 
-  setUpStateVariableDependencies({ component, stateVariable, allStateVariablesAffected,
-    updatesNeeded, compositesBeingExpanded
-  }) {
+  setUpStateVariableDependencies({ component, stateVariable, allStateVariablesAffected }) {
     let stateVarObj = component.state[stateVariable];
     let dependencies;
 
     if (stateVarObj.stateVariablesDeterminingDependencies || stateVarObj.determineIfShadowData) {
       let dependencyStateVar = this.createDetermineDependenciesStateVariable({
         stateVariable, component, allStateVariablesAffected,
-        updatesNeeded, compositesBeingExpanded
       });
       // make dependencies of actual stateVariable be this
       // determineDependencies state variable we just created
@@ -113,7 +109,6 @@ export class DependencyHandler {
     this.setUpStateVariableDependenciesSub({
       dependencies, component, stateVariable,
       allStateVariablesAffected,
-      updatesNeeded, compositesBeingExpanded
     });
 
   }
@@ -153,7 +148,6 @@ export class DependencyHandler {
 
   deleteAllUpstreamDependencies({ component, stateVariables = '__all__',
     completelyDelete = false,
-    updatesNeeded
   }) {
 
     // if completelyDelete is false, then just remove component from dependency
@@ -184,7 +178,6 @@ export class DependencyHandler {
                 this.core.recordActualChangeInStateVariable({
                   componentName: upDep.upstreamComponentName,
                   varName: upVarName,
-                  updatesNeeded,
                 })
               }
             }
@@ -195,7 +188,6 @@ export class DependencyHandler {
             // even if this is the last downstream component
             upDep.removeDownstreamComponent({
               indexToRemove: upDep.downstreamComponentNames.indexOf(componentName),
-              updatesNeeded
             })
           }
         }
@@ -213,9 +205,7 @@ export class DependencyHandler {
 
   }
 
-  setUpStateVariableDependenciesSub({ dependencies, component, stateVariable, allStateVariablesAffected,
-    updatesNeeded, compositesBeingExpanded
-  }) {
+  setUpStateVariableDependenciesSub({ dependencies, component, stateVariable, allStateVariablesAffected }) {
 
     for (let dependencyName in dependencies) {
       let dependencyDefinition = dependencies[dependencyName];
@@ -226,7 +216,6 @@ export class DependencyHandler {
         component, stateVariable, allStateVariablesAffected,
         dependencyName, dependencyDefinition,
         dependencyHandler: this,
-        updatesNeeded, compositesBeingExpanded
       })
 
       dep.checkForCircular();
@@ -237,7 +226,6 @@ export class DependencyHandler {
 
   createDetermineDependenciesStateVariable({
     stateVariable, component, allStateVariablesAffected,
-    updatesNeeded, compositesBeingExpanded
   }) {
 
     let stateVariablesDeterminingDependencies = component.state[stateVariable].stateVariablesDeterminingDependencies;
@@ -304,7 +292,7 @@ export class DependencyHandler {
         }
         return theseDependencies;
       },
-      resolvedAction({ dependencyValues, updatesNeeded }) {
+      resolvedAction({ dependencyValues }) {
 
         let stateVarObj = component.state[dependencyStateVar];
 
@@ -314,7 +302,6 @@ export class DependencyHandler {
           component,
           stateVariables: [dependencyStateVar],
           completelyDelete: true,
-          updatesNeeded
         });
 
         // now, can finally run returnDependencies of the state variable (and others affected)
@@ -391,7 +378,6 @@ export class DependencyHandler {
           component,
           stateVariable: varName,
           allStateVariablesAffected: stateVarObj.dependenciesForStateVariables,
-          updatesNeeded, compositesBeingExpanded
         });
 
         return {};
@@ -424,20 +410,19 @@ export class DependencyHandler {
       component,
       stateVariable: dependencyStateVar,
       allStateVariablesAffected: [dependencyStateVar],
-      updatesNeeded, compositesBeingExpanded
     });
 
     return dependencyStateVar;
   }
 
 
-  updateChildAndDescendantDependencies(component, updatesNeeded, compositesBeingExpanded) {
+  updateChildAndDescendantDependencies(component) {
 
     // console.log(`update child and descendant deps for ${component.componentName}`)
     // console.log(JSON.parse(JSON.stringify(this.downstreamDependencies[component.componentName])))
 
 
-    this.collateCountersAndPropagateToAncestors(component, updatesNeeded);
+    this.collateCountersAndPropagateToAncestors(component);
 
     if (!component.childLogicSatisfied) {
       return;
@@ -450,92 +435,90 @@ export class DependencyHandler {
       this.markUpstreamDependentsStale({
         component,
         varName: "__activeChildren",
-        updatesNeeded,
       })
 
       this.recordActualChangeInUpstreamDependencies({
         component,
         varName: "__activeChildren",
-        updatesNeeded
       })
     }
 
     if (componentName in this.downstreamDependencies) {
       // only need to change child dependencies if the component already has dependencies
 
-      this.updateChildDependencies(component, updatesNeeded, compositesBeingExpanded);
+      this.updateChildDependencies(component);
 
     }
 
     if (component.ancestors) {
 
-      this.updateParentDependencies(component, updatesNeeded, compositesBeingExpanded);
+      this.updateParentDependencies(component);
 
-      // this.updateDescendantDependencies(component, updatesNeeded, compositesBeingExpanded);
+      // this.updateDescendantDependencies(component);
 
-      this.updateAncestorDependencies(component, updatesNeeded, compositesBeingExpanded);
+      this.updateAncestorDependencies(component);
 
-      updatesNeeded.parentsToUpdateDescendants.add(component.componentName);
+      this.core.updateInProgress.parentsToUpdateDescendants.add(component.componentName);
       for (let ancestorName of ancestorsIncludingComposites(component, this.components)) {
-        updatesNeeded.parentsToUpdateDescendants.add(ancestorName);
+        this.core.updateInProgress.parentsToUpdateDescendants.add(ancestorName);
       }
     }
 
   }
 
-  updateChildDependencies(parent, updatesNeeded, compositesBeingExpanded) {
+  updateChildDependencies(parent) {
 
     if (this.updateTriggers.childDependenciesByParent[parent.componentName]) {
       for (let dep of this.updateTriggers.childDependenciesByParent[parent.componentName]) {
 
-        dep.recalculateDownstreamComponents(updatesNeeded, compositesBeingExpanded)
+        dep.recalculateDownstreamComponents()
       }
     }
 
   }
 
-  updateDescendantDependencies(parent, updatesNeeded, compositesBeingExpanded) {
+  updateDescendantDependencies(parent) {
 
     // console.log(`update descendant dependencies for ${parent.componentName}`)
 
     if (this.updateTriggers.descendantDependenciesByAncestor[parent.componentName]) {
       for (let dep of this.updateTriggers.descendantDependenciesByAncestor[parent.componentName]) {
 
-        dep.recalculateDownstreamComponents(updatesNeeded, compositesBeingExpanded)
+        dep.recalculateDownstreamComponents()
       }
     }
 
   }
 
-  updateParentDependencies(parent, updatesNeeded, compositesBeingExpanded) {
+  updateParentDependencies(parent) {
 
     if (this.updateTriggers.parentDependenciesByParent[parent.componentName]) {
       for (let dep of this.updateTriggers.parentDependenciesByParent[parent.componentName]) {
 
-        dep.recalculateDownstreamComponents(updatesNeeded, compositesBeingExpanded)
+        dep.recalculateDownstreamComponents()
       }
     }
 
   }
 
-  updateAncestorDependencies(parent, updatesNeeded, compositesBeingExpanded) {
+  updateAncestorDependencies(parent) {
 
     if (this.updateTriggers.ancestorDependenciesByPotentialAncestor[parent.componentName]) {
       for (let dep of this.updateTriggers.ancestorDependenciesByPotentialAncestor[parent.componentName]) {
 
-        dep.recalculateDownstreamComponents(updatesNeeded, compositesBeingExpanded)
+        dep.recalculateDownstreamComponents()
       }
 
     }
 
   }
 
-  updateReplacementDependencies(composite, updatesNeeded, compositesBeingExpanded) {
+  updateReplacementDependencies(composite) {
 
     if (this.updateTriggers.replacementDependenciesByComposite[composite.componentName]) {
 
       for (let dep of this.updateTriggers.replacementDependenciesByComposite[composite.componentName]) {
-        dep.recalculateDownstreamComponents(updatesNeeded, compositesBeingExpanded)
+        dep.recalculateDownstreamComponents()
       }
     }
 
@@ -646,21 +629,11 @@ export class DependencyHandler {
 
     console.log(`update dependencies of ${stateVariable} of ${component.componentName}`)
 
-    let updatesNeeded = {
-      componentsTouched: [],
-      compositesToExpand: new Set([]),
-      compositesToUpdateReplacements: [],
-      unresolvedDependencies: {},
-      unresolvedByDependent: {},
-      deletedStateVariables: {},
-      deletedComponents: {},
-      recreatedComponents: {},
-      itemScoreChanges: new Set(),
-      parentsToUpdateDescendants: new Set(),
+    let updateWasInProgress = true;
+    if (!this.core.updateInProgress) {
+      updateWasInProgress = false;
+      this.core.updateInProgress = this.core.getNewUpdateObject();
     }
-
-    let compositesBeingExpanded = [];
-
 
     let stateVarObj = component.state[stateVariable];
 
@@ -684,8 +657,6 @@ export class DependencyHandler {
       return;
     }
 
-    console.log(`actually updating`);
-
     // TODO: should we change the output of returnDependencies
     // to be an object with one key being dependencies?
     // That way, we could add another attribute to the return value
@@ -700,16 +671,15 @@ export class DependencyHandler {
     }
     let newDependencies = stateVarObj.returnDependencies(returnDepArgs);
 
-    console.log("newDependencies")
-    console.log(newDependencies)
+    // console.log("newDependencies")
+    // console.log(newDependencies)
 
     let changeResult = this.replaceDependenciesIfChanged({
       component, stateVariable, newDependencies, allStateVariablesAffected,
-      updatesNeeded, compositesBeingExpanded
     });
 
-    console.log("changeResult")
-    console.log(changeResult)
+    // console.log("changeResult")
+    // console.log(changeResult)
 
     if (!(changeResult.changedDependency || returnDepArgs.changedDependency)) {// || arraySizeChanged) {
       console.log(`didn't actually change a dependency for ${stateVariable} of ${component.componentName}`)
@@ -724,7 +694,8 @@ export class DependencyHandler {
     }
 
 
-    let haveUnresolved = Object.keys(updatesNeeded.unresolvedDependencies).length > 0;
+    // let haveUnresolved = Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0;
+    let haveUnresolved = false;
 
     for (let varName of allStateVariablesAffected) {
       component.state[varName].isResolved = false;
@@ -733,16 +704,23 @@ export class DependencyHandler {
     let resolveResult = this.core.resolveStateVariables({
       component,
       stateVariables: allStateVariablesAffected,
-      updatesNeeded,
-      compositesBeingExpanded,
     })
+
+    if(updateWasInProgress && Object.keys(resolveResult.varsUnresolved).length > 0) {
+      console.error(`we are in the middle of update and dependency change led to unresolved result`)
+      // TODO: is there anything we could do to check if we could resolve it now?
+
+      // Undo the change and mark it to be changed later.
+
+      
+
+    }
 
     console.log(`resolveResult, length ${Object.keys(resolveResult.varsUnresolved).length}`)
     console.log(resolveResult)
     this.core.addUnresolvedDependencies({
       varsUnresolved: resolveResult.varsUnresolved,
       component,
-      updatesNeeded
     });
 
     for (let varName of allStateVariablesAffected) {
@@ -752,15 +730,13 @@ export class DependencyHandler {
         this.core.resetUpstreamDependentsUnresolved({
           component,
           varName,
-          updatesNeeded
         })
-        console.log(this._components["/mid"].state.math1.isResolved)
       }
 
     }
 
-    if (haveUnresolved) {
-      this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+    if (!updateWasInProgress && haveUnresolved) {
+      this.core.resolveAllDependencies();
     }
 
 
@@ -790,7 +766,6 @@ export class DependencyHandler {
     this.core.markStateVariableAndUpstreamDependentsStale({
       component,
       varName: stateVariable,
-      updatesNeeded,
     })
 
     for (let varName of allStateVariablesAffected) {
@@ -805,44 +780,59 @@ export class DependencyHandler {
     // (Encountered case where composite wasn't ready to expand
     // until after the final mark stale step, above.
     // resolveAllDependencies tries to expand composites.)
-
-    if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
-      this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
-    }
-
-    while (updatesNeeded.compositesToUpdateReplacements.length > 0) {
-
-      this.core.replacementChangesFromCompositesToUpdate({ updatesNeeded, compositesBeingExpanded })
-
-      if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
-        this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+    if (!updateWasInProgress) {
+      if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+        this.core.resolveAllDependencies();
       }
 
+      while (this.core.updateInProgress.compositesToUpdateReplacements.length > 0) {
+
+        this.core.replacementChangesFromCompositesToUpdate()
+
+        if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+          this.core.resolveAllDependencies();
+        }
+
+      }
+
+      if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+        console.error("created new unresolved variables that we couldn't resolve while updating dependencies.  What do we do?");
+        console.log(this.core.updateInProgress.unresolvedDependencies);
+        console.log(this.core.updateInProgress.unresolvedByDependent);
+        let message = this.core.updateInProgress.unresolvedMessage;
+        throw Error(message);
+      }
+
+      delete this.core.updateInProgress;
+
     }
 
+
+
     console.log(`finished updating dependencies of ${stateVariable} of ${component.componentName}`)
-    console.log(updatesNeeded)
+    console.log(this.core.updateInProgress)
+
   }
 
 
-  updateDependenciesOld(updatesNeeded, compositesBeingExpanded, prevUpdatesleft) {
+  updateDependenciesOld(prevUpdatesleft) {
 
     // first update descendant dependencies
-    if (updatesNeeded.parentsToUpdateDescendants.size > 0) {
-      for (let parentName of updatesNeeded.parentsToUpdateDescendants) {
+    if (this.core.updateInProgress.parentsToUpdateDescendants.size > 0) {
+      for (let parentName of this.core.updateInProgress.parentsToUpdateDescendants) {
         if (this._components[parentName]) {
-          this.updateDescendantDependencies(this._components[parentName], updatesNeeded, compositesBeingExpanded)
+          this.updateDescendantDependencies(this._components[parentName])
         }
       }
-      updatesNeeded.parentsToUpdateDescendants = new Set();
+      this.core.updateInProgress.parentsToUpdateDescendants = new Set();
     }
 
 
     let dependencyChanges = [];
 
-    if (updatesNeeded.componentsToUpdateDependencies.length > 0) {
+    if (this.core.updateInProgress.componentsToUpdateDependencies.length > 0) {
       console.log(`updating dependencies`)
-      console.log(updatesNeeded.componentsToUpdateDependencies)
+      console.log(this.core.updateInProgress.componentsToUpdateDependencies)
 
       let determineDependenciesStateVariablesToFreshen = [];
 
@@ -850,7 +840,7 @@ export class DependencyHandler {
 
       let newlyCreatedDependencies = [];
 
-      for (let updateObj of updatesNeeded.componentsToUpdateDependencies) {
+      for (let updateObj of this.core.updateInProgress.componentsToUpdateDependencies) {
 
         let component = this._components[updateObj.componentName];
         if (!component) {
@@ -933,7 +923,6 @@ export class DependencyHandler {
 
           let changeResult = this.replaceDependenciesIfChanged({
             component, stateVariable, newDependencies, allStateVariablesAffected,
-            updatesNeeded, compositesBeingExpanded
           });
 
           newlyCreatedDependencies.push(...changeResult.newlyCreatedDependencies);
@@ -961,9 +950,9 @@ export class DependencyHandler {
       // that we could not update above
       // We will recurse to update those dependencies, along with any
       // more dependencies that get marked for needing updates
-      updatesNeeded.componentsToUpdateDependencies = dependenciesCouldNotUpdate;
+      this.core.updateInProgress.componentsToUpdateDependencies = dependenciesCouldNotUpdate;
 
-      let haveUnresolved = Object.keys(updatesNeeded.unresolvedDependencies).length > 0;
+      let haveUnresolved = Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0;
       for (let updateObj of dependencyChanges) {
 
         let component = this._components[updateObj.componentName];
@@ -975,14 +964,11 @@ export class DependencyHandler {
         let resolveResult = this.core.resolveStateVariables({
           component,
           stateVariables: updateObj.allStateVariablesAffected,
-          updatesNeeded,
-          compositesBeingExpanded,
         })
 
         this.core.addUnresolvedDependencies({
           varsUnresolved: resolveResult.varsUnresolved,
           component,
-          updatesNeeded
         });
 
         for (let varName of updateObj.allStateVariablesAffected) {
@@ -991,7 +977,6 @@ export class DependencyHandler {
             this.core.resetUpstreamDependentsUnresolved({
               component,
               varName,
-              updatesNeeded
             })
           }
 
@@ -999,7 +984,7 @@ export class DependencyHandler {
       }
 
       if (haveUnresolved) {
-        this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+        this.core.resolveAllDependencies();
       }
 
 
@@ -1032,7 +1017,6 @@ export class DependencyHandler {
         this.core.markStateVariableAndUpstreamDependentsStale({
           component: this._components[updateObj.componentName],
           varName: updateObj.stateVariable,
-          updatesNeeded,
         })
 
         for (let varName of updateObj.allStateVariablesAffected) {
@@ -1050,36 +1034,36 @@ export class DependencyHandler {
     // until after the final mark stale step, above.
     // resolveAllDependencies tries to expand composites.)
 
-    if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
-      this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+    if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+      this.core.resolveAllDependencies();
     }
 
-    while (updatesNeeded.compositesToUpdateReplacements.length > 0) {
+    while (this.core.updateInProgress.compositesToUpdateReplacements.length > 0) {
 
-      this.core.replacementChangesFromCompositesToUpdate({ updatesNeeded, compositesBeingExpanded })
+      this.core.replacementChangesFromCompositesToUpdate()
 
-      if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
-        this.core.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+      if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+        this.core.resolveAllDependencies();
       }
 
     }
 
-    if ((updatesNeeded.componentsToUpdateDependencies.length > 0 && dependencyChanges.length > 0)
-      || updatesNeeded.parentsToUpdateDescendants.size > 0
+    if ((this.core.updateInProgress.componentsToUpdateDependencies.length > 0 && dependencyChanges.length > 0)
+      || this.core.updateInProgress.parentsToUpdateDescendants.size > 0
     ) {
 
-      let nUpdatesLeft = updatesNeeded.componentsToUpdateDependencies.length +
-        updatesNeeded.parentsToUpdateDescendants.size;
+      let nUpdatesLeft = this.core.updateInProgress.componentsToUpdateDependencies.length +
+        this.core.updateInProgress.parentsToUpdateDescendants.size;
 
       // Avoid infinite loop by making sure number of updates left is decreasing
       if (!prevUpdatesleft || nUpdatesLeft < prevUpdatesleft) {
 
         // TODO: address case where have continued dependencies to update
         console.log(`since found more components to update dependencies, will try to recurse`)
-        console.log(updatesNeeded.componentsToUpdateDependencies)
-        console.log(updatesNeeded.parentsToUpdateDescendants)
+        console.log(this.core.updateInProgress.componentsToUpdateDependencies)
+        console.log(this.core.updateInProgress.parentsToUpdateDescendants)
 
-        this.updateDependencies(updatesNeeded, compositesBeingExpanded, nUpdatesLeft);
+        this.updateDependencies(nUpdatesLeft);
       }
       // throw Error("Need to address further updates to dependencies caused by composite changes")
     }
@@ -1088,7 +1072,6 @@ export class DependencyHandler {
 
   replaceDependenciesIfChanged({
     component, stateVariable, newDependencies, allStateVariablesAffected,
-    updatesNeeded, compositesBeingExpanded
   }) {
 
     // Note: currentDeps object is downstream dependencies
@@ -1120,7 +1103,6 @@ export class DependencyHandler {
             component, stateVariable, allStateVariablesAffected,
             dependencyName, dependencyDefinition,
             dependencyHandler: this,
-            updatesNeeded, compositesBeingExpanded
           });
 
           newlyCreatedDependencies.push(dep);
@@ -1133,7 +1115,6 @@ export class DependencyHandler {
           component, stateVariable, allStateVariablesAffected,
           dependencyName, dependencyDefinition,
           dependencyHandler: this,
-          updatesNeeded, compositesBeingExpanded
         });
         newlyCreatedDependencies.push(dep);
 
@@ -1142,7 +1123,7 @@ export class DependencyHandler {
     return { changedDependency, newlyCreatedDependencies };
   }
 
-  checkForDependenciesOnNewComponent({ componentName, updatesNeeded, compositesBeingExpanded }) {
+  checkForDependenciesOnNewComponent(componentName) {
 
     let variablesChanged = [];
 
@@ -1169,7 +1150,7 @@ export class DependencyHandler {
           continue;
         }
 
-        dep.recalculateDownstreamComponents(updatesNeeded, compositesBeingExpanded)
+        dep.recalculateDownstreamComponents()
 
         for (let upVar of dep.upstreamVariableNames) {
           variablesChanged.push({
@@ -1285,7 +1266,7 @@ export class DependencyHandler {
 
   }
 
-  collateCountersAndPropagateToAncestors(component, updatesNeeded) {
+  collateCountersAndPropagateToAncestors(component) {
 
     let allCounterNames = Object.keys(component.counters);
     for (let childName of component.allChildrenOrdered) {
@@ -1351,7 +1332,6 @@ export class DependencyHandler {
             this.core.markStateVariableAndUpstreamDependentsStale({
               component: comp,
               varName: dep.representativeStateVariable,
-              updatesNeeded,
             })
 
             for (let varName of dep.upstreamVariableNames) {
@@ -1378,7 +1358,7 @@ export class DependencyHandler {
       return { foundChange: true, finishedPropagation: false }
     }
 
-    let parentResult = this.collateCountersAndPropagateToAncestors(parent, updatesNeeded);
+    let parentResult = this.collateCountersAndPropagateToAncestors(parent);
 
     if (!parentResult.foundChange) {
       console.error(`we found a change in propagating counters for ${component.componentName}, but no change for ancestors!`)
@@ -1404,7 +1384,6 @@ export class DependencyHandler {
 class Dependency {
   constructor({ component, stateVariable, allStateVariablesAffected,
     dependencyName, dependencyDefinition, dependencyHandler,
-    updatesNeeded, compositesBeingExpanded
   }) {
 
     this.dependencyName = dependencyName;
@@ -1470,13 +1449,12 @@ class Dependency {
 
     // Note: determineDownstreamComponents has side effects
     // of setting class variables and adding to updateTrigger objects
-    let downComponents = this.determineDownstreamComponents(updatesNeeded);
+    let downComponents = this.determineDownstreamComponents();
 
     // Note: initialize adds dependency to upstreamDependencies and downstreamDependencies
     this.initialize({
       downstreamComponentNames: downComponents.downstreamComponentNames,
       downstreamComponentTypes: downComponents.downstreamComponentTypes,
-      updatesNeeded, compositesBeingExpanded
     });
 
     // this.checkForCircular();
@@ -1504,9 +1482,7 @@ class Dependency {
     }
   }
 
-  initialize({ downstreamComponentNames, downstreamComponentTypes,
-    updatesNeeded, compositesBeingExpanded
-  }) {
+  initialize({ downstreamComponentNames, downstreamComponentTypes }) {
 
     // 1. add this dependency to the downstreamDependencies of the upstream component
     // 2. for each downstreamComponentName, add this dependency to upstreamDependencies
@@ -1545,14 +1521,11 @@ class Dependency {
         downstreamComponentName,
         downstreamComponentType: downstreamComponentTypes[index],
         index,
-        updatesNeeded, compositesBeingExpanded
       });
     }
   }
 
-  addDownstreamComponent({ downstreamComponentName, downstreamComponentType, index,
-    updatesNeeded, compositesBeingExpanded,
-  }) {
+  addDownstreamComponent({ downstreamComponentName, downstreamComponentType, index }) {
 
     this.componentIdentitiesChanged = true;
 
@@ -1650,15 +1623,12 @@ class Dependency {
           let result = this.dependencyHandler.core.createFromArrayEntry({
             component: downComponent,
             stateVariable: vName,
-            updatesNeeded,
-            compositesBeingExpanded
           });
 
           if (Object.keys(result.varsUnresolved).length > 0) {
             this.dependencyHandler.core.addUnresolvedDependencies({
               varsUnresolved: result.varsUnresolved,
               component: downComponent,
-              updatesNeeded
             });
 
           }
@@ -1681,7 +1651,6 @@ class Dependency {
           this.dependencyHandler.core.addUnresolvedDependencies({
             varsUnresolved,
             component: upComponent,
-            updatesNeeded
           });
 
           // if upstream was previously resolved
@@ -1693,14 +1662,12 @@ class Dependency {
               this.dependencyHandler.core.recordActualChangeInStateVariable({
                 componentName: this.upstreamComponentName,
                 varName: upVarName,
-                updatesNeeded,
               })
 
               upComponent.state[upVarName].isResolved = false;
               this.dependencyHandler.core.resetUpstreamDependentsUnresolved({
                 component: upComponent,
                 varName: upVarName,
-                updatesNeeded
               })
             }
           }
@@ -1742,14 +1709,13 @@ class Dependency {
         this.dependencyHandler.core.recordActualChangeInStateVariable({
           componentName: this.upstreamComponentName,
           varName: upVarName,
-          updatesNeeded,
         })
       }
     }
 
   }
 
-  removeDownstreamComponent({ indexToRemove, updatesNeeded, recordChange = true }) {
+  removeDownstreamComponent({ indexToRemove, recordChange = true }) {
     // console.log(`remove downstream ${indexToRemove}, ${this.downstreamComponentNames[indexToRemove]} dependency: ${this.dependencyName}`)
     // console.log(this.upstreamComponentName, this.representativeStateVariable);
 
@@ -1815,7 +1781,6 @@ class Dependency {
           this.dependencyHandler.core.recordActualChangeInStateVariable({
             componentName: this.upstreamComponentName,
             varName: upVarName,
-            updatesNeeded,
           })
         }
       }
@@ -1823,7 +1788,7 @@ class Dependency {
 
   }
 
-  swapDownstreamComponents(index1, index2, updatesNeeded) {
+  swapDownstreamComponents(index1, index2) {
 
     this.componentIdentitiesChanged = true;
 
@@ -1844,7 +1809,6 @@ class Dependency {
         this.dependencyHandler.core.recordActualChangeInStateVariable({
           componentName: this.upstreamComponentName,
           varName: upVarName,
-          updatesNeeded,
         })
       }
     }
@@ -2050,9 +2014,9 @@ class Dependency {
     }
   }
 
-  recalculateDownstreamComponents(updatesNeeded, compositesBeingExpanded) {
+  recalculateDownstreamComponents() {
 
-    let newDownComponents = this.determineDownstreamComponents(updatesNeeded);
+    let newDownComponents = this.determineDownstreamComponents();
     // this.downstreamComponentNames = newDownComponents.downstreamComponentNames;
     // this.downstreamComponentTypes = newDownComponents.downstreamComponentTypes;
 
@@ -2070,8 +2034,7 @@ class Dependency {
       let nRemoved = 0;
       for (let [ind, downCompName] of [...this.downstreamComponentNames].entries()) {
         if (!newComponentNames.includes(downCompName)) {
-          // updatesNeeded.componentsTouched.push(downCompName);
-          this.removeDownstreamComponent({ indexToRemove: ind - nRemoved, updatesNeeded });
+          this.removeDownstreamComponent({ indexToRemove: ind - nRemoved });
           nRemoved++;
         }
       }
@@ -2081,18 +2044,14 @@ class Dependency {
 
         if (oldInd !== -1) {
           if (oldInd !== ind) {
-            this.swapDownstreamComponents(oldInd, ind, updatesNeeded);
-            // updatesNeeded.componentsTouched.push(downCompName);
+            this.swapDownstreamComponents(oldInd, ind);
           }
         } else {
-          // updatesNeeded.componentsTouched.push(downCompName);
           this.addDownstreamComponent({
             downstreamComponentName: downCompName,
             downstreamComponentType: newDownComponents.downstreamComponentTypes[ind],
             index: ind,
             createVariables: true,
-            updatesNeeded,
-            compositesBeingExpanded,
           });
 
         }
@@ -2257,6 +2216,7 @@ class StateVariableComponentTypeDependency extends StateVariableDependency {
               // remove the downstream dependency 
               // and create static value
               this.staticValue = componentObj;
+              console.log(`since don't have variable component type, remove dep`)
               this.removeDownstreamComponent({ indexToRemove: 0, recordChange: false });
 
             }
@@ -3967,7 +3927,7 @@ class CounterDependency extends Dependency {
 
   }
 
-  determineDownstreamComponents(updatesNeeded) {
+  determineDownstreamComponents() {
 
     let component = this.dependencyHandler._components[this.componentName];
 
@@ -3984,7 +3944,7 @@ class CounterDependency extends Dependency {
       counters.dependencies.push(this);
     }
 
-    this.dependencyHandler.collateCountersAndPropagateToAncestors(component, updatesNeeded);
+    this.dependencyHandler.collateCountersAndPropagateToAncestors(component);
 
     return {
       downstreamComponentNames: [],

@@ -387,8 +387,6 @@ export default class Core {
             let doenetML = newDoenetMLs[ind];
             let calculatedContentId = Hex.stringify(sha256(doenetML));
             if (contentId !== calculatedContentId) {
-              console.log(contentId)
-              console.log(calculatedContentId)
               throw Error(`Incorrect DoenetML returned for contentId: ${contentId}`)
             }
           } else {
@@ -734,21 +732,14 @@ export default class Core {
   }
 
   createIsolatedComponents({ serializedComponents, ancestors,
-    applyAdapters = true, shadow = false, compositesBeingExpanded = [] }
+    applyAdapters = true, shadow = false }
   ) {
 
-    let updatesNeeded = {
-      componentsTouched: [],
-      compositesToExpand: new Set([]),
-      compositesToUpdateReplacements: [],
-      unresolvedDependencies: {},
-      unresolvedByDependent: {},
-      deletedStateVariables: {},
-      deletedComponents: {},
-      recreatedComponents: {},
-      itemScoreChanges: new Set(),
-      parentsToUpdateDescendants: new Set(),
+    if (this.updateInProgress) {
+      throw Error(`Can't add more components while an update in progress.  Need some queuing mechanism`);
     }
+
+    this.updateInProgress = this.getNewUpdateObject();
 
     let previousUnsatisfiedChildLogic = Object.assign({}, this.unsatisfiedChildLogic);
 
@@ -768,7 +759,7 @@ export default class Core {
       serializedComponents,
       ancestors,
       applyAdapters,
-      shadow, updatesNeeded, compositesBeingExpanded,
+      shadow,
       namespaceForUnamed
     });
 
@@ -777,25 +768,30 @@ export default class Core {
 
     let newComponents = createResult.components;
 
-    // console.log(JSON.parse(JSON.stringify(updatesNeeded.unresolvedDependencies)))
-    // console.log(JSON.parse(JSON.stringify(updatesNeeded.unresolvedByDependent)))
+    // console.log(JSON.parse(JSON.stringify(this.updateInProgress.unresolvedDependencies)))
+    // console.log(JSON.parse(JSON.stringify(this.updateInProgress.unresolvedByDependent)))
 
 
-    if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
-      updatesNeeded.unresolvedMessage = "";
-      this.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+    if (Object.keys(this.updateInProgress.unresolvedDependencies).length > 0) {
+      this.updateInProgress.unresolvedMessage = "";
+      this.resolveAllDependencies();
     }
 
 
-    // this.dependencies.updateDependencies(updatesNeeded, compositesBeingExpanded);
+    // this.dependencies.updateDependencies();
 
 
-    if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
+    if (Object.keys(this.updateInProgress.unresolvedDependencies).length > 0) {
       console.log("have some unresolved");
-      console.log(updatesNeeded.unresolvedDependencies);
-      console.log(updatesNeeded.unresolvedByDependent);
-      return { success: false, message: updatesNeeded.unresolvedMessage, updatesNeeded }
+      console.log(this.updateInProgress.unresolvedDependencies);
+      console.log(this.updateInProgress.unresolvedByDependent);
+      let message = this.updateInProgress.unresolvedMessage;
+      delete this.updateInProgress;
+      return { success: false, message }
     }
+
+    let componentsTouched = [...new Set(this.updateInProgress.componentsTouched)];
+    delete this.updateInProgress;
 
     if (Object.keys(this.unsatisfiedChildLogic).length > 0) {
       let childLogicMessage = "";
@@ -807,21 +803,21 @@ export default class Core {
         }
       }
       if (newUnsatisfiedChildLogic) {
-        return { success: false, message: childLogicMessage, updatesNeeded }
+        return { success: false, message: childLogicMessage }
       }
     }
 
     return {
       success: true,
       components: newComponents,
-      componentsTouched: [...new Set(updatesNeeded.componentsTouched)]
+      componentsTouched
     }
 
 
   }
 
   createIsolatedComponentsSub({ serializedComponents, ancestors,
-    applyAdapters = true, shadow = false, updatesNeeded, compositesBeingExpanded,
+    applyAdapters = true, shadow = false,
     createNameContext = "", namespaceForUnamed = "/", componentsReplacementOf,
   }
   ) {
@@ -889,7 +885,7 @@ export default class Core {
         componentName,
         ancestors,
         componentClass,
-        applyAdapters, shadow, updatesNeeded, compositesBeingExpanded,
+        applyAdapters, shadow,
         namespaceForUnamed,
         componentsReplacementOf,
       });
@@ -912,7 +908,6 @@ export default class Core {
   createChildrenThenComponent({ serializedComponent, componentName,
     ancestors, componentClass,
     applyAdapters = true, shadow = false,
-    updatesNeeded, compositesBeingExpanded,
     namespaceForUnamed = "/", componentsReplacementOf
   }) {
 
@@ -1011,7 +1006,6 @@ export default class Core {
             serializedComponents: [variantControlChild],
             ancestors: ancestorsForChildren,
             applyAdapters, shadow,
-            updatesNeeded, compositesBeingExpanded,
             createNameContext: "variantControl",
             namespaceForUnamed,
           });
@@ -1034,7 +1028,6 @@ export default class Core {
           serializedComponents: childrenToCreate,
           ancestors: ancestorsForChildren,
           applyAdapters, shadow,
-          updatesNeeded, compositesBeingExpanded,
           namespaceForUnamed,
         });
 
@@ -1074,7 +1067,6 @@ export default class Core {
             serializedComponents: childrenToCreate,
             ancestors: ancestorsForChildren,
             applyAdapters, shadow,
-            updatesNeeded, compositesBeingExpanded,
             namespaceForUnamed,
           });
 
@@ -1091,7 +1083,6 @@ export default class Core {
           serializedComponents: serializedChildren,
           ancestors: ancestorsForChildren,
           applyAdapters, shadow,
-          updatesNeeded, compositesBeingExpanded,
           namespaceForUnamed,
         });
 
@@ -1143,11 +1134,11 @@ export default class Core {
     });
 
     // in case component with same name was deleted before, delete from deleteComponents and deletedStateVariable
-    if (updatesNeeded.deletedComponents[componentName]) {
-      updatesNeeded.recreatedComponents[componentName] = true;
+    if (this.updateInProgress.deletedComponents[componentName]) {
+      this.updateInProgress.recreatedComponents[componentName] = true;
     }
-    delete updatesNeeded.deletedComponents[componentName];
-    delete updatesNeeded.deletedStateVariables[componentName];
+    delete this.updateInProgress.deletedComponents[componentName];
+    delete this.updateInProgress.deletedStateVariables[componentName];
 
     // create component itself
     let newComponent = new componentClass({
@@ -1173,7 +1164,7 @@ export default class Core {
       newComponent.replacementOf = componentsReplacementOf
     }
 
-    if(serializedComponent.adaptedFrom) {
+    if (serializedComponent.adaptedFrom) {
       // record adapter relationship
       newComponent.adaptedFrom = this._components[serializedComponent.adaptedFrom];
       newComponent.adaptedFrom.adapterUsed = newComponent;
@@ -1210,37 +1201,30 @@ export default class Core {
     // }
 
 
-    this.deriveChildResultsFromDefiningChildren(newComponent, updatesNeeded, compositesBeingExpanded);
+    this.deriveChildResultsFromDefiningChildren(newComponent);
 
     this.initializeComponentStateVariables(newComponent);
 
-    this.dependencies.setUpComponentDependencies({
-      component: newComponent,
-      core: this,
-      updatesNeeded, compositesBeingExpanded,
-    });
+    this.dependencies.setUpComponentDependencies(newComponent);
 
     let { varsUnresolved } = this.resolveStateVariables({
       component: newComponent,
-      updatesNeeded, compositesBeingExpanded,
     });
 
-    this.addUnresolvedDependencies({ varsUnresolved, component: newComponent, updatesNeeded });
+    this.addUnresolvedDependencies({ varsUnresolved, component: newComponent });
 
-    let variablesChanged = this.dependencies.checkForDependenciesOnNewComponent({
+    let variablesChanged = this.dependencies.checkForDependenciesOnNewComponent(
       componentName,
-      updatesNeeded, compositesBeingExpanded,
-    })
+    )
 
     for (let varDescription of variablesChanged) {
       this.recordActualChangeInStateVariable({
         componentName: varDescription.componentName,
         varName: varDescription.varName,
-        updatesNeeded
       });
     }
 
-    this.dependencies.collateCountersAndPropagateToAncestors(newComponent, updatesNeeded);
+    this.dependencies.collateCountersAndPropagateToAncestors(newComponent);
 
     // remove a level from parameter stack;
     this.parameterStack.pop();
@@ -1251,39 +1235,39 @@ export default class Core {
 
   }
 
-  addUnresolvedDependencies({ varsUnresolved, component, updatesNeeded }) {
+  addUnresolvedDependencies({ varsUnresolved, component }) {
     // adds the varsUnresolved for component to
-    // unresolvedDependencies and unresolvedByDependent of updatesNeeded
+    // unresolvedDependencies and unresolvedByDependent of this.updateInProgress
 
     if (Object.keys(varsUnresolved).length > 0) {
-      if (!updatesNeeded.unresolvedDependencies[component.componentName]) {
-        updatesNeeded.unresolvedDependencies[component.componentName] = {};
+      if (!this.updateInProgress.unresolvedDependencies[component.componentName]) {
+        this.updateInProgress.unresolvedDependencies[component.componentName] = {};
       }
-      Object.assign(updatesNeeded.unresolvedDependencies[component.componentName],
+      Object.assign(this.updateInProgress.unresolvedDependencies[component.componentName],
         varsUnresolved);
 
       // calculate the reverse direction of unresolved dependencies
       for (let varName in varsUnresolved) {
         for (let dep of varsUnresolved[varName]) {
-          if (!updatesNeeded.unresolvedByDependent[dep.componentName]) {
-            updatesNeeded.unresolvedByDependent[dep.componentName] = {};
+          if (!this.updateInProgress.unresolvedByDependent[dep.componentName]) {
+            this.updateInProgress.unresolvedByDependent[dep.componentName] = {};
           }
-          if (!updatesNeeded.unresolvedByDependent[dep.componentName][dep.stateVariable]) {
-            updatesNeeded.unresolvedByDependent[dep.componentName][dep.stateVariable] = [];
+          if (!this.updateInProgress.unresolvedByDependent[dep.componentName][dep.stateVariable]) {
+            this.updateInProgress.unresolvedByDependent[dep.componentName][dep.stateVariable] = [];
           }
 
           // since a state variable could get re-designated as unresolved
           // while in the middle of it getting resolved,
           // it is possible that the dependency is already in unresolvedByDependent
           let alreadyIn = false;
-          for (let oDep of updatesNeeded.unresolvedByDependent[dep.componentName][dep.stateVariable]) {
+          for (let oDep of this.updateInProgress.unresolvedByDependent[dep.componentName][dep.stateVariable]) {
             if (oDep.componentName === component.componentName && oDep.stateVariable === varName) {
               alreadyIn = true;
               break;
             }
           }
           if (!alreadyIn) {
-            updatesNeeded.unresolvedByDependent[dep.componentName][dep.stateVariable].push({
+            this.updateInProgress.unresolvedByDependent[dep.componentName][dep.stateVariable].push({
               componentName: component.componentName,
               stateVariable: varName,
             });
@@ -1345,7 +1329,7 @@ export default class Core {
     return propertiesPropagated;
   }
 
-  deriveChildResultsFromDefiningChildren(component, updatesNeeded, compositesBeingExpanded) {
+  deriveChildResultsFromDefiningChildren(component) {
 
     // create allChildren and activeChildren from defining children
     // apply child logic and substitute adapters to modify activeChildren
@@ -1379,7 +1363,7 @@ export default class Core {
 
     // if any of activeChildren are compositeComponents
     // replace with new components given by the composite component
-    let replaceCompositeResult = this.replaceCompositeChildren(component, updatesNeeded, compositesBeingExpanded);
+    let replaceCompositeResult = this.replaceCompositeChildren(component);
 
     // If a class is not supposed to have blank string children,
     // it is still possible that it received blank string children from a composite.
@@ -1392,7 +1376,6 @@ export default class Core {
     let childLogicResults = this.matchChildrenToChildLogic({
       component,
       applyAdapters: true,
-      updatesNeeded
     });
 
 
@@ -1408,7 +1391,7 @@ export default class Core {
 
   }
 
-  matchChildrenToChildLogic({ component, applyAdapters = true, updatesNeeded }) {
+  matchChildrenToChildLogic({ component, applyAdapters = true }) {
 
     // determine maximum number of adapters on any child
     let maxNumAdapters = 0;
@@ -1434,7 +1417,7 @@ export default class Core {
 
       if (newResult.success) {
         success = true;
-        this.substituteAdapters(component, updatesNeeded);
+        this.substituteAdapters(component);
         break;
       }
     }
@@ -1443,26 +1426,26 @@ export default class Core {
 
   }
 
-  expandCompositeComponent({ component, updatesNeeded, compositesBeingExpanded }) {
+  expandCompositeComponent(component) {
 
     if (!("readyToExpand" in component.state)) {
       throw Error(`Could not evaluate state variable readyToExpand of composite ${component.componentName}`);
     }
 
     if (!component.state.readyToExpand.isResolved || !component.state.readyToExpand.value) {
-      updatesNeeded.compositesToExpand.add(component.componentName)
+      this.updateInProgress.compositesToExpand.add(component.componentName)
       return { success: false }
     }
 
-    updatesNeeded.compositesToExpand.delete(component.componentName);
+    this.updateInProgress.compositesToExpand.delete(component.componentName);
 
     // console.log(`expanding composite ${component.componentName}`);
 
-    compositesBeingExpanded.push(component.componentName);
+    this.updateInProgress.compositesBeingExpanded.push(component.componentName);
 
     if (component.shadows) {
 
-      if (compositesBeingExpanded.includes(component.shadows.componentName)) {
+      if (this.updateInProgress.compositesBeingExpanded.includes(component.shadows.componentName)) {
         // found a circular reference,
         // as we are in the middle of expanding a composite
         // that we are now trying to shadow
@@ -1481,19 +1464,16 @@ export default class Core {
       // console.log(shadowedComposite.isExpanded);
 
       if (!shadowedComposite.isExpanded) {
-        let result = this.expandCompositeComponent({
-          component: shadowedComposite,
-          updatesNeeded, compositesBeingExpanded
-        });
+        let result = this.expandCompositeComponent(shadowedComposite);
 
 
         if (!result.success) {
           // record that are finished expanding the composite
-          let targetInd = compositesBeingExpanded.indexOf(component.componentName);
+          let targetInd = this.updateInProgress.compositesBeingExpanded.indexOf(component.componentName);
           if (targetInd === -1) {
             throw Error(`Something is wrong as we lost track that we were expanding ${component.componentName}`);
           }
-          compositesBeingExpanded.splice(targetInd, 1)
+          this.updateInProgress.compositesBeingExpanded.splice(targetInd, 1)
 
           return { sucess: false, readyToExpand: true };
         }
@@ -1566,25 +1546,23 @@ export default class Core {
       this.createAndSetReplacements({
         component,
         serializedReplacements,
-        updatesNeeded,
-        compositesBeingExpanded,
       });
 
       // TODO: make this more specific so just updates descendants
       // of direct parent of composite, as that's the only one that would see
       // replacements as a descendant?
-      // this.dependencies.updateDescendantDependencies(component, updatesNeeded, compositesBeingExpanded);
-      updatesNeeded.parentsToUpdateDescendants.add(component.componentName);
+      // this.dependencies.updateDescendantDependencies(component);
+      this.updateInProgress.parentsToUpdateDescendants.add(component.componentName);
       for (let ancestorName of ancestorsIncludingComposites(component, this.components)) {
-        updatesNeeded.parentsToUpdateDescendants.add(ancestorName);
+        this.updateInProgress.parentsToUpdateDescendants.add(ancestorName);
       }
 
       // record that are finished expanding the composite
-      let targetInd = compositesBeingExpanded.indexOf(component.componentName);
+      let targetInd = this.updateInProgress.compositesBeingExpanded.indexOf(component.componentName);
       if (targetInd === -1) {
         throw Error(`Something is wrong as we lost track that we were expanding ${component.componentName}`);
       }
-      compositesBeingExpanded.splice(targetInd, 1)
+      this.updateInProgress.compositesBeingExpanded.splice(targetInd, 1)
 
       return { success: true };
 
@@ -1614,8 +1592,6 @@ export default class Core {
       this.createAndSetReplacements({
         component,
         serializedReplacements,
-        updatesNeeded,
-        compositesBeingExpanded,
       });
     } else {
       throw Error(`Invalid createSerializedReplacements of ${component.componentName}`);
@@ -1624,23 +1600,23 @@ export default class Core {
     // TODO: make this more specific so just updates descendants
     // of direct parent of composite, as that's the only one that would see
     // replacements as a descendant?
-    // this.dependencies.updateDescendantDependencies(component, updatesNeeded, compositesBeingExpanded);
-    updatesNeeded.parentsToUpdateDescendants.add(component.componentName);
+    // this.dependencies.updateDescendantDependencies(component);
+    this.updateInProgress.parentsToUpdateDescendants.add(component.componentName);
     for (let ancestorName of ancestorsIncludingComposites(component, this.components)) {
-      updatesNeeded.parentsToUpdateDescendants.add(ancestorName);
+      this.updateInProgress.parentsToUpdateDescendants.add(ancestorName);
     }
 
     // record that are finished expanding the composite
-    let targetInd = compositesBeingExpanded.indexOf(component.componentName);
+    let targetInd = this.updateInProgress.compositesBeingExpanded.indexOf(component.componentName);
     if (targetInd === -1) {
       throw Error(`Something is wrong as we lost track that we were expanding ${component.componentName}`);
     }
-    compositesBeingExpanded.splice(targetInd, 1)
+    this.updateInProgress.compositesBeingExpanded.splice(targetInd, 1)
 
     return { success: true };
   }
 
-  createAndSetReplacements({ component, serializedReplacements, updatesNeeded, compositesBeingExpanded }) {
+  createAndSetReplacements({ component, serializedReplacements }) {
 
     this.parameterStack.push(component.sharedParameters, false);
 
@@ -1655,8 +1631,6 @@ export default class Core {
       serializedComponents: serializedReplacements,
       ancestors: component.ancestors,
       shadow: true,
-      updatesNeeded,
-      compositesBeingExpanded,
       createNameContext: component.componentName + "|replacements",
       namespaceForUnamed,
       componentsReplacementOf: component
@@ -1665,7 +1639,7 @@ export default class Core {
     this.parameterStack.pop();
 
     component.replacements = replacementResult.components;
-    this.dependencies.updateReplacementDependencies(component, updatesNeeded, compositesBeingExpanded);
+    this.dependencies.updateReplacementDependencies(component);
 
     component.isExpanded = true;
 
@@ -1681,7 +1655,6 @@ export default class Core {
     let resolveResult = this.resolveStateVariables({
       component,
       stateVariables,
-      updatesNeeded, compositesBeingExpanded
     });
 
     if (Object.keys(resolveResult.varsUnresolved).length > 0) {
@@ -1691,7 +1664,7 @@ export default class Core {
 
   }
 
-  replaceCompositeChildren(component, updatesNeeded, compositesBeingExpanded) {
+  replaceCompositeChildren(component) {
     // if composite is not directly matched by any childLogic leaf
     // then replace the composite with its replacements,
     // expanding it if not already expanded
@@ -1713,11 +1686,7 @@ export default class Core {
         // expand composite if it isn't already
         if (!child.isExpanded) {
 
-          let expandResult = this.expandCompositeComponent({
-            component: child,
-            updatesNeeded,
-            compositesBeingExpanded
-          });
+          let expandResult = this.expandCompositeComponent(child);
 
           if (!expandResult.success) {
             if (expandResult.readyToExpand) {
@@ -1732,7 +1701,7 @@ export default class Core {
 
 
         // don't use any replacements that are marked as being withheld
-        this.markWithheldReplacementInactive(child, updatesNeeded);
+        this.markWithheldReplacementInactive(child);
 
         let replacements = child.replacements;
         if (child.replacementsToWithhold > 0) {
@@ -1777,7 +1746,7 @@ export default class Core {
     return { compositeChildNotReadyToExpand };
   }
 
-  markWithheldReplacementInactive(composite, updatesNeeded) {
+  markWithheldReplacementInactive(composite) {
 
     let numActive = composite.replacements.length;
 
@@ -1789,40 +1758,39 @@ export default class Core {
 
     for (let repl of composite.replacements.slice(0, numActive)) {
       this.changeInactiveComponentAndDescendants(
-        repl, false, updatesNeeded
+        repl, false
       );
     }
 
     for (let repl of composite.replacements.slice(numActive)) {
       this.changeInactiveComponentAndDescendants(
-        repl, true, updatesNeeded
+        repl, true
       );
     }
   }
 
-  changeInactiveComponentAndDescendants(component, inactive, updatesNeeded) {
+  changeInactiveComponentAndDescendants(component, inactive) {
     if (component.stateValues.isInactiveCompositeReplacement !== inactive) {
       component.state.isInactiveCompositeReplacement.value = inactive;
       this.markUpstreamDependentsStale({
         component,
         varName: "isInactiveCompositeReplacement",
-        updatesNeeded
       });
       this.dependencies.recordActualChangeInUpstreamDependencies({
         component,
         varName: "isInactiveCompositeReplacement"
       });
       for (let childName in component.allChildren) {
-        this.changeInactiveComponentAndDescendants(this._components[childName], inactive, updatesNeeded)
+        this.changeInactiveComponentAndDescendants(this._components[childName], inactive)
       }
 
       if (component.replacements) {
-        this.markWithheldReplacementInactive(component, updatesNeeded);
+        this.markWithheldReplacementInactive(component);
       }
     }
   }
 
-  substituteAdapters(component, updatesNeeded) {
+  substituteAdapters(component) {
 
     // let overallResults = {
     //   numUnresolvedStateVariables: {},
@@ -1848,13 +1816,12 @@ export default class Core {
           } else {
             namespaceForUnamed = getNamespaceFromName(component.componentName);
           }
-          
+
           newSerializedChild.adaptedFrom = originalChild.componentName;
           let newChildrenResult = this.createIsolatedComponentsSub({
             serializedComponents: [newSerializedChild],
             shadow: true,
             ancestors: originalChild.ancestors,
-            updatesNeeded,
             createNameContext: originalChild.componentName + "|adapter",
             namespaceForUnamed,
           });
@@ -3129,10 +3096,9 @@ export default class Core {
   }
 
   initializeStateVariable({ component, stateVariable,
-    arrayStateVariable, arrayEntryPrefix, updatesNeeded
+    arrayStateVariable, arrayEntryPrefix
   }) {
 
-    // Note: updatesNeeded is required only when have arrayEntryPrefix
 
     let getStateVar = this.getStateVariableValue;
     if (!component.state[stateVariable]) {
@@ -3145,7 +3111,7 @@ export default class Core {
     if (arrayEntryPrefix !== undefined) {
       this.initializeArrayEntryStateVariable({
         stateVarObj, arrayStateVariable, arrayEntryPrefix,
-        component, stateVariable, updatesNeeded
+        component, stateVariable
       });
     } else if (stateVarObj.isArray) {
       this.initializeArrayStateVariable({ stateVarObj, component, stateVariable });
@@ -3154,7 +3120,7 @@ export default class Core {
   }
 
   initializeArrayEntryStateVariable({ stateVarObj, arrayStateVariable,
-    arrayEntryPrefix, component, stateVariable, updatesNeeded }) {
+    arrayEntryPrefix, component, stateVariable }) {
     // This function used for initializing array entry variables
     // (not the original array variable)
     // It adds many attributes to state variables corresponding to
@@ -5123,7 +5089,6 @@ export default class Core {
 
   recordActualChangeInStateVariable({
     componentName, varName, includeAdditionalStateVariables = true,
-    updatesNeeded,
   }) {
 
     let component = this._components[componentName];
@@ -5132,7 +5097,6 @@ export default class Core {
     this.markStateVariableAndUpstreamDependentsStale({
       component,
       varName,
-      updatesNeeded,
     });
 
     let allStateVariables = [varName];
@@ -5151,7 +5115,7 @@ export default class Core {
     }
   }
 
-  resolveStateVariables({ component, stateVariables, updatesNeeded, compositesBeingExpanded }) {
+  resolveStateVariables({ component, stateVariables }) {
     // console.log(`resolve state variable ${stateVariables ? stateVariables.toString() : ""} for ${component.componentName}`);
 
     let componentName = component.componentName;
@@ -5176,8 +5140,8 @@ export default class Core {
       let onlyInternalDependenciesUnresolved = [];
 
       for (let varName of prevUnresolved) {
-        if (updatesNeeded.deletedStateVariables[componentName] &&
-          updatesNeeded.deletedStateVariables[componentName].includes(varName)
+        if (this.updateInProgress.deletedStateVariables[componentName] &&
+          this.updateInProgress.deletedStateVariables[componentName].includes(varName)
         ) {
           continue;
         }
@@ -5213,11 +5177,7 @@ export default class Core {
           if (dep.expandReplacements) {
             let composite = this._components[dep.compositeName];
             if (!composite.isExpanded) {
-              let expandResult = this.expandCompositeComponent({
-                component: composite,
-                updatesNeeded,
-                compositesBeingExpanded
-              });
+              let expandResult = this.expandCompositeComponent(composite);
 
               if (!expandResult.success) {
                 resolved = false;
@@ -5281,15 +5241,12 @@ export default class Core {
                     let result = this.createFromArrayEntry({
                       stateVariable: downVar,
                       component: depComponent,
-                      updatesNeeded,
-                      compositesBeingExpanded
                     });
 
                     if (Object.keys(result.varsUnresolved).length > 0) {
                       this.addUnresolvedDependencies({
                         varsUnresolved: result.varsUnresolved,
                         component: depComponent,
-                        updatesNeeded
                       });
 
                       // if happened to create a new unresolved dependency
@@ -5338,7 +5295,6 @@ export default class Core {
           if (component.state[varName].actionOnResolved) {
 
             let actionArgs = this.getStateVariableDefinitionArguments({ component, stateVariable: varName });
-            actionArgs.updatesNeeded = updatesNeeded
 
             let result = component.state[varName].resolvedAction(actionArgs);
 
@@ -5541,8 +5497,7 @@ export default class Core {
     return false
   }
 
-  createFromArrayEntry({ stateVariable, component, updatesNeeded,
-    compositesBeingExpanded, initializeOnly = false,
+  createFromArrayEntry({ stateVariable, component, initializeOnly = false,
   }) {
 
     let varsUnresolved = {};
@@ -5568,7 +5523,6 @@ export default class Core {
         this.initializeStateVariable({
           component, stateVariable,
           arrayStateVariable, arrayEntryPrefix,
-          updatesNeeded
         });
 
         if (initializeOnly) {
@@ -5584,8 +5538,7 @@ export default class Core {
             if (!component.state[additionalVar]) {
               this.createFromArrayEntry({
                 stateVariable: additionalVar,
-                component, updatesNeeded,
-                compositesBeingExpanded,
+                component,
                 initializeOnly: true
               });
             }
@@ -5597,8 +5550,6 @@ export default class Core {
           component, stateVariable,
           allStateVariablesAffected,
           core: this,
-          updatesNeeded,
-          compositesBeingExpanded
         });
 
         let newStateVariablesToResolve = [];
@@ -5621,8 +5572,6 @@ export default class Core {
         let result = this.resolveStateVariables({
           component,
           stateVariables: newStateVariablesToResolve,
-          updatesNeeded,
-          compositesBeingExpanded,
         });
 
         Object.assign(varsUnresolved, result.varsUnresolved);
@@ -5640,23 +5589,23 @@ export default class Core {
     return { varsUnresolved };
   }
 
-  resolveAllDependencies(updatesNeeded, compositesBeingExpanded) {
+  resolveAllDependencies() {
     // attempt to resolve all dependencies of all components
-    // Does not return anything, but if updatesNeeded.unresolvedDependencies
+    // Does not return anything, but if this.updateInProgress.unresolvedDependencies
     // is not empty when the function finishes,
     // it did not succeed in resolving all dependencies
 
     // The key data structures are
-    // - updatesNeeded.unresolvedDependencies and
-    // - updatesNeeded.unresolvedByDependent
+    // - this.updateInProgress.unresolvedDependencies and
+    // - this.updateInProgress.unresolvedByDependent
     // Both are keyed by componentName and stateVariable
     // with values that are arrays of {componentName, stateVariable}
 
-    // updatesNeeded.unresolvedDependencies is keyed by the unresolved name/variable
+    // this.updateInProgress.unresolvedDependencies is keyed by the unresolved name/variable
     // and contains an array of dependent name/variables that were
     // preventing the variable from being resolved
 
-    // updatesNeeded.unresolvedByDependent is keyed by the dependendent name/variable
+    // this.updateInProgress.unresolvedByDependent is keyed by the dependendent name/variable
     // and contains an array of name/variables that it was preventing
     // from being resolved
 
@@ -5676,9 +5625,9 @@ export default class Core {
     // - we are no longer resolving additional dependencies
     let resolvedAnotherDependency = true;
     let justChangedSwitch = false;
-    while ((resolvedAnotherDependency && Object.keys(updatesNeeded.unresolvedDependencies).length > 0)
+    while ((resolvedAnotherDependency && Object.keys(this.updateInProgress.unresolvedDependencies).length > 0)
       || justChangedSwitch) {
-      // console.log(JSON.parse(JSON.stringify(updatesNeeded)));
+      // console.log(JSON.parse(JSON.stringify(this.updateInProgress)));
       // console.log(JSON.parse(JSON.stringify(this.dependencies.downstreamDependencies)))
       // console.log(JSON.parse(JSON.stringify(this.dependencies.upstreamDependencies)))
       resolvedAnotherDependency = false;
@@ -5686,10 +5635,10 @@ export default class Core {
 
       // find component/state variable that
       // - had been preventing others from being resolved
-      //   (i.e., is in updatesNeeded.unresolvedByDependent), and
-      // - is now resolved (i.e., isn't in updatesNeeded.unresolvedDependencies)
-      for (let componentName in updatesNeeded.unresolvedByDependent) {
-        let componentDeleted = updatesNeeded.deletedComponents[componentName];
+      //   (i.e., is in this.updateInProgress.unresolvedByDependent), and
+      // - is now resolved (i.e., isn't in this.updateInProgress.unresolvedDependencies)
+      for (let componentName in this.updateInProgress.unresolvedByDependent) {
+        let componentDeleted = this.updateInProgress.deletedComponents[componentName];
         let missingComponentIgnored = false;
 
         if (!(componentName in this.components) && !componentDeleted) {
@@ -5697,7 +5646,7 @@ export default class Core {
           // if we are ignoring unresolved specified components
           // and an unresolved specified component is the only thing unresolved
           if (this.switches.ignoreUnresolvedSpecifiedComponents) {
-            let varList = Object.keys(updatesNeeded.unresolvedByDependent[componentName]);
+            let varList = Object.keys(this.updateInProgress.unresolvedByDependent[componentName]);
             if (varList.length === 1 && varList[0] === "__specified_component_identity") {
               missingComponentIgnored = true;
             }
@@ -5710,11 +5659,11 @@ export default class Core {
             continue;
           }
         }
-        for (let varName in updatesNeeded.unresolvedByDependent[componentName]) {
+        for (let varName in this.updateInProgress.unresolvedByDependent[componentName]) {
           // check if componentName/varName is a resolved state variable
 
           // in case component was deleted in earlier loop, check again
-          componentDeleted = updatesNeeded.deletedComponents[componentName];
+          componentDeleted = this.updateInProgress.deletedComponents[componentName];
 
           // if components hasn't been expanded, then its replacements aren't resolved
           if (varName === "__replacements" && !componentDeleted && !this.components[componentName].isExpanded) {
@@ -5728,8 +5677,8 @@ export default class Core {
             continue;
           }
 
-          let stateVariableDeleted = updatesNeeded.deletedStateVariables[componentName] &&
-            updatesNeeded.deletedStateVariables[componentName].includes(varName);
+          let stateVariableDeleted = this.updateInProgress.deletedStateVariables[componentName] &&
+            this.updateInProgress.deletedStateVariables[componentName].includes(varName);
 
           if (varName !== "__identity" && varName !== "__specified_component_identity" && varName !== "__replacements"
             && varName !== "__childLogic" && !componentDeleted
@@ -5739,15 +5688,15 @@ export default class Core {
             // (presumably an array entry) is recreated
             // TODO: will there be a case where the state variable is not recreatd
             // such as when have a different component?
-            if (updatesNeeded.recreatedComponents[componentName]) {
+            if (this.updateInProgress.recreatedComponents[componentName]) {
               continue;
             }
             throw Error(`Reference to invalid state variable ${varName} of ${componentName}`);
           }
 
-          if (!(componentName in updatesNeeded.unresolvedDependencies) ||
+          if (!(componentName in this.updateInProgress.unresolvedDependencies) ||
             componentDeleted || stateVariableDeleted || missingComponentIgnored ||
-            !(varName in updatesNeeded.unresolvedDependencies[componentName])
+            !(varName in this.updateInProgress.unresolvedDependencies[componentName])
           ) {
             // found a componentName/state variable that
             // - is now resolved or
@@ -5756,23 +5705,23 @@ export default class Core {
 
             // Now, go through the array of state variables that were being blocked
             // by componentName/varName to see if we can resolved them
-            for (let dep of updatesNeeded.unresolvedByDependent[componentName][varName]) {
+            for (let dep of this.updateInProgress.unresolvedByDependent[componentName][varName]) {
 
               let depComponent = this._components[dep.componentName];
 
-              if (updatesNeeded.unresolvedDependencies[dep.componentName] === undefined ||
-                updatesNeeded.unresolvedDependencies[dep.componentName][dep.stateVariable] === undefined) {
+              if (this.updateInProgress.unresolvedDependencies[dep.componentName] === undefined ||
+                this.updateInProgress.unresolvedDependencies[dep.componentName][dep.stateVariable] === undefined) {
                 // if already resolved (by another dependency), skip
                 continue;
               }
-              if (updatesNeeded.deletedStateVariables[dep.componentName] &&
-                updatesNeeded.deletedStateVariables[dep.componentName].includes(dep.stateVariable)) {
+              if (this.updateInProgress.deletedStateVariables[dep.componentName] &&
+                this.updateInProgress.deletedStateVariables[dep.componentName].includes(dep.stateVariable)) {
                 // if depComponent's variable was already deleted
                 // (from when we processed another dependency)
                 // remove it from unresolvedDepenencies and skip
-                delete updatesNeeded.unresolvedDependencies[dep.componentName][dep.stateVariable];
-                if (Object.keys(updatesNeeded.unresolvedDependencies[dep.componentName]).length === 0) {
-                  delete updatesNeeded.unresolvedDependencies[dep.componentName];
+                delete this.updateInProgress.unresolvedDependencies[dep.componentName][dep.stateVariable];
+                if (Object.keys(this.updateInProgress.unresolvedDependencies[dep.componentName]).length === 0) {
+                  delete this.updateInProgress.unresolvedDependencies[dep.componentName];
                 }
 
                 continue;
@@ -5782,16 +5731,11 @@ export default class Core {
               let resolveResult = this.resolveStateVariables({
                 component: depComponent,
                 stateVariables: [dep.stateVariable],
-                updatesNeeded,
-                compositesBeingExpanded,
               });
 
               // check to see if we can update replacements of any composites
-              if (updatesNeeded.compositesToUpdateReplacements.length > 0) {
-                this.replacementChangesFromCompositesToUpdate({
-                  updatesNeeded,
-                  compositesBeingExpanded,
-                });
+              if (this.updateInProgress.compositesToUpdateReplacements.length > 0) {
+                this.replacementChangesFromCompositesToUpdate();
               }
 
               // check if have any additional unresolved state variables
@@ -5804,7 +5748,6 @@ export default class Core {
                   this.addUnresolvedDependencies({
                     varsUnresolved: otherUnresolved,
                     component: depComponent,
-                    updatesNeeded
                   });
 
                   for (let newVarName in otherUnresolved) {
@@ -5824,9 +5767,9 @@ export default class Core {
                 resolvedAnotherDependency = true;
 
                 // delete state from unresolvedDependencies
-                delete updatesNeeded.unresolvedDependencies[dep.componentName][dep.stateVariable];
-                if (Object.keys(updatesNeeded.unresolvedDependencies[dep.componentName]).length === 0) {
-                  delete updatesNeeded.unresolvedDependencies[dep.componentName];
+                delete this.updateInProgress.unresolvedDependencies[dep.componentName][dep.stateVariable];
+                if (Object.keys(this.updateInProgress.unresolvedDependencies[dep.componentName]).length === 0) {
+                  delete this.updateInProgress.unresolvedDependencies[dep.componentName];
                 }
 
                 // TODO: do we have to worry about circular dependence here?
@@ -5840,18 +5783,11 @@ export default class Core {
                 if (dep.stateVariable === "readyToExpand" &&
                   depComponent instanceof this._allComponentClasses['_composite']) {
 
-                  this.processNewDefiningChildren({
-                    parent: this._components[depComponent.parentName],
-                    updatesNeeded,
-                    compositesBeingExpanded,
-                  });
+                  this.processNewDefiningChildren(this._components[depComponent.parentName]);
 
                   // check to see if we can update replacements of any composites
-                  if (updatesNeeded.compositesToUpdateReplacements.length > 0) {
-                    this.replacementChangesFromCompositesToUpdate({
-                      updatesNeeded,
-                      compositesBeingExpanded
-                    });
+                  if (this.updateInProgress.compositesToUpdateReplacements.length > 0) {
+                    this.replacementChangesFromCompositesToUpdate();
                   }
 
                 }
@@ -5859,7 +5795,7 @@ export default class Core {
                 // dep.stateVariable still not resolved.  Delete old unresolved dependencies
                 // and add back new ones
                 this.recalculateUnresolvedForDep({
-                  dep, componentName, varName, updatesNeeded,
+                  dep, componentName, varName,
                   varsUnresolved: resolveResult.varsUnresolved
                 });
 
@@ -5874,13 +5810,13 @@ export default class Core {
 
             // Assuming that componentName/varName still qualifies as resolved,
             // delete the records that componentName/varName is blocking any variables
-            if (!(componentName in updatesNeeded.unresolvedDependencies) ||
+            if (!(componentName in this.updateInProgress.unresolvedDependencies) ||
               componentDeleted || stateVariableDeleted || missingComponentIgnored ||
-              !(varName in updatesNeeded.unresolvedDependencies[componentName])
+              !(varName in this.updateInProgress.unresolvedDependencies[componentName])
             ) {
-              delete updatesNeeded.unresolvedByDependent[componentName][varName];
-              if (Object.keys(updatesNeeded.unresolvedByDependent[componentName]).length === 0) {
-                delete updatesNeeded.unresolvedByDependent[componentName];
+              delete this.updateInProgress.unresolvedByDependent[componentName][varName];
+              if (Object.keys(this.updateInProgress.unresolvedByDependent[componentName]).length === 0) {
+                delete this.updateInProgress.unresolvedByDependent[componentName];
               }
             }
 
@@ -5889,29 +5825,22 @@ export default class Core {
       }
 
       // check if any composites unexpanded composites can now be expanded
-      for (let compositeName of updatesNeeded.compositesToExpand) {
+      for (let compositeName of this.updateInProgress.compositesToExpand) {
 
         let composite = this._components[compositeName];
         if (!composite) {
           continue;
         }
 
-        let nUnexpanded = updatesNeeded.compositesToExpand.size
+        let nUnexpanded = this.updateInProgress.compositesToExpand.size
 
-        this.processNewDefiningChildren({
-          parent: this._components[composite.parentName],
-          updatesNeeded,
-          compositesBeingExpanded,
-        });
+        this.processNewDefiningChildren(this._components[composite.parentName]);
 
-        if (updatesNeeded.compositesToExpand.size < nUnexpanded) {
+        if (this.updateInProgress.compositesToExpand.size < nUnexpanded) {
           resolvedAnotherDependency = true;
           // check to see if we can update replacements of any composites
-          if (updatesNeeded.compositesToUpdateReplacements.length > 0) {
-            this.replacementChangesFromCompositesToUpdate({
-              updatesNeeded,
-              compositesBeingExpanded,
-            });
+          if (this.updateInProgress.compositesToUpdateReplacements.length > 0) {
+            this.replacementChangesFromCompositesToUpdate();
           }
         }
       }
@@ -5919,7 +5848,7 @@ export default class Core {
 
 
       // We finished
-      // - looping through all componentName/varNames of updatesNeeded.unresolvedByDependent
+      // - looping through all componentName/varNames of this.updateInProgress.unresolvedByDependent
       // - finding those varNames that were resolved, and
       // - attempting to resolve those variables that depend on it
 
@@ -5927,7 +5856,7 @@ export default class Core {
       // and there are still unresolved variables left
 
 
-      if (!(resolvedAnotherDependency && Object.keys(updatesNeeded.unresolvedDependencies).length > 0)) {
+      if (!(resolvedAnotherDependency && Object.keys(this.updateInProgress.unresolvedDependencies).length > 0)) {
         // this would be the condition that would stop the loop
 
         if (!this.switches.ignoreUnresolvedSpecifiedComponents) {
@@ -5964,9 +5893,9 @@ export default class Core {
       }
     }
 
-    if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
+    if (Object.keys(this.updateInProgress.unresolvedDependencies).length > 0) {
       // still didn't resolve all state variables
-      this.createUnresolvedMessage(unResolvedRefToComponentNames, updatesNeeded);
+      this.createUnresolvedMessage(unResolvedRefToComponentNames);
     }
 
     // turn switch back off
@@ -5975,7 +5904,7 @@ export default class Core {
 
   }
 
-  createUnresolvedMessage(unResolvedRefToComponentNames, updatesNeeded) {
+  createUnresolvedMessage(unResolvedRefToComponentNames) {
     // create message about the unresolved variable,
     // separating out those due to unsatisfied childlogic
 
@@ -5996,30 +5925,30 @@ export default class Core {
       }
     }
     if (unresolvedReferenceMessage) {
-      updatesNeeded.unresolvedMessage = unresolvedReferenceMessage;
+      this.updateInProgress.unresolvedMessage = unresolvedReferenceMessage;
     }
     else {
-      for (let componentName in updatesNeeded.unresolvedDependencies) {
+      for (let componentName in this.updateInProgress.unresolvedDependencies) {
         let component = this.components[componentName];
         if (!component.childLogicSatisfied) {
           childLogicMessage += `Invalid children for ${componentName}: ${component.childLogic.logicResult.message} `;
         }
         else {
-          for (let varName in updatesNeeded.unresolvedDependencies[componentName]) {
+          for (let varName in this.updateInProgress.unresolvedDependencies[componentName]) {
             unresolvedVarMessage += `Could not resolve state variable ${varName} of ${componentName}. `;
           }
         }
       }
       if (childLogicMessage) {
-        updatesNeeded.unresolvedMessage = childLogicMessage;
+        this.updateInProgress.unresolvedMessage = childLogicMessage;
       }
       else {
-        updatesNeeded.unresolvedMessage = unresolvedVarMessage;
+        this.updateInProgress.unresolvedMessage = unresolvedVarMessage;
       }
     }
   }
 
-  recalculateUnresolvedForDep({ dep, componentName, varName, varsUnresolved, updatesNeeded }) {
+  recalculateUnresolvedForDep({ dep, componentName, varName, varsUnresolved }) {
 
     // Note: we have two componentName/stateVariables in play now
     // 1. componentName/varName: the variable that is resolved
@@ -6036,14 +5965,14 @@ export default class Core {
     // i.e., other stateVariables that used to be the ones that prevented
     // dep.stateVariable from being resolved
 
-    for (let currentDep of updatesNeeded.unresolvedDependencies[dep.componentName][dep.stateVariable]) {
+    for (let currentDep of this.updateInProgress.unresolvedDependencies[dep.componentName][dep.stateVariable]) {
       let cName2 = currentDep.componentName;
       let varName2 = currentDep.stateVariable;
       if (cName2 !== componentName || varName2 !== varName) {
         // delete any other dependencies that current depended on
         // (will re-add at end if still have this dependency)
         let indexOfDep;
-        for (let [ind, oDep] of updatesNeeded.unresolvedByDependent[cName2][varName2].entries()) {
+        for (let [ind, oDep] of this.updateInProgress.unresolvedByDependent[cName2][varName2].entries()) {
           if (oDep.componentName === dep.componentName && oDep.stateVariable === dep.stateVariable) {
             indexOfDep = ind;
             break;
@@ -6052,10 +5981,10 @@ export default class Core {
         if (indexOfDep === undefined) {
           throw Error(`Something went wrong with unresolved dependencies....`);
         }
-        updatesNeeded.unresolvedByDependent[cName2][varName2].splice(indexOfDep, 1);
+        this.updateInProgress.unresolvedByDependent[cName2][varName2].splice(indexOfDep, 1);
       }
     }
-    updatesNeeded.unresolvedDependencies[dep.componentName][dep.stateVariable] = varsUnresolved[dep.stateVariable];
+    this.updateInProgress.unresolvedDependencies[dep.componentName][dep.stateVariable] = varsUnresolved[dep.stateVariable];
     // add any new (or possibly deleted above) unresolved dependencies
     // that we calculate from the new varsUnresolved
     for (let unresDep of varsUnresolved[dep.stateVariable]) {
@@ -6064,20 +5993,20 @@ export default class Core {
       if (cName2 === componentName && varName2 === varName) {
         throw Error(`State variable ${varName2} of ${cName2} reported as unresolved after already being resolved.`);
       }
-      if (updatesNeeded.unresolvedByDependent[cName2] === undefined) {
-        updatesNeeded.unresolvedByDependent[cName2] = {};
+      if (this.updateInProgress.unresolvedByDependent[cName2] === undefined) {
+        this.updateInProgress.unresolvedByDependent[cName2] = {};
       }
-      if (updatesNeeded.unresolvedByDependent[cName2][varName2] === undefined) {
-        updatesNeeded.unresolvedByDependent[cName2][varName2] = [];
+      if (this.updateInProgress.unresolvedByDependent[cName2][varName2] === undefined) {
+        this.updateInProgress.unresolvedByDependent[cName2][varName2] = [];
       }
-      updatesNeeded.unresolvedByDependent[cName2][varName2].push({
+      this.updateInProgress.unresolvedByDependent[cName2][varName2].push({
         componentName: dep.componentName,
         stateVariable: dep.stateVariable
       });
     }
   }
 
-  resetUpstreamDependentsUnresolved({ component, varName, updatesNeeded }) {
+  resetUpstreamDependentsUnresolved({ component, varName }) {
     // component/varName has newly become unresolved
     // recursively mark its upstream dependents as newly unresolved
     // and add unresolved dependencies
@@ -6088,7 +6017,7 @@ export default class Core {
 
     if (upstream) {
       for (let upDep of upstream) {
-        updatesNeeded.componentsTouched.push(upDep.upstreamComponentName);
+        this.updateInProgress.componentsTouched.push(upDep.upstreamComponentName);
         let upDepComponent = this._components[upDep.upstreamComponentName];
 
         let varsUnresolved = {};
@@ -6101,7 +6030,6 @@ export default class Core {
         this.addUnresolvedDependencies({
           varsUnresolved,
           component: upDepComponent,
-          updatesNeeded
         });
 
         for (let upVarName of upDep.upstreamVariableNames) {
@@ -6115,7 +6043,6 @@ export default class Core {
             this.resetUpstreamDependentsUnresolved({
               component: upDepComponent,
               varName: upVarName,
-              updatesNeeded
             })
           }
         }
@@ -6123,11 +6050,11 @@ export default class Core {
     }
   }
 
-  markStateVariableAndUpstreamDependentsStale({ component, varName, updatesNeeded }) {
+  markStateVariableAndUpstreamDependentsStale({ component, varName }) {
 
     // console.log(`mark state variable ${varName} of ${component.componentName} and updeps stale`)
 
-    updatesNeeded.componentsTouched.push(component.componentName);
+    this.updateInProgress.componentsTouched.push(component.componentName);
 
     let allStateVariablesAffectedObj = { [varName]: component.state[varName] };
     if (component.state[varName].additionalStateVariablesDefined) {
@@ -6194,18 +6121,18 @@ export default class Core {
       }
 
       if (result.updateReplacements) {
-        updatesNeeded.compositesToUpdateReplacements.push(component.componentName);
+        this.updateInProgress.compositesToUpdateReplacements.push(component.componentName);
       }
 
       if (result.updateDependencies) {
-        for(let vName of result.updateDependencies) {
+        for (let vName of result.updateDependencies) {
           component.state[vName].needDependenciesUpdated = true;
         }
       }
 
       if (result.itemScoreChanged) {
         for (let itemNumber of result.itemScoreChanged.itemNumbers) {
-          updatesNeeded.itemScoreChanges.add(itemNumber)
+          this.updateInProgress.itemScoreChanges.add(itemNumber)
         }
       }
 
@@ -6233,7 +6160,7 @@ export default class Core {
     // we recurse on upstream dependents
     if (freshnessDecreased) {
       for (let vName in varsChanged) {
-        this.markUpstreamDependentsStale({ component, varName: vName, updatesNeeded });
+        this.markUpstreamDependentsStale({ component, varName: vName });
       }
     }
 
@@ -6438,7 +6365,7 @@ export default class Core {
     return result;
   }
 
-  markUpstreamDependentsStale({ component, varName, updatesNeeded }) {
+  markUpstreamDependentsStale({ component, varName }) {
     // Recursively mark every upstream dependency of component/varName as stale
     // If a state variable is already stale (has a getter in place)
     // then don't recurse
@@ -6527,7 +6454,7 @@ export default class Core {
 
         if (foundVarChange) {
 
-          updatesNeeded.componentsTouched.push(upDep.upstreamComponentName);
+          this.updateInProgress.componentsTouched.push(upDep.upstreamComponentName);
 
           let upVarName = upDep.upstreamVariableNames[0];
           let upDepComponent = this._components[upDep.upstreamComponentName];
@@ -6604,18 +6531,18 @@ export default class Core {
 
 
             if (result.updateReplacements) {
-              updatesNeeded.compositesToUpdateReplacements.push(upDep.upstreamComponentName);
+              this.updateInProgress.compositesToUpdateReplacements.push(upDep.upstreamComponentName);
             }
 
             if (result.updateDependencies) {
-              for(let vName of result.updateDependencies) {
+              for (let vName of result.updateDependencies) {
                 component.state[vName].needDependenciesUpdated = true;
               }
             }
 
             if (result.itemScoreChanged) {
               for (let itemNumber of result.itemScoreChanged.itemNumbers) {
-                updatesNeeded.itemScoreChanges.add(itemNumber)
+                this.updateInProgress.itemScoreChanges.add(itemNumber)
               }
             }
 
@@ -6645,7 +6572,6 @@ export default class Core {
               this.markUpstreamDependentsStale({
                 component: upDepComponent,
                 varName: vName,
-                updatesNeeded,
               });
             }
           }
@@ -6733,13 +6659,11 @@ export default class Core {
     }
   }
 
-  addChildren({ parent, indexOfDefiningChildren, newChildren, updatesNeeded, compositesBeingExpanded }) {
+  addChildren({ parent, indexOfDefiningChildren, newChildren }) {
 
     this.spliceChildren(parent, indexOfDefiningChildren, newChildren);
 
-    let newChildrenResult = this.processNewDefiningChildren({
-      parent, updatesNeeded, compositesBeingExpanded
-    });
+    let newChildrenResult = this.processNewDefiningChildren(parent);
 
     let addedComponents = {};
     let deletedComponents = {};
@@ -6758,12 +6682,10 @@ export default class Core {
     }
   }
 
-  processNewDefiningChildren({ parent, updatesNeeded, compositesBeingExpanded }) {
+  processNewDefiningChildren(parent) {
 
     this.parameterStack.push(parent.sharedParameters, false);
-    let childResult = this.deriveChildResultsFromDefiningChildren(
-      parent, updatesNeeded, compositesBeingExpanded
-    );
+    let childResult = this.deriveChildResultsFromDefiningChildren(parent);
     this.parameterStack.pop();
 
     let ancestorsForChildren = [
@@ -6781,7 +6703,7 @@ export default class Core {
       this.setAncestors(unproxiedChild, ancestorsForChildren);
     }
 
-    this.dependencies.updateChildAndDescendantDependencies(parent, updatesNeeded, compositesBeingExpanded);
+    this.dependencies.updateChildAndDescendantDependencies(parent);
 
     return childResult;
 
@@ -6825,8 +6747,6 @@ export default class Core {
 
   deleteComponents({ components, deleteUpstreamDependencies = true,
     cancelIfUpstreamDeleteFailure = true, //dryRun = false,
-    updatesNeeded,
-    compositesBeingExpanded
   }) {
 
     // to delete a component, one must
@@ -6900,7 +6820,7 @@ export default class Core {
             }
             rdObj.push({ ind: ind, replacement: composite.replacements[ind] });
             composite.replacements.splice(ind, 1);
-            this.dependencies.updateReplacementDependencies(composite, updatesNeeded, compositesBeingExpanded);
+            this.dependencies.updateReplacementDependencies(composite);
 
             // TODO: if have stateVariable dependencies that depend on replacements
             // these will need to be modified
@@ -6939,9 +6859,7 @@ export default class Core {
 
         // with new defining children and adjusted replacements
         // determine if parent can accept the active children that result
-        let childResult = this.processNewDefiningChildren({
-          parent, updatesNeeded, compositesBeingExpanded
-        });
+        let childResult = this.processNewDefiningChildren(parent);
 
         if (!childResult.success) {
           console.log("***** can't delete because couldn't derive child results");
@@ -6976,7 +6894,7 @@ export default class Core {
         while (rdObj.length > 0) {
           let rdInfo = rdObj.pop();
           downDepComponent.replacements.splice(rdInfo.ind, 0, rdInfo.replacement)
-          this.dependencies.updateReplacementDependencies(downDepComponent, updatesNeeded, compositesBeingExpanded);
+          this.dependencies.updateReplacementDependencies(downDepComponent);
         }
       }
 
@@ -6985,7 +6903,7 @@ export default class Core {
         let parentObj = parentsOfPotentiallyDeleted[parentName];
         let parent = parentObj.parent;
         parent.definingChildren = previousDefiningChildren[parentName];
-        this.processNewDefiningChildren({ parent, updatesNeeded, compositesBeingExpanded });
+        this.processNewDefiningChildren(parent);
       }
       return { success: false };
     }
@@ -7008,9 +6926,7 @@ export default class Core {
       // we still need to process new defining children to get the change
       // TODO: currently doing extra work if did process new defining childrean already, above
       // Need to refine.
-      this.processNewDefiningChildren({
-        parent, updatesNeeded, compositesBeingExpanded
-      })
+      this.processNewDefiningChildren(parent);
     }
 
     for (let compositeName in replacementsDeleted) {
@@ -7020,12 +6936,12 @@ export default class Core {
         // of direct parent of composite, as that's the only one that would see
         // replacements as a descendant?
         // this.dependencies.updateDescendantDependencies(
-        //   this._components[compositeName], updatesNeeded, compositesBeingExpanded
+        //   this._components[compositeName]
         // );
 
-        updatesNeeded.parentsToUpdateDescendants.add(compositeName);
+        this.updateInProgress.parentsToUpdateDescendants.add(compositeName);
         for (let ancestorName of ancestorsIncludingComposites(this._components[compositeName], this.components)) {
-          updatesNeeded.parentsToUpdateDescendants.add(ancestorName);
+          this.updateInProgress.parentsToUpdateDescendants.add(ancestorName);
         }
 
       }
@@ -7066,14 +6982,14 @@ export default class Core {
       }
 
 
-      this.dependencies.deleteAllUpstreamDependencies({ component, updatesNeeded });
+      this.dependencies.deleteAllUpstreamDependencies({ component });
 
-      if (!updatesNeeded.deletedStateVariables[component.componentName]) {
-        updatesNeeded.deletedStateVariables[component.componentName] = [];
+      if (!this.updateInProgress.deletedStateVariables[component.componentName]) {
+        this.updateInProgress.deletedStateVariables[component.componentName] = [];
       }
-      updatesNeeded.deletedStateVariables[component.componentName].push(...Object.keys(component.state))
+      this.updateInProgress.deletedStateVariables[component.componentName].push(...Object.keys(component.state))
 
-      updatesNeeded.deletedComponents[component.componentName] = true;
+      this.updateInProgress.deletedComponents[component.componentName] = true;
       delete this.unsatisfiedChildLogic[component.componentName];
 
     }
@@ -7089,9 +7005,9 @@ export default class Core {
     }
 
 
-    // remove deleted components from updatesNeeded arrays
-    updatesNeeded.componentsTouched = [... new Set(updatesNeeded.componentsTouched)].filter(x => !(x in componentsToDelete))
-    updatesNeeded.compositesToUpdateReplacements = [... new Set(updatesNeeded.compositesToUpdateReplacements)].filter(x => !(x in componentsToDelete))
+    // remove deleted components from this.updateInProgress arrays
+    this.updateInProgress.componentsTouched = [... new Set(this.updateInProgress.componentsTouched)].filter(x => !(x in componentsToDelete))
+    this.updateInProgress.compositesToUpdateReplacements = [... new Set(this.updateInProgress.compositesToUpdateReplacements)].filter(x => !(x in componentsToDelete))
 
     return {
       success: true,
@@ -7145,8 +7061,7 @@ export default class Core {
     }
   }
 
-  updateCompositeReplacements({ component, componentChanges,
-    sourceOfUpdate, updatesNeeded, compositesBeingExpanded }) {
+  updateCompositeReplacements({ component, componentChanges, sourceOfUpdate }) {
 
     // TODO: this function is only partially converted to the new system
 
@@ -7205,7 +7120,6 @@ export default class Core {
         if (change.replacementsToWithhold !== undefined) {
           this.adjustReplacementsToWithhold({
             component, change, componentChanges,
-            updatesNeeded, compositesBeingExpanded
           });
         }
 
@@ -7229,8 +7143,6 @@ export default class Core {
             change, composite: component,
             componentChanges, sourceOfUpdate,
             parentsOfDeleted, deletedComponents, addedComponents,
-            updatesNeeded,
-            compositesBeingExpanded,
           });
 
         }
@@ -7249,8 +7161,6 @@ export default class Core {
           let createResult = this.createIsolatedComponentsSub({
             serializedComponents: serializedReplacements,
             ancestors: component.ancestors,
-            updatesNeeded,
-            compositesBeingExpanded,
             createNameContext: component.componentName + "|replacements",
             namespaceForUnamed,
             componentsReplacementOf: component
@@ -7273,8 +7183,6 @@ export default class Core {
             replacementsToShadow: newComponents,
             componentToShadow: unproxiedComponent,
             parentToShadow: change.parent,
-            updatesNeeded,
-            compositesBeingExpanded,
             currentShadowedBy,
             assignNamesOffset: change.assignNamesOffset,
             componentChanges, sourceOfUpdate,
@@ -7298,11 +7206,7 @@ export default class Core {
           let newReplacements = newReplacementsByComposite[compositeName].newComponents;
 
           if (!composite.isExpanded) {
-            this.expandCompositeComponent({
-              component: composite,
-              updatesNeeded,
-              compositesBeingExpanded,
-            });
+            this.expandCompositeComponent(composite);
 
             let newChange = {
               changeType: "addedReplacements",
@@ -7331,7 +7235,7 @@ export default class Core {
 
             // splice in new replacements
             composite.replacements.splice(firstIndex, 0, ...newReplacements);
-            this.dependencies.updateReplacementDependencies(composite, updatesNeeded, compositesBeingExpanded);
+            this.dependencies.updateReplacementDependencies(composite);
 
             let newChange = {
               changeType: "addedReplacements",
@@ -7344,13 +7248,9 @@ export default class Core {
 
             componentChanges.push(newChange);
 
-            this.processNewDefiningChildren({
-              parent,
-              updatesNeeded,
-              compositesBeingExpanded
-            });
+            this.processNewDefiningChildren(parent);
 
-            updatesNeeded.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
+            this.updateInProgress.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
 
           } else {
             // if not top level replacements
@@ -7361,11 +7261,11 @@ export default class Core {
 
             this.spliceChildren(parent, change.indexOfDefiningChildren, newReplacements);
 
-            this.processNewDefiningChildren({ parent, updatesNeeded, compositesBeingExpanded });
+            this.processNewDefiningChildren(parent);
 
             newReplacements.forEach(x => addedComponents[x.componentName] = x);
 
-            updatesNeeded.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
+            this.updateInProgress.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
 
             let newChange = {
               changeType: "addedReplacements",
@@ -7383,7 +7283,6 @@ export default class Core {
         if (change.replacementsToWithhold !== undefined) {
           this.adjustReplacementsToWithhold({
             component, change, componentChanges,
-            updatesNeeded, compositesBeingExpanded
           });
         }
 
@@ -7392,8 +7291,6 @@ export default class Core {
           componentsToDelete: change.components,
           componentChanges, sourceOfUpdate,
           parentsOfDeleted, deletedComponents, addedComponents,
-          updatesNeeded,
-          compositesBeingExpanded,
         });
 
         changedReplacementIdentitiesOfComposites.push(...compsitesDeletedFrom);
@@ -7414,7 +7311,7 @@ export default class Core {
 
         // TODO: check if component is appropriate dependency of composite
 
-        updatesNeeded.componentsTouched.push(change.component.componentName);
+        this.updateInProgress.componentsTouched.push(change.component.componentName);
 
         let workspace = {};
         let newStateVariableValues = {};
@@ -7427,12 +7324,12 @@ export default class Core {
           }
 
           this.requestComponentChanges({
-            instruction, initialChange: false, workspace, updatesNeeded,
+            instruction, initialChange: false, workspace,
             newStateVariableValues,
           });
         }
 
-        this.processNewStateVariableValues(newStateVariableValues, updatesNeeded);
+        this.processNewStateVariableValues(newStateVariableValues);
 
 
       } else if (change.changeType === "changeReplacementsToWithhold") {
@@ -7444,14 +7341,13 @@ export default class Core {
           let compositesWithAdjustedReplacements =
             this.adjustReplacementsToWithhold({
               component, change, componentChanges,
-              updatesNeeded, compositesBeingExpanded
             });
 
           changedReplacementIdentitiesOfComposites.push(...compositesWithAdjustedReplacements);
 
         }
 
-        this.processChildChangesAndRecurseToShadows({ component, updatesNeeded, compositesBeingExpanded });
+        this.processChildChangesAndRecurseToShadows(component);
 
       }
 
@@ -7459,9 +7355,9 @@ export default class Core {
 
     for (let compositeName of changedReplacementIdentitiesOfComposites) {
       let composite = this._components[compositeName]
-      updatesNeeded.parentsToUpdateDescendants.add(composite.componentName);
+      this.updateInProgress.parentsToUpdateDescendants.add(composite.componentName);
       for (let ancestorName of ancestorsIncludingComposites(composite, this.components)) {
-        updatesNeeded.parentsToUpdateDescendants.add(ancestorName);
+        this.updateInProgress.parentsToUpdateDescendants.add(ancestorName);
       }
     }
 
@@ -7480,8 +7376,6 @@ export default class Core {
     change, composite, componentsToDelete,
     componentChanges, sourceOfUpdate,
     parentsOfDeleted, deletedComponents, addedComponents,
-    updatesNeeded,
-    compositesBeingExpanded
   }) {
 
     let compositesDeletedFrom = [];
@@ -7522,8 +7416,6 @@ export default class Core {
           componentsToDelete: shadowingComponentsToDelete,
           componentChanges, sourceOfUpdate,
           parentsOfDeleted, deletedComponents, addedComponents,
-          updatesNeeded,
-          compositesBeingExpanded
         });
 
         compositesDeletedFrom.push(...additionalCompositesDeletedFrom);
@@ -7542,15 +7434,13 @@ export default class Core {
 
       // delete from replacements
       let replacementsToDelete = composite.replacements.splice(firstIndex, numberToDelete);
-      this.dependencies.updateReplacementDependencies(composite, updatesNeeded, compositesBeingExpanded);
+      this.dependencies.updateReplacementDependencies(composite);
 
       // TODO: why does this delete delete upstream components
       // but the non toplevel delete doesn't?
       let deleteResults = this.deleteComponents({
         components: replacementsToDelete,
-        componentChanges: componentChanges,
-        sourceOfUpdate: sourceOfUpdate,
-        updatesNeeded,
+        componentChanges, sourceOfUpdate,
       });
 
       if (deleteResults.success === false) {
@@ -7558,7 +7448,7 @@ export default class Core {
       }
       for (let parent of deleteResults.parentsOfDeleted) {
         parentsOfDeleted.add(parent.componentName);
-        updatesNeeded.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
+        this.updateInProgress.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
       }
       let deletedNamesByParent = {};
       for (let compName in deleteResults.deletedComponents) {
@@ -7581,7 +7471,7 @@ export default class Core {
       componentChanges.push(newChange);
       Object.assign(deletedComponents, deleteResults.deletedComponents);
       let parent = this._components[composite.parentName];
-      updatesNeeded.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
+      this.updateInProgress.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
     }
     else {
       // if not change top level replacements
@@ -7592,15 +7482,13 @@ export default class Core {
         deleteUpstreamDependencies: false,
         componentChanges: componentChanges,
         sourceOfUpdate: sourceOfUpdate,
-        updatesNeeded,
-        compositesBeingExpanded
       });
       if (deleteResults.success === false) {
         throw Error("Couldn't delete components prescribed by composite");
       }
       for (let parent of deleteResults.parentsOfDeleted) {
         parentsOfDeleted.add(parent.componentName);
-        updatesNeeded.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
+        this.updateInProgress.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
       }
       let deletedNamesByParent = {};
       for (let compName in deleteResults.deletedComponents) {
@@ -7627,22 +7515,14 @@ export default class Core {
 
   }
 
-  processChildChangesAndRecurseToShadows({ component, updatesNeeded, compositesBeingExpanded }) {
+  processChildChangesAndRecurseToShadows(component) {
     let parent = this._components[component.parentName];
-    this.processNewDefiningChildren({
-      parent,
-      updatesNeeded,
-      compositesBeingExpanded
-    });
-    updatesNeeded.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
+    this.processNewDefiningChildren(parent);
+    this.updateInProgress.componentsTouched.push(...this.componentAndRenderedDescendants(parent));
 
     if (component.shadowedBy) {
       for (let shadowingComponent of component.shadowedBy) {
-        this.processChildChangesAndRecurseToShadows({
-          component: shadowingComponent,
-          updatesNeeded,
-          compositesBeingExpanded
-        })
+        this.processChildChangesAndRecurseToShadows(shadowingComponent)
       }
     }
   }
@@ -7651,8 +7531,6 @@ export default class Core {
     replacementsToShadow,
     componentToShadow,
     parentToShadow,
-    updatesNeeded,
-    compositesBeingExpanded,
     currentShadowedBy,
     assignNamesOffset,
     componentChanges, sourceOfUpdate,
@@ -7673,13 +7551,13 @@ export default class Core {
     }
 
     // use compositesBeingExpanded to look for circular dependence
-    compositesBeingExpanded.push(componentToShadow.componentName);
+    this.updateInProgress.compositesBeingExpanded.push(componentToShadow.componentName);
 
     let newComponentsForShadows = {};
 
     for (let shadowingComponent of componentToShadow.shadowedBy) {
 
-      if (compositesBeingExpanded.includes(shadowingComponent.componentName)) {
+      if (this.updateInProgress.compositesBeingExpanded.includes(shadowingComponent.componentName)) {
         throw Error(`circular dependence involving ${shadowingComponent.componentName}`)
       }
 
@@ -7754,8 +7632,6 @@ export default class Core {
         let createResult = this.createIsolatedComponentsSub({
           serializedComponents: newSerializedReplacements,
           ancestors: shadowingComponent.ancestors,
-          updatesNeeded,
-          compositesBeingExpanded,
           createNameContext: shadowingComponent.componentName + "|replacements",
           namespaceForUnamed,
           componentsReplacementOf: shadowingComponent
@@ -7790,8 +7666,6 @@ export default class Core {
             replacementsToShadow: newComponents,
             componentToShadow: shadowingComponent,
             parentToShadow: shadowingParent,
-            updatesNeeded,
-            compositesBeingExpanded,
             currentShadowedBy,
             assignNamesOffset,
             componentChanges, sourceOfUpdate,
@@ -7803,19 +7677,17 @@ export default class Core {
     }
 
     // record that are finished expanding the composite
-    let targetInd = compositesBeingExpanded.indexOf(componentToShadow.componentName);
+    let targetInd = this.updateInProgress.compositesBeingExpanded.indexOf(componentToShadow.componentName);
     if (targetInd === -1) {
       throw Error(`Something is wrong as we lost track that we were expanding ${component.componentName}`);
     }
-    compositesBeingExpanded.splice(targetInd, 1)
+    this.updateInProgress.compositesBeingExpanded.splice(targetInd, 1)
 
     return newComponentsForShadows;
 
   }
 
-  adjustReplacementsToWithhold({ component, change, componentChanges,
-    updatesNeeded, compositesBeingExpanded
-  }) {
+  adjustReplacementsToWithhold({ component, change, componentChanges }) {
 
     let compositesWithAdjustedReplacements = [];
 
@@ -7869,14 +7741,13 @@ export default class Core {
       componentChanges.push(newChange);
     }
     component.replacementsToWithhold = replacementsToWithhold;
-    this.dependencies.updateReplacementDependencies(component, updatesNeeded, compositesBeingExpanded);
+    this.dependencies.updateReplacementDependencies(component);
 
     if (component.shadowedBy) {
       for (let shadowingComponent of component.shadowedBy) {
         let additionalcompositesWithAdjustedReplacements =
           this.adjustReplacementsToWithhold({
             component: shadowingComponent, change, componentChanges,
-            updatesNeeded, compositesBeingExpanded
           });
         compositesWithAdjustedReplacements.push(...additionalcompositesWithAdjustedReplacements)
       }
@@ -8016,19 +7887,11 @@ export default class Core {
       return { success: false };
     }
 
-    let updatesNeeded = {
-      componentsTouched: [],
-      compositesToExpand: new Set([]),
-      compositesToUpdateReplacements: [],
-      unresolvedDependencies: {},
-      unresolvedByDependent: {},
-      deletedStateVariables: {},
-      deletedComponents: {},
-      recreatedComponents: {},
-      itemScoreChanges: new Set(),
-      parentsToUpdateDescendants: new Set(),
+    if (this.updateInProgress) {
+      throw Error(`Can't request update while an update in progress.  Need some queuing mechanism`);
     }
 
+    this.updateInProgress = this.getNewUpdateObject();
 
     let newStateVariableValues = {};
     let sourceInformation = {};
@@ -8051,7 +7914,6 @@ export default class Core {
 
         this.requestComponentChanges({
           instruction, workspace,
-          updatesNeeded,
           newStateVariableValues
         });
 
@@ -8060,7 +7922,6 @@ export default class Core {
         // this.addComponents({
         //   serializedComponents: instruction.serializedComponents,
         //   parent: instruction.parent,
-        //   updatesNeeded,
         // })
       } else if (instruction.updateType === "deleteComponents") {
         console.log("delete component")
@@ -8071,7 +7932,6 @@ export default class Core {
         // in their calculations that need to be updated
         this.executeUpdateStateVariables({
           newStateVariableValues,
-          updatesNeeded,
           preliminary: true,
         });
       }
@@ -8095,7 +7955,6 @@ export default class Core {
     while (nFailures > 0) {
       let result = this.executeUpdateStateVariables({
         newStateVariableValues,
-        updatesNeeded,
         sourceOfUpdate: {
           sourceInformation,
           local: true,
@@ -8110,14 +7969,13 @@ export default class Core {
     // //TODO: Inside for loop?
     // this.executeUpdateStateVariables({
     //   newStateVariableValues,
-    //   updatesNeeded,
     //   sourceOfUpdate: {
     //     sourceInformation,
     //     local: true,
     //   }
     // });
 
-    if (updatesNeeded.itemScoreChanges.size > 0) {
+    if (this.updateInProgress.itemScoreChanges.size > 0) {
       if (event) {
         if (!event.context) {
           event.context = {};
@@ -8127,7 +7985,7 @@ export default class Core {
         }
         event.context.documentCreditAchieved = this.document.stateValues.creditAchieved;
       }
-      for (let itemNumber of updatesNeeded.itemScoreChanges) {
+      for (let itemNumber of this.updateInProgress.itemScoreChanges) {
         if (this.externalFunctions.submitResponse) {
           this.externalFunctions.submitResponse({
             itemNumber,
@@ -8148,6 +8006,8 @@ export default class Core {
     if (event) {
       this.requestRecordEvent(event);
     }
+
+    delete this.updateInProgress;
 
     return { success: true };
   }
@@ -8171,14 +8031,11 @@ export default class Core {
 
   executeUpdateStateVariables({
     newStateVariableValues,
-    updatesNeeded,
     sourceOfUpdate,
     preliminary = false
   }) {
 
     let executeResult = {};
-
-    let compositesBeingExpanded = [];
 
     // merge new variables changed from newStateVariableValues into changedStateVariables
     for (let cName in newStateVariableValues) {
@@ -8213,43 +8070,34 @@ export default class Core {
 
 
     // if executeUpdateStateVariables is called from an external source
-    // then it may not have updatesNeeded initialized
-    if (updatesNeeded === undefined) {
-      updatesNeeded = {
-        componentsTouched: Object.keys(newStateVariableValues),
-        compositesToExpand: new Set([]),
-        compositesToUpdateReplacements: [],
-        unresolvedDependencies: {},
-        unresolvedByDependent: {},
-        deletedStateVariables: {},
-        deletedComponents: {},
-        recreatedComponents: {},
-        itemScoreChanges: new Set(),
-        parentsToUpdateDescendants: new Set(),
-      }
+    // then it may not have this.updateInProgress initialized
+    let calledExternally = false;
+    if (!this.updateInProgress) {
+      calledExternally = true;
+      this.updateInProgress = this.getNewUpdateObject();
     }
 
     let previousUnsatisfiedChildLogic = Object.assign({}, this.unsatisfiedChildLogic);
 
 
-    let processResult = this.processNewStateVariableValues(newStateVariableValues, updatesNeeded);
+    let processResult = this.processNewStateVariableValues(newStateVariableValues);
     Object.assign(executeResult, processResult);
 
     // calculate any replacement changes on composites touched
-    this.replacementChangesFromCompositesToUpdate({ updatesNeeded, compositesBeingExpanded });
+    this.replacementChangesFromCompositesToUpdate();
 
-    if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
-      updatesNeeded.unresolvedMessage = "";
-      this.resolveAllDependencies(updatesNeeded, compositesBeingExpanded);
+    if (Object.keys(this.updateInProgress.unresolvedDependencies).length > 0) {
+      this.updateInProgress.unresolvedMessage = "";
+      this.resolveAllDependencies();
     }
 
 
-    // this.dependencies.updateDependencies(updatesNeeded, compositesBeingExpanded);
+    // this.dependencies.updateDependencies();
 
-    if (Object.keys(updatesNeeded.unresolvedDependencies).length > 0) {
+    if (Object.keys(this.updateInProgress.unresolvedDependencies).length > 0) {
       console.log("have some unresolved");
-      console.log(updatesNeeded.unresolvedDependencies);
-      console.log(updatesNeeded.unresolvedByDependent);
+      console.log(this.updateInProgress.unresolvedDependencies);
+      console.log(this.updateInProgress.unresolvedByDependent);
       throw Error(`Have unresolved dependencies after executing update state variables.  How should we handle this?`)
     }
 
@@ -8276,12 +8124,12 @@ export default class Core {
     }
 
     // get unique list of components touched
-    updatesNeeded.componentsTouched = [...new Set(updatesNeeded.componentsTouched)];
+    this.updateInProgress.componentsTouched = [...new Set(this.updateInProgress.componentsTouched)];
 
     this.updateRendererInstructions({
-      componentNames: updatesNeeded.componentsTouched,
+      componentNames: this.updateInProgress.componentsTouched,
       sourceOfUpdate,
-      recreatedComponents: updatesNeeded.recreatedComponents
+      recreatedComponents: this.updateInProgress.recreatedComponents
     });
 
     this.finishUpdate();
@@ -8294,6 +8142,9 @@ export default class Core {
       console.warn(childLogicMessage)
     }
 
+    if (calledExternally) {
+      delete this.updateInProgress;
+    }
 
     console.log("**** Components after updateValue");
     console.log(this._components);
@@ -8326,12 +8177,10 @@ export default class Core {
 
   }
 
-  replacementChangesFromCompositesToUpdate({
-    updatesNeeded, compositesBeingExpanded
-  }) {
+  replacementChangesFromCompositesToUpdate() {
 
-    let compositesToUpdateReplacements = [...new Set(updatesNeeded.compositesToUpdateReplacements)];
-    updatesNeeded.compositesToUpdateReplacements = [];
+    let compositesToUpdateReplacements = [...new Set(this.updateInProgress.compositesToUpdateReplacements)];
+    this.updateInProgress.compositesToUpdateReplacements = [];
 
     let compositesNotReady = [];
 
@@ -8349,8 +8198,6 @@ export default class Core {
             let result = this.updateCompositeReplacements({
               component: composite,
               componentChanges,
-              updatesNeeded,
-              compositesBeingExpanded
             });
 
             for (let componentName in result.addedComponents) {
@@ -8378,8 +8225,8 @@ export default class Core {
       // Note 2: if we don't update a composite here, the state variable indicating
       // its replacements need updating may remain stale, which will
       // prevent futher changes from being triggered
-      compositesToUpdateReplacements = [...new Set(updatesNeeded.compositesToUpdateReplacements)];
-      updatesNeeded.compositesToUpdateReplacements = [];
+      compositesToUpdateReplacements = [...new Set(this.updateInProgress.compositesToUpdateReplacements)];
+      this.updateInProgress.compositesToUpdateReplacements = [];
 
       // just in case have infinite loop, throw error after 100 passes
       nPasses++;
@@ -8389,12 +8236,12 @@ export default class Core {
 
     }
 
-    updatesNeeded.compositesToUpdateReplacements = compositesNotReady;
+    this.updateInProgress.compositesToUpdateReplacements = compositesNotReady;
 
     return { componentChanges };
   }
 
-  processNewStateVariableValues(newStateVariableValues, updatesNeeded) {
+  processNewStateVariableValues(newStateVariableValues) {
 
     // console.log('process new state variable values')
     // console.log(JSON.parse(JSON.stringify(newStateVariableValues)));
@@ -8503,7 +8350,7 @@ export default class Core {
             }
 
             this.markUpstreamDependentsStale({
-              component: comp, varName: arrayEntryName, updatesNeeded
+              component: comp, varName: arrayEntryName
             });
             this.dependencies.recordActualChangeInUpstreamDependencies({
               component: comp, varName: arrayEntryName,
@@ -8529,7 +8376,7 @@ export default class Core {
 
         }
         this.markUpstreamDependentsStale({
-          component: comp, varName: vName, updatesNeeded
+          component: comp, varName: vName
         });
 
         this.dependencies.recordActualChangeInUpstreamDependencies({
@@ -8543,7 +8390,7 @@ export default class Core {
 
   }
 
-  requestComponentChanges({ instruction, initialChange = true, workspace, updatesNeeded,
+  requestComponentChanges({ instruction, initialChange = true, workspace,
     newStateVariableValues
   }) {
 
@@ -8667,7 +8514,7 @@ export default class Core {
     }
 
 
-    updatesNeeded.componentsTouched.push(component.componentName);
+    this.updateInProgress.componentsTouched.push(component.componentName);
 
     if (!stateVarObj.inverseDefinition) {
       console.warn(`Cannot change state variable ${stateVariable} of ${component.componentName} as it doesn't have an inverse definition`);
@@ -8844,7 +8691,7 @@ export default class Core {
           this.requestComponentChanges({
             instruction: inst,
             initialChange: newInstruction.treatAsInitialChange === true,
-            workspace, updatesNeeded,
+            workspace,
             newStateVariableValues
           });
         } else if (["stateVariable", "parentStateVariable"].includes(dep.dependencyType)
@@ -8893,7 +8740,7 @@ export default class Core {
           this.requestComponentChanges({
             instruction: inst,
             initialChange: newInstruction.treatAsInitialChange === true,
-            workspace, updatesNeeded,
+            workspace,
             newStateVariableValues
           });
         } else {
@@ -8913,7 +8760,7 @@ export default class Core {
         this.requestComponentChanges({
           instruction: inst,
           initialChange: newInstruction.treatAsInitialChange === true,
-          workspace, updatesNeeded,
+          workspace,
           newStateVariableValues
         });
       } else if (newInstruction.deferSettingDependency) {
@@ -9016,7 +8863,7 @@ export default class Core {
     }
   }
 
-  // addComponents({ serializedComponents, parent, updatesNeeded}) {
+  // addComponents({ serializedComponents, parent }) {
   //   //Check if 
   //   //Child logic is violated
   //   //Parent exists
@@ -9110,6 +8957,23 @@ export default class Core {
     return { scoredItemNumber, scoredComponent };
   }
 
+  getNewUpdateObject() {
+
+    return {
+      componentsTouched: [],
+      compositesToExpand: new Set([]),
+      compositesToUpdateReplacements: [],
+      unresolvedDependencies: {},
+      unresolvedByDependent: {},
+      deletedStateVariables: {},
+      deletedComponents: {},
+      recreatedComponents: {},
+      itemScoreChanges: new Set(),
+      parentsToUpdateDescendants: new Set(),
+      compositesBeingExpanded: []
+    }
+
+  }
 
   get doenetState() {
     return this._renderComponents;
