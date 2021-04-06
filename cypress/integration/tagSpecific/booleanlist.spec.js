@@ -8,7 +8,7 @@ function cesc(s) {
   return s;
 }
 
-describe('Booleanlist Tag Tests', function () {
+describe('BooleanList Tag Tests', function () {
 
   beforeEach(() => {
     cy.visit('/test')

@@ -4,17 +4,17 @@ import me from 'math-expressions';
 export default class ODESystem extends InlineComponent {
   static componentType = "odesystem";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.independentvariable = {default: me.fromAst('t')};
-    properties.initialindependentvariablevalue = {default: me.fromAst(0)};
-    properties.displaydigits = {default: 14};
-    properties.rendermode = {default: "align"};
-    properties.chunksize = {default: 10};
-    properties.tolerance = {default: 1e-6}
-    properties.maxIterations = {default: 1000}
-    properties.hideInitialCondition = {default: false};
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.independentvariable = {default: me.fromAst('t')};
+    attributes.initialindependentvariablevalue = {default: me.fromAst(0)};
+    attributes.displaydigits = {default: 14};
+    attributes.rendermode = {default: "align"};
+    attributes.chunksize = {default: 10};
+    attributes.tolerance = {default: 1e-6}
+    attributes.maxIterations = {default: 1000}
+    attributes.hideInitialCondition = {default: false};
+    return attributes;
   }
 
   static returnChildLogic (args) {

@@ -2,7 +2,7 @@ import BaseComponent from './BaseComponent';
 import { breakEmbeddedStringsIntoParensPieces } from '../commonsugar/breakstrings';
 
 export default class VectorListComponent extends BaseComponent {
-  static componentType = "_vectorlistcomponent";
+  static componentType = "_vectorListComponent";
   static rendererType = "container";
 
   static returnSugarInstructions() {
@@ -112,16 +112,6 @@ export default class VectorListComponent extends BaseComponent {
       isArray: true,
       nDimensions: 2,
       entryPrefixes: ["vectorX", "vector"],
-      returnWrappingComponents(prefix) {
-        if (prefix === "vectorX") {
-          return [];
-        } else {
-          // vector or entire array
-          // wrap inner dimension by both <vector> and <xs>
-          // don't wrap outer dimension (for entire array)
-          return [["vector", { componentType: "xs", doenetAttributes: { isPropertyChild: true } }]];
-        }
-      },
       getArrayKeysFromVarName({ arrayEntryPrefix, varEnding, arraySize }) {
         if (arrayEntryPrefix === "vectorX") {
           // vectorX1_2 is the 2nd component of the first vector

@@ -6,14 +6,12 @@ import { processAssignNames } from '../utils/serializedStateProcessing';
 export default class Sequence extends CompositeComponent {
   static componentType = "sequence";
 
-  static acceptType = true;
-
   static assignNamesToReplacements = true;
 
   // don't actually need to shadow these, as replacements for shadows
   // ignore state variables
   // but, shadow them so that state variables are consistent
-  // since propertyChildren aren't copied
+  // since attributeComponents aren't copied
   static get stateVariablesShadowedForReference() {
     return [
       "specifiedFrom", "specifiedTo",
@@ -21,58 +19,30 @@ export default class Sequence extends CompositeComponent {
     ]
   };
 
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
 
-  static returnChildLogic(args) {
-    let childLogic = super.returnChildLogic(args);
+    attributes.type = {
+      createPrimitiveOfType: "text"
+    }
+    attributes.from = {
+      createComponentOfType: "_componentWithSelectableType",
+    };
+    attributes.to = {
+      createComponentOfType: "_componentWithSelectableType",
+    };
+    attributes.step = {
+      createComponentOfType: "math",
+    };
+    attributes.length = {
+      createComponentOfType: "number",
+    };
+    attributes.exclude = {
+      createComponentOfType: "_componentListWithSelectableType",
+    };
 
-    let atMostOneFrom = childLogic.newLeaf({
-      name: "atMostOneFrom",
-      componentType: 'from',
-      comparison: "atMost",
-      number: 1,
-      takePropertyChildren: true,
-    });
+    return attributes;
 
-    let atMostOneTo = childLogic.newLeaf({
-      name: "atMostOneTo",
-      componentType: 'to',
-      comparison: "atMost",
-      number: 1,
-      takePropertyChildren: true,
-    });
-
-    let atMostOneStep = childLogic.newLeaf({
-      name: "atMostOneStep",
-      componentType: 'step',
-      comparison: "atMost",
-      number: 1,
-      takePropertyChildren: true,
-    });
-
-    let atMostOnelength = childLogic.newLeaf({
-      name: "atMostOnelength",
-      componentType: 'length',
-      comparison: "atMost",
-      number: 1,
-      takePropertyChildren: true,
-    });
-
-    let atMostOneExclude = childLogic.newLeaf({
-      name: "atMostOneExclude",
-      componentType: 'exclude',
-      comparison: "atMost",
-      number: 1,
-      takePropertyChildren: true,
-    });
-
-    childLogic.newOperator({
-      name: "sequenceLogic",
-      operator: 'and',
-      propositions: [atMostOneFrom, atMostOneTo, atMostOneStep, atMostOnelength, atMostOneExclude],
-      setAsBase: true,
-    });
-
-    return childLogic;
   }
 
 
@@ -83,7 +53,7 @@ export default class Sequence extends CompositeComponent {
     stateVariableDefinitions.type = {
       returnDependencies: () => ({
         type: {
-          dependencyType: "doenetAttribute",
+          dependencyType: "attribute",
           attributeName: "type",
         },
       }),
@@ -98,23 +68,22 @@ export default class Sequence extends CompositeComponent {
 
     stateVariableDefinitions.specifiedFrom = {
       returnDependencies: () => ({
-        fromChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneFrom",
+        fromAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "from",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true
         },
       }),
       defaultValue: null,
       definition: function ({ dependencyValues }) {
-        if (dependencyValues.fromChild.length === 0) {
+        if (dependencyValues.fromAttr === null) {
           return {
             useEssentialOrDefaultValue: {
               specifiedFrom: { variablesToCheck: ["from", "specifiedFrom"] },
             },
           }
         }
-        if (dependencyValues.fromChild[0].stateValues.value === null) {
+        if (dependencyValues.fromAttr.stateValues.value === null) {
           // if have a from child, but its value is null,
           // it means we have an invalid from
           // Can't return null, as that indicates value wasn't specified
@@ -127,7 +96,7 @@ export default class Sequence extends CompositeComponent {
         }
         return {
           newValues: {
-            specifiedFrom: dependencyValues.fromChild[0].stateValues.value,
+            specifiedFrom: dependencyValues.fromAttr.stateValues.value,
           }
         }
       },
@@ -136,23 +105,22 @@ export default class Sequence extends CompositeComponent {
     stateVariableDefinitions.specifiedTo = {
 
       returnDependencies: () => ({
-        toChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneTo",
+        toAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "to",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true
         },
       }),
       defaultValue: null,
       definition: function ({ dependencyValues }) {
-        if (dependencyValues.toChild.length === 0) {
+        if (dependencyValues.toAttr === null) {
           return {
             useEssentialOrDefaultValue: {
               specifiedTo: { variablesToCheck: ["to", "specifiedTo"] },
             },
           }
         }
-        if (dependencyValues.toChild[0].stateValues.value === null) {
+        if (dependencyValues.toAttr.stateValues.value === null) {
           // if have a to child, but its value is null,
           // it means we have an invalid to
           // Can't return null, as that indicates value wasn't specified
@@ -165,7 +133,7 @@ export default class Sequence extends CompositeComponent {
         }
         return {
           newValues: {
-            specifiedTo: dependencyValues.toChild[0].stateValues.value,
+            specifiedTo: dependencyValues.toAttr.stateValues.value,
           }
         }
       },
@@ -173,23 +141,22 @@ export default class Sequence extends CompositeComponent {
 
     stateVariableDefinitions.specifiedLength = {
       returnDependencies: () => ({
-        lengthChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOnelength",
+        lengthAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "length",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true
         },
       }),
       defaultValue: null,
       definition: function ({ dependencyValues }) {
-        if (dependencyValues.lengthChild.length === 0) {
+        if (dependencyValues.lengthAttr === null) {
           return {
             useEssentialOrDefaultValue: {
               specifiedLength: { variablesToCheck: ["length", "specifiedLength"] }
             }
           }
         }
-        if (dependencyValues.lengthChild[0].stateValues.value === null) {
+        if (dependencyValues.lengthAttr.stateValues.value === null) {
           // if have a length child, but its value is null,
           // it means we have an invalid length
           // Can't return null, as that indicates value wasn't specified
@@ -200,18 +167,17 @@ export default class Sequence extends CompositeComponent {
             }
           }
         }
-        return { newValues: { specifiedLength: dependencyValues.lengthChild[0].stateValues.value } }
+        return { newValues: { specifiedLength: dependencyValues.lengthAttr.stateValues.value } }
       },
     };
 
 
     stateVariableDefinitions.specifiedStep = {
       returnDependencies: () => ({
-        stepChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneStep",
+        stepAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "step",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true
         },
         type: {
           dependencyType: "stateVariable",
@@ -220,7 +186,7 @@ export default class Sequence extends CompositeComponent {
       }),
       defaultValue: null,
       definition: function ({ dependencyValues }) {
-        if (dependencyValues.stepChild.length === 0) {
+        if (dependencyValues.stepAttr === null) {
           return {
             useEssentialOrDefaultValue: {
               specifiedStep: { variablesToCheck: ["step", "specifiedStep"] }
@@ -228,7 +194,7 @@ export default class Sequence extends CompositeComponent {
           }
         }
 
-        let step = dependencyValues.stepChild[0].stateValues.value;
+        let step = dependencyValues.stepAttr.stateValues.value;
         if (step === null) {
           // if have a step child, but its value is null,
           // it means we have an invalid step
@@ -247,16 +213,15 @@ export default class Sequence extends CompositeComponent {
 
     stateVariableDefinitions.specifiedExclude = {
       returnDependencies: () => ({
-        excludeChildren: {
-          dependencyType: "child",
-          childLogicName: "atMostOneExclude",
+        excludeAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "exclude",
           variableNames: ["values"],
-          requireChildLogicInitiallySatisfied: true
         },
       }),
       defaultValue: [],
       definition: function ({ dependencyValues }) {
-        if (dependencyValues.excludeChildren.length === 0) {
+        if (dependencyValues.excludeAttr === null) {
           return {
             useEssentialOrDefaultValue: {
               specifiedExclude: { variablesToCheck: ["exclude"] }
@@ -266,7 +231,7 @@ export default class Sequence extends CompositeComponent {
         return {
           newValues: {
             specifiedExclude:
-              dependencyValues.excludeChildren[0].stateValues.values
+              dependencyValues.excludeAttr.stateValues.values
           }
         };
       },
@@ -732,14 +697,16 @@ export default class Sequence extends CompositeComponent {
         }
       }
 
+      let componentType = component.stateValues.type;
       if (component.stateValues.type === "letters") {
         componentValue = numberToLetters(componentValue, component.stateValues.lowercase);
+        componentType = "text"
       }
 
-      // make nonShadowingReplacement so properties like fixed
+      // make nonShadowingReplacement so attributes like fixed
       // on the sequence can be copied by replacements
       let serializedComponent = {
-        componentType: component.stateValues.type,
+        componentType,
         state: { value: componentValue, fixed: true },
         downstreamDependencies: {
           [component.componentName]: [{
@@ -757,7 +724,7 @@ export default class Sequence extends CompositeComponent {
       assignNames: component.doenetAttributes.assignNames,
       serializedComponents: replacements,
       parentName: component.componentName,
-      parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+      parentCreatesNewNamespace: component.attributes.newNamespace,
       componentInfoObjects,
     });
 
@@ -928,14 +895,17 @@ export default class Sequence extends CompositeComponent {
               componentValue += component.stateValues.step * ind;
             }
           }
+
+          let componentType = component.stateValues.type;
           if (component.stateValues.type === "letters") {
             componentValue = numberToLetters(componentValue, component.stateValues.lowercase);
+            componentType = "text";
           }
 
-          // make nonShadowingReplacement so properties like fixed
+          // make nonShadowingReplacement so attributes like fixed
           // on the sequence can be copied by replacements
           let serializedComponent = {
-            componentType: component.stateValues.type,
+            componentType,
             state: { value: componentValue, fixed: true },
             downstreamDependencies: {
               [component.componentName]: [{
@@ -950,7 +920,7 @@ export default class Sequence extends CompositeComponent {
           assignNames: component.doenetAttributes.assignNames,
           serializedComponents: newSerializedReplacements,
           parentName: component.componentName,
-          parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+          parentCreatesNewNamespace: component.attributes.newNamespace,
           componentInfoObjects,
           indOffset: prevlength,
         });
@@ -982,7 +952,7 @@ export default class Sequence extends CompositeComponent {
   get allPotentialRendererTypes() {
     let allPotentialRendererTypes = [
       this.componentInfoObjects.allComponentClasses[
-        this.stateValues.type
+        this.stateValues.type === "letters" ? "text" : this.stateValues.type
       ].rendererType
     ];
     return allPotentialRendererTypes;

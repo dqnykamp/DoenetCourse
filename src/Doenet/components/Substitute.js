@@ -79,21 +79,21 @@ export default class Substitute extends CompositeComponent {
   }
 
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.type = {default: undefined};
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.type = {default: undefined};
 
-    // properties for math
-    properties.format = {default: "text"};
-    properties.simplify = {default: "full"};
-    properties.displaydigits = {default: 10};
-    properties.rendermode = {default: "inline"};
+    // attributes for math
+    attributes.format = {default: "text"};
+    attributes.simplify = {default: "full"};
+    attributes.displaydigits = {default: 10};
+    attributes.rendermode = {default: "inline"};
 
-    // properties for text
-    properties.matchwholeword = {default: false};
-    properties.casesensitive = {default: false};
+    // attributes for text
+    attributes.matchwholeword = {default: false};
+    attributes.casesensitive = {default: false};
     
-    return properties;
+    return attributes;
   }
 
   static returnChildLogic (args) {
@@ -431,8 +431,8 @@ export default class Substitute extends CompositeComponent {
       state: {value: component.state.value}
     }
 
-    // for math type, if specified properties in the substitute tag
-    // give those properties to serialized replacement
+    // for math type, if specified attributes in the substitute tag
+    // give those attributes to serialized replacement
     if(component.state.type === "math") {
       for(let item of ["simplify", "displaydigits", "rendermode"]) {
         if(!component._state[item].usedDefault) {

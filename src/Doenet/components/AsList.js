@@ -1,7 +1,7 @@
 import InlineComponent from './abstract/InlineComponent';
 
 export default class AsList extends InlineComponent {
-  static componentType = "aslist";
+  static componentType = "asList";
 
   static returnChildLogic(args) {
     let childLogic = super.returnChildLogic(args);

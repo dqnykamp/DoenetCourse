@@ -31,19 +31,19 @@ export class NewComponentClass extends InheritedComponentClass {
   }
     static componentType = "newcomponentname";
 
-    //creates properties 
+    //creates attributes 
     //Automatically creates childlogic leaf comparison:'atMost' number:1
     //creates state variables with a value from the matching child or default if not found
     //updates the value of the state variable if the child changes
     //makes the state variable public state variable with componentType:childNameHere
     //flagged isProperty = true
-    static createPropertiesObject(args) {
-      let properties = super.createPropertiesObject(args);
+    static createAttributesObject(args) {
+      let attributes = super.createAttributesObject(args);
     
-      properties.componentTypeName1 = {default: 1}; 
-      properties.componentTypeName2 = {default: "one"}; 
+      attributes.componentTypeName1 = {default: 1}; 
+      attributes.componentTypeName2 = {default: "one"}; 
 
-      return properties;
+      return attributes;
     }
    
     //additional options for child logic are given in childlogic.js
@@ -109,7 +109,7 @@ export class NewComponentClass extends InheritedComponentClass {
       //basecomponent needs it
 
       //Use this if you don't want to inherit off the parent
-      //Note: this doesn't affect inherited properties
+      //Note: this doesn't affect inherited attributes
       childLogic.deleteAllLogic();
   
       let atLeastZeroStrings = childLogic.newLeaf({

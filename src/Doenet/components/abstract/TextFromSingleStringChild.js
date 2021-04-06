@@ -1,7 +1,7 @@
 import Text from '../Text';
 
 export default class TextFromSingleStringChild extends Text {
-  static componentType = "_textfromsinglestringchild";
+  static componentType = "_textFromSingleStringChild";
 
   static returnChildLogic(args) {
     let childLogic = super.returnChildLogic(args);

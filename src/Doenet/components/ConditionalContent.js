@@ -2,44 +2,33 @@ import CompositeComponent from './abstract/CompositeComponent';
 import { postProcessCopy } from '../utils/copy';
 
 export default class ConditionalContent extends CompositeComponent {
-  static componentType = "conditionalcontent";
+  static componentType = "conditionalContent";
 
   static get stateVariablesShadowedForReference() {
     return ["hide"]
   }
   
-  static createPropertiesObject() {
-    let properties = super.createPropertiesObject();
-    delete properties.hide;
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    delete attributes.hide;
+
+    attributes.condition = {
+      createComponentOfType: "condition"
+    }
+
+    return attributes;
   }
 
   static returnChildLogic(args) {
     let childLogic = super.returnChildLogic(args);
 
-    let atMostOneCondition = childLogic.newLeaf({
-      name: "atMostOneCondition",
-      componentType: 'condition',
-      comparison: 'atMost',
-      number: 1,
-      takePropertyChildren: true,
-      allowSpillover: false,
-    });
-
-    let atLeastZeroAnything = childLogic.newLeaf({
+    childLogic.newLeaf({
       name: "atLeastZeroAnything",
       componentType: '_base',
       comparison: 'atLeast',
       number: 0,
+      setAsBase: true
     });
-
-    childLogic.newOperator({
-      name: "ifAndRest",
-      operator: "and",
-      propositions: [atMostOneCondition, atLeastZeroAnything],
-      setAsBase: true,
-    })
-
     return childLogic;
   }
 
@@ -50,19 +39,19 @@ export default class ConditionalContent extends CompositeComponent {
 
     stateVariableDefinitions.hide = {
       returnDependencies: () => ({
-        conditionChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneCondition",
+        conditionAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "condition",
           variableNames: ["value"],
         },
       }),
       definition: function ({ dependencyValues }) {
 
         let hide;
-        if (dependencyValues.conditionChild.length === 0) {
+        if (dependencyValues.conditionAttr !== null) {
           hide = true;
         } else {
-          hide = !dependencyValues.conditionChild[0].stateValues.value;
+          hide = !dependencyValues.conditionAttr.stateValues.value;
         }
 
         return { newValues: { hide } }
@@ -91,16 +80,16 @@ export default class ConditionalContent extends CompositeComponent {
 
     stateVariableDefinitions.conditionName = {
       returnDependencies: () => ({
-        conditionChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneCondition",
+        conditionAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "condition",
         },
       }),
       definition: function ({ dependencyValues }) {
 
         let conditionName;
-        if (dependencyValues.conditionChild.length === 1) {
-          conditionName = dependencyValues.conditionChild[0].componentName;
+        if (dependencyValues.conditionAttr !== null) {
+          conditionName = dependencyValues.conditionAttr.componentName;
         }
 
         return { newValues: { conditionName } }

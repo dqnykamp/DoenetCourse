@@ -6,7 +6,7 @@ export default class SelectByCondition extends CompositeComponent {
   static componentType = "selectByCondition";
 
   // assign name to else child
-  // static assignNewNamespaceToAllChildrenExcept = ["case", ...Object.keys(this.createPropertiesObject({})).map(x => x.toLowerCase())];
+  // static assignNewNamespaceToAllChildrenExcept = ["case", ...Object.keys(this.createAttributesObject({})).map(x => x.toLowerCase())];
   // static preserveOriginalNamesWhenAssignChildrenNewNamespace = true;
   // static passArrayAssignNamesToChildren = [["case", "else"]];
 
@@ -16,10 +16,15 @@ export default class SelectByCondition extends CompositeComponent {
   // static useChildrenForReference = false;
   // static get stateVariablesShadowedForReference() { return ["selectedIndices"] };
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.maximumNumberToSelect = { default: null };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.maximumNumberToSelect = {
+      createComponentOfType: "number",
+      createStateVariable: "maximumNumberToSelect",
+      defaultValue: null,
+      public: true,
+    }
+    return attributes;
   }
 
   static returnChildLogic(args) {
@@ -206,6 +211,10 @@ export default class SelectByCondition extends CompositeComponent {
         originalName: selectedChildName,
       }
 
+      if (components[selectedChildName].attributes.newNamespace) {
+        serializedChild.attributes = { newNamespace: true }
+      }
+
       replacements.push(serializedChild);
     }
 
@@ -213,7 +222,7 @@ export default class SelectByCondition extends CompositeComponent {
       assignNames: component.doenetAttributes.assignNames,
       serializedComponents: replacements,
       parentName: component.componentName,
-      parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+      parentCreatesNewNamespace: component.attributes.newNamespace,
       componentInfoObjects,
     });
 

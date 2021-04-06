@@ -6,29 +6,97 @@ export default class Award extends BaseComponent {
   static componentType = "award";
   static rendererType = undefined;
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
 
-    properties.credit = { default: 1 };
-    properties.matchPartial = { default: false, propagateToDescendants: true };
-    properties.symbolicEquality = { default: false, propagateToDescendants: true };
-    properties.expandOnCompare = { default: false, propagateToDescendants: true };
-    properties.simplifyOnCompare = {
-      default: "none",
+    attributes.credit = {
+      createComponentOfType: "number",
+      createStateVariable: "credit",
+      defaultValue: 1,
+      public: true,
+    };
+    attributes.matchPartial = {
+      createComponentOfType: "boolean",
+      createStateVariable: "matchPartial",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.symbolicEquality = {
+      createComponentOfType: "boolean",
+      createStateVariable: "symbolicEquality",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.expandOnCompare = {
+      createComponentOfType: "boolean",
+      createStateVariable: "expandOnCompare",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.simplifyOnCompare = {
+      createComponentOfType: "text",
+      createStateVariable: "simplifyOnCompare",
+      defaultValue: "none",
       toLowerCase: true,
       valueTransformations: { "": "full", "true": "full" },
       validValues: ["none", "full", "numbers", "numbersepreserveorder"],
+      public: true,
       propagateToDescendants: true,
     };
-    properties.unorderedCompare = { default: false, propagateToDescendants: true };
-    properties.allowedErrorInNumbers = { default: 0, propagateToDescendants: true };
-    properties.includeErrorInNumberExponents = { default: false, propagateToDescendants: true };
-    properties.allowedErrorIsAbsolute = { default: false, propagateToDescendants: true };
-    properties.nSignErrorsMatched = { default: 0, propagateToDescendants: true };
-    properties.feedbackCodes = { default: [] };
-    properties.feedbackText = { default: null };
+    attributes.unorderedCompare = {
+      createComponentOfType: "boolean",
+      createStateVariable: "unorderedCompare",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.allowedErrorInNumbers = {
+      createComponentOfType: "number",
+      createStateVariable: "allowedErrorInNumbers",
+      defaultValue: 0,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.includeErrorInNumberExponents = {
+      createComponentOfType: "boolean",
+      createStateVariable: "includeErrorInNumberExponents",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.allowedErrorIsAbsolute = {
+      createComponentOfType: "boolean",
+      createStateVariable: "allowedErrorIsAbsolute",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.nSignErrorsMatched = {
+      createComponentOfType: "number",
+      createStateVariable: "nSignErrorsMatched",
+      defaultValue: 0,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.feedbackCodes = {
+      createComponentOfType: "textList",
+      createStateVariable: "feedbackCodes",
+      defaultValue: [],
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.feedbackText = {
+      createComponentOfType: "text",
+      createStateVariable: "feedbackText",
+      defaultValue: null,
+      public: true,
+      propagateToDescendants: true,
+    };
 
-    return properties;
+    return attributes;
 
   }
 
@@ -306,11 +374,11 @@ function evaluateLogicDirectlyFromChildren({ dependencyValues, usedDefault }) {
 
   let dependenciesForEvaluateLogic = {
     mathChildrenByCode: {},
-    mathlistChildrenByCode: {},
+    mathListChildrenByCode: {},
     textChildrenByCode: {},
-    textlistChildrenByCode: {},
+    textListChildrenByCode: {},
     booleanChildrenByCode: {},
-    booleanlistChildrenByCode: {},
+    booleanListChildrenByCode: {},
   };
 
   Object.assign(dependenciesForEvaluateLogic, dependencyValues);
@@ -362,7 +430,7 @@ function evaluateLogicDirectlyFromChildren({ dependencyValues, usedDefault }) {
     stateValues: { value: answerValue }
   };
 
-  if (dependencyValues.answerInput.componentType === "textinput") {
+  if (dependencyValues.answerInput.componentType === "textInput") {
     dependenciesForEvaluateLogic.textChildrenByCode.comp1 = answerChildForLogic;
   } else {
     dependenciesForEvaluateLogic.mathChildrenByCode.comp1 = answerChildForLogic;

@@ -5,12 +5,22 @@ export default class Ref extends InlineComponent {
 
   static acceptTname = true;
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.texttype = { default: "type-global" };
-    properties.uri = { default: null, forRenderer: true }
-    // properties.type = { default: null, forRenderer: true }
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.textType = {
+      createComponentOfType: "text",
+      createStateVariable: "textType",
+      defaultValue: "type-global",
+      public: true,
+    };
+    attributes.uri = {
+      createComponentOfType: "_textFromSingleStringChild",
+      createStateVariable: "uri",
+      defaultValue: null,
+      public: true,
+      forRenderer: true
+    };
+    return attributes;
   }
 
 

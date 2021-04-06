@@ -42,11 +42,11 @@ export default class MathRenderer extends DoenetRenderer {
     }
 
     // if element of latexOrInputChildren is a number,
-    // then that element is an index of which child (a mathinput) to render
+    // then that element is an index of which child (a mathInput) to render
     // else, that element is a latex string
 
     // TODO: we don't want deliminers around each piece,
-    // instead, we want to be able to put the mathinput inside mathjax
+    // instead, we want to be able to put the mathInput inside mathjax
     // This is just a stopgap solution that works in a few simple cases!!!
 
     let latexOrInputChildren = this.doenetSvData.latexWithInputChildren.map(

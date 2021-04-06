@@ -2,7 +2,7 @@ import Input from './abstract/Input';
 import me from 'math-expressions';
 import { convertValueToMathExpression, latexToAst, textToAst } from '../utils/math';
 
-export default class Mathinput extends Input {
+export default class MathInput extends Input {
   constructor(args) {
     super(args);
 
@@ -37,7 +37,7 @@ export default class Mathinput extends Input {
     });
 
   }
-  static componentType = "mathinput";
+  static componentType = "mathInput";
 
   static variableForPlainMacro = "value";
 
@@ -45,27 +45,31 @@ export default class Mathinput extends Input {
     return ["value"]
   };
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.prefill = { default: "" };
-    properties.format = { default: "text" };
-    properties.size = { default: 10, forRenderer: true };
-    return properties;
-  }
-
-  static returnChildLogic(args) {
-    let childLogic = super.returnChildLogic(args);
-
-    childLogic.newLeaf({
-      name: "atMostOneBindValueTo",
-      componentType: "bindValueTo",
-      comparison: "atMost",
-      number: 1,
-      setAsBase: true,
-      takePropertyChildren: true,
-    })
-
-    return childLogic;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.prefill = {
+      createComponentOfType: "text",
+      createStateVariable: "prefill",
+      defaultValue: "",
+      public: true,
+    };
+    attributes.format = {
+      createComponentOfType: "text",
+      createStateVariable: "format",
+      defaultValue: "text",
+      public: true,
+    };
+    attributes.size = {
+      createComponentOfType: "number",
+      createStateVariable: "size",
+      defaultValue: 10,
+      forRenderer: true,
+      public: true,
+    };
+    attributes.bindValueTo = {
+      createComponentOfType: "math"
+    };
+    return attributes;
   }
 
 
@@ -78,11 +82,10 @@ export default class Mathinput extends Input {
       componentType: "math",
       forRenderer: true,
       returnDependencies: () => ({
-        bindValueToChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneBindValueTo",
+        bindValueTo: {
+          dependencyType: "attributeComponent",
+          attributeName: "bindValueTo",
           variableNames: ["value", "valueForDisplay"],
-          requireChildLogicInitiallySatisfied: true,
         },
         prefill: {
           dependencyType: "stateVariable",
@@ -94,7 +97,7 @@ export default class Mathinput extends Input {
         },
       }),
       definition: function ({ dependencyValues }) {
-        if (dependencyValues.bindValueToChild.length === 0) {
+        if (!dependencyValues.bindValueTo) {
           return {
             useEssentialOrDefaultValue: {
               value: {
@@ -110,20 +113,19 @@ export default class Mathinput extends Input {
           }
         }
 
-        return { newValues: { value: convertValueToMathExpression(dependencyValues.bindValueToChild[0].stateValues.valueForDisplay) } };
+        return { newValues: { value: dependencyValues.bindValueTo.stateValues.valueForDisplay } };
       },
       inverseDefinition: function ({ desiredStateVariableValues, dependencyValues }) {
 
-        // console.log(`inverse definition of value for mathinput`)
+        // console.log(`inverse definition of value for mathInput`)
         // console.log(desiredStateVariableValues)
 
-        if (dependencyValues.bindValueToChild.length === 1) {
+        if (dependencyValues.bindValueTo) {
           return {
             success: true,
             instructions: [{
-              setDependency: "bindValueToChild",
+              setDependency: "bindValueTo",
               desiredValue: desiredStateVariableValues.value,
-              childIndex: 0,
               variableIndex: 0,
             }]
           };
@@ -327,14 +329,14 @@ function parseValueIntoMath({ inputString, format }) {
     try {
       expression = me.fromAst(latexToAst.convert(inputString));
     } catch (e) {
-      console.warn(`Invalid latex for mathinput: ${inputString}`)
+      console.warn(`Invalid latex for mathInput: ${inputString}`)
       expression = me.fromAst('\uFF3F');
     }
   } else if (format === "text") {
     try {
       expression = me.fromAst(textToAst.convert(inputString));
     } catch (e) {
-      console.warn(`Invalid text for mathinput: ${inputString}`)
+      console.warn(`Invalid text for mathInput: ${inputString}`)
       expression = me.fromAst('\uFF3F');
     }
   }

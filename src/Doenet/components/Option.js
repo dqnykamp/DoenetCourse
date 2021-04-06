@@ -10,11 +10,21 @@ export default class Option extends Template {
   static originalNamesAreConsistent = true;
 
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.selectForVariants = { default: [] };
-    properties.selectWeight = { default: 1 };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.selectForVariants = {
+      createComponentOfType: "variants",
+      createStateVariable: "selectForVariants",
+      defaultValue: [],
+      public: true,
+    }
+    attributes.selectWeight = {
+      createComponentOfType: "number",
+      createStateVariable: "selectWeight",
+      defaultValue: 1,
+      public: true,
+    }
+    return attributes;
   }
 
   static returnStateVariableDefinitions() {
@@ -64,9 +74,9 @@ export default class Option extends Template {
         assignNames: component.doenetAttributes.assignNames,
         serializedComponents: replacements,
         parentName: component.componentName,
-        parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+        parentCreatesNewNamespace: component.attributes.newNamespace,
         componentInfoObjects,
-        originalNamesAreConsistent: component.doenetAttributes.newNamespace || !component.doenetAttributes.assignNames,
+        originalNamesAreConsistent: component.attributes.newNamespace || !component.doenetAttributes.assignNames,
       });
 
       return { replacements: processResult.serializedComponents };

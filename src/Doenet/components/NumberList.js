@@ -2,16 +2,29 @@ import InlineComponent from './abstract/InlineComponent';
 import me from 'math-expressions';
 
 export default class NumberList extends InlineComponent {
-  static componentType = "numberlist";
-  static rendererType = "aslist";
+  static componentType = "numberList";
+  static rendererType = "asList";
 
-  static stateVariableForPropertyValue = "numbers";
+  static stateVariableForAttributeValue = "numbers";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.unordered = { default: false };
-    properties.maximumNumber = { default: undefined };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+
+    attributes.unordered = {
+      createComponentOfType: "boolean",
+      createStateVariable: "unordered",
+      defaultValue: false,
+      public: true,
+    };
+
+    attributes.maximumNumber = {
+      createComponentOfType: "number",
+      createStateVariable: "maximumNumber",
+      defaultValue: null,
+      public: true,
+    };
+    
+    return attributes;
   }
 
 
@@ -66,7 +79,7 @@ export default class NumberList extends InlineComponent {
 
     let atLeastZeroNumberlists = childLogic.newLeaf({
       name: "atLeastZeroNumberlists",
-      componentType: 'numberlist',
+      componentType: 'numberList',
       comparison: 'atLeast',
       number: 0
     });
@@ -328,7 +341,7 @@ export default class NumberList extends InlineComponent {
         for (let child of dependencyValues.numberAndNumberlistChildren) {
           if (componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: child.componentType,
-            baseComponentType: "numberlist"
+            baseComponentType: "numberList"
           })) {
             childrenToRender.push(...child.stateValues.childrenToRender);
           } else {

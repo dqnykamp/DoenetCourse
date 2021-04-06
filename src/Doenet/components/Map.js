@@ -7,10 +7,18 @@ export default class Map extends CompositeComponent {
 
   static assignNamesToReplacements = true;
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.behavior = { default: "combination", trim: true };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+
+    attributes.behavior = {
+      createComponentOfType: "text",
+      createStateVariable: "behavior",
+      defaultValue: "combination",
+      public: true,
+      trim: true,
+    };
+
+    return attributes;
   }
 
   static returnChildLogic(args) {
@@ -114,7 +122,7 @@ export default class Map extends CompositeComponent {
           originalName: templateChild.componentName,
         }
         if (templateChild.stateValues.newNamespace) {
-          template.doenetAttributes = { newNamespace: true }
+          template.attributes = { newNamespace: true }
         }
         return {
           newValues: {
@@ -245,7 +253,7 @@ export default class Map extends CompositeComponent {
       assignNames: component.doenetAttributes.assignNames,
       serializedComponents: replacements,
       parentName: component.componentName,
-      parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+      parentCreatesNewNamespace: component.attributes.newNamespace,
       componentInfoObjects,
       indOffset: iter,
     });
@@ -275,7 +283,7 @@ export default class Map extends CompositeComponent {
           assignNames: component.doenetAttributes.assignNames,
           serializedComponents,
           parentName: component.componentName,
-          parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+          parentCreatesNewNamespace: component.attributes.newNamespace,
           componentInfoObjects,
           indOffset: iterateNumber,
         });

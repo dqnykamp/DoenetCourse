@@ -4,12 +4,12 @@ export default class Column extends BaseComponent {
   static componentType = "column";
   static rendererType = "container";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
 
-    properties.colNum = { default: null };
+    attributes.colNum = { default: null };
 
-    return properties;
+    return attributes;
   }
 
   static returnChildLogic(args) {

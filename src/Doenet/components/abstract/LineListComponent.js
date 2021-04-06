@@ -1,7 +1,7 @@
 import BaseComponent from './BaseComponent';
 
 export default class LineListComponent extends BaseComponent {
-  static componentType = "_linelistcomponent";
+  static componentType = "_lineListComponent";
   static rendererType = "container";
 
 

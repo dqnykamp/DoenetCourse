@@ -24,52 +24,146 @@ export default class Answer extends InlineComponent {
   }
   static componentType = "answer";
 
-  static acceptType = true;
-
   static variableForPlainMacro = "submittedResponses";
 
 
-  static get stateVariablesShadowedForReference() { return ["showCorrectness"] };
-  
-
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.weight = { default: 1 };
-    properties.inline = { default: false, propagateToDescendants: true };
-    properties.symbolicEquality = { default: false, propagateToDescendants: true };
-    properties.fixedOrder = { default: false, propagateToDescendants: true };
-    properties.size = { default: 10, propagateToDescendants: true };
-    properties.forceFullCheckworkButton = { default: false };
-    properties.expandOnCompare = { default: false, propagateToDescendants: true };
-    properties.simplifyOnCompare = {
-      default: "none",
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.weight = {
+      createComponentOfType: "number",
+      createStateVariable: "weight",
+      defaultValue: 1,
+      public: true,
+    };
+    attributes.inline = {
+      createComponentOfType: "boolean",
+      createStateVariable: "inline",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true
+    };
+    attributes.symbolicEquality = {
+      createComponentOfType: "boolean",
+      createStateVariable: "symbolicEquality",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true
+    };
+    attributes.fixedOrder = {
+      createComponentOfType: "boolean",
+      createStateVariable: "fixedOrder",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true
+    };
+    attributes.size = {
+      createComponentOfType: "number",
+      createStateVariable: "size",
+      defaultValue: 10,
+      public: true,
+      propagateToDescendants: true
+    };
+    attributes.forceFullCheckworkButton = {
+      createComponentOfType: "boolean",
+      createStateVariable: "forceFullCheckworkButton",
+      defaultValue: false,
+      public: true,
+    };
+    attributes.forceFullCheckworkButton = {
+      createComponentOfType: "boolean",
+      createStateVariable: "forceFullCheckworkButton",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true
+    };
+    attributes.simplifyOnCompare = {
+      createComponentOfType: "text",
+      createStateVariable: "simplifyOnCompare",
+      defaultValue: "none",
       toLowerCase: true,
       valueTransformations: { "": "full", "true": "full" },
       validValues: ["none", "full", "numbers", "numbersepreserveorder"],
+      public: true,
       propagateToDescendants: true,
     };
-    properties.unorderedCompare = { default: false, propagateToDescendants: true };
-    properties.allowedErrorInNumbers = { default: 0, propagateToDescendants: true };
-    properties.includeErrorInNumberExponents = { default: false, propagateToDescendants: true };
-    properties.allowedErrorIsAbsolute = { default: false, propagateToDescendants: true };
-    properties.nSignErrorsMatched = { default: 0, propagateToDescendants: true };
-    properties.feedbackDefinitions = { propagateToDescendants: true, mergeArrays: true }
+    attributes.unorderedCompare = {
+      createComponentOfType: "boolean",
+      createStateVariable: "unorderedCompare",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.allowedErrorInNumbers = {
+      createComponentOfType: "number",
+      createStateVariable: "allowedErrorInNumbers",
+      defaultValue: 0,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.includeErrorInNumberExponents = {
+      createComponentOfType: "boolean",
+      createStateVariable: "includeErrorInNumberExponents",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.allowedErrorIsAbsolute = {
+      createComponentOfType: "boolean",
+      createStateVariable: "allowedErrorIsAbsolute",
+      defaultValue: false,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.nSignErrorsMatched = {
+      createComponentOfType: "number",
+      createStateVariable: "nSignErrorsMatched",
+      defaultValue: 0,
+      public: true,
+      propagateToDescendants: true,
+    };
+    attributes.feedbackDefinitions = {
+      createComponentOfType: "feedbackDefinitions",
+      createStateVariable: "feedbackDefinitions",
+      public: true,
+      propagateToDescendants: true,
+      mergeArrays: true
+    };
+    attributes.prefill = {
+      createComponentOfType: "text",
+      createStateVariable: "prefill",
+      defaultValue: "",
+      public: true,
+      propagateToDescendants: true,
+    };
 
-    properties.prefill = { propagateToDescendants: true, default: "" };
 
-    return properties;
+    attributes.showCorrectness = {
+      createComponentOfType: "boolean",
+      createStateVariable: "showCorrectness",
+      defaultValue: args.flags ? args.flags.showCorrectness !== false : true,
+      forRenderer: true,
+    }
+    attributes.type = {
+      createPrimitiveOfType: "string"
+    }
+
+    return attributes;
   }
 
   static returnSugarInstructions() {
     let sugarInstructions = super.returnSugarInstructions();
 
-    let replaceFromOneString = function ({ matchedChildren, componentProps }) {
-      // answer where only child is a string (other than activeChildren from properties)
+    let replaceFromOneString = function ({ matchedChildren, componentAttributes }) {
+      // answer where only child is a string (other than activeChildren from attributes)
       // wrap string with award and math/text
 
+      console.log(`componentAttributes`)
+      console.log(componentAttributes)
+
+
       let type;
-      if (componentProps.type) {
-        type = componentProps.type
+      if (componentAttributes.type) {
+        type = componentAttributes.type
       } else {
         type = "math";
       }
@@ -99,7 +193,7 @@ export default class Answer extends InlineComponent {
     })
 
 
-    function addInputIfMightNeedIt({ matchedChildren, componentProps, componentInfoObjects }) {
+    function addInputIfMightNeedIt({ matchedChildren, componentAttributes, componentInfoObjects }) {
 
       let mightNeedNewInput = false;
 
@@ -145,9 +239,9 @@ export default class Answer extends InlineComponent {
 
       // if might need an input,
       // and haven't found an input or considerAsResponses child,
-      // then add an input based on the type property
+      // then add an input based on the type attribute
 
-      let inputType = componentProps.type === "text" ? "textinput" : "mathinput";
+      let inputType = componentAttributes.type === "text" ? "textInput" : "mathInput";
 
       let newChildren = [{ componentType: inputType }, ...matchedChildren];
 
@@ -191,27 +285,13 @@ export default class Answer extends InlineComponent {
       number: 0,
     })
 
-    let atMostOneShowCorrectness = childLogic.newLeaf({
-      name: "atMostOneShowCorrectness",
-      componentType: "showCorrectness",
-      comparison: "atMost",
-      number: 1,
-      takePropertyChildren: true,
-    })
-
-    let awardsInputResponses = childLogic.newOperator({
+    childLogic.newOperator({
       name: "awardsInputResponses",
       operator: 'and',
-      propositions: [atLeastZeroAwards, atLeastZeroInputs, atLeastZeroConsiderAsResponses]
+      propositions: [atLeastZeroAwards, atLeastZeroInputs, atLeastZeroConsiderAsResponses],
+      setAsBase: true,
     });
 
-
-    childLogic.newOperator({
-      name: "answerChildLogic",
-      operator: "and",
-      propositions: [awardsInputResponses, atMostOneShowCorrectness],
-      setAsBase: true,
-    })
 
     return childLogic;
   }
@@ -365,7 +445,7 @@ export default class Answer extends InlineComponent {
               variablesOptional: true,
               requireChildLogicInitiallySatisfied: true,
               recurseToMatchedChildren: true,
-              includePropertyChildren: true,
+              includeAttributeChildren: true,
               includeNonActiveChildren: true,
               skipOverAdapters: true,
             }
@@ -484,7 +564,7 @@ export default class Answer extends InlineComponent {
               variablesOptional: true,
               requireChildLogicInitiallySatisfied: true,
               recurseToMatchedChildren: true,
-              includePropertyChildren: true,
+              includeAttributeChildren: true,
               includeNonActiveChildren: true,
               skipOverAdapters: true,
             }
@@ -770,7 +850,7 @@ export default class Answer extends InlineComponent {
         },
         sectionAncestor: {
           dependencyType: "ancestor",
-          componentType: "_sectioningcomponent",
+          componentType: "_sectioningComponent",
           variableNames: [
             "suppressAnswerSubmitButtons",
             "componentNameForSubmitAll",
@@ -1007,7 +1087,7 @@ export default class Answer extends InlineComponent {
         },
         sectionAncestor: {
           dependencyType: "ancestor",
-          componentType: "_sectioningcomponent",
+          componentType: "_sectioningComponent",
           variableNames: [
             "justSubmittedForSubmitAll",
             "creditAchievedForSubmitAll"
@@ -1070,30 +1150,6 @@ export default class Answer extends InlineComponent {
             feedbacks
           }
         }
-      }
-    }
-
-    stateVariableDefinitions.showCorrectness = {
-      forRenderer: true,
-      returnDependencies: () => ({
-        showCorrectnessFlag: {
-          dependencyType: "flag",
-          flagName: "showCorrectness"
-        },
-        showCorrectnessChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneShowCorrectness",
-          variableNames: ["value",]
-        }
-      }),
-      definition({ dependencyValues }) {
-        let showCorrectness;
-        if (dependencyValues.showCorrectnessChild.length === 1) {
-          showCorrectness = dependencyValues.showCorrectnessChild[0].stateValues.value;
-        } else {
-          showCorrectness = dependencyValues.showCorrectnessFlag !== false;
-        }
-        return { newValues: { showCorrectness } }
       }
     }
 

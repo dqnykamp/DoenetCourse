@@ -2018,7 +2018,7 @@ describe('Collect Tag Tests', function () {
       <text>public</text>
     </section>
     <p>Revealed by default: <collect componentTypes="text" tname="_section1" /></p>
-    <p>Force to stay hidden: <collect componentTypes="text" tname="_section1" targetPropertiesToIgnore="" /></p>
+    <p>Force to stay hidden: <collect componentTypes="text" tname="_section1" targetAttributesToIgnore="" /></p>
 
     `}, "*");
     });

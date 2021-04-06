@@ -2071,14 +2071,14 @@ describe('Point Tag Tests', function () {
   <line>x=-2y-8</line>
   <point name="A" xs="7 3">
     <constraints>
-    <constraintToAttractor>
+    <transformConstraintIntoAttractor>
       <constraintUnion>
         <constrainTo><copy tname="_line1" /></constrainTo>
         <constrainTo><copy tname="_line2" /><copy tname="_line3" /></constrainTo>
         <constrainTo><copy tname="_line4" /></constrainTo>
         <constrainToGrid dx="2" dy="2"/>
       </constraintUnion>
-    </constraintToAttractor>
+    </transformConstraintIntoAttractor>
     </constraints>
   </point>
   </graph>
@@ -2702,7 +2702,7 @@ describe('Point Tag Tests', function () {
 
     cy.window().then((win) => {
       let components = Object.assign({}, win.state.components);
-      let x1 = components['/_point1'].activeChildren[0].activeChildren[0];
+      let x1 = components['/_point1'].attributes.xs.activeChildren[0];
       let math1 = x1.definingChildren[0];
       let math1Name = math1.componentName;
       let math2 = x1.definingChildren[2];

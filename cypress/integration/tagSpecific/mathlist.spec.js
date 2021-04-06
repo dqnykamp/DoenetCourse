@@ -8,7 +8,7 @@ function cesc(s) {
   return s;
 }
 
-describe('Mathlist Tag Tests', function () {
+describe('MathList Tag Tests', function () {
 
   beforeEach(() => {
     cy.visit('/test')
@@ -58,8 +58,8 @@ describe('Mathlist Tag Tests', function () {
         expect(components['/_mathlist1'].activeChildren[1].stateValues.value.tree).eqls(['+', 1, 1]);
         expect(components['/_mathlist1'].stateValues.maths[0].tree).eq('a');
         expect(components['/_mathlist1'].stateValues.maths[1].tree).eqls(['+', 1, 1]);
-        expect(components['/_mathlist2'].activeChildren[1].stateValues.value.tree).eq('a');
-        expect(components['/_mathlist2'].activeChildren[2].stateValues.value.tree).eq(2);
+        expect(components['/_mathlist2'].activeChildren[0].stateValues.value.tree).eq('a');
+        expect(components['/_mathlist2'].activeChildren[1].stateValues.value.tree).eq(2);
         expect(components['/_mathlist2'].stateValues.maths[0].tree).eq('a');
         expect(components['/_mathlist2'].stateValues.maths[1].tree).eq(2);
       })

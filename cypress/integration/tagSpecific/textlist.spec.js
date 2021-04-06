@@ -8,7 +8,7 @@ function cesc(s) {
   return s;
 }
 
-describe('Textlist Tag Tests', function () {
+describe('TextList Tag Tests', function () {
 
   beforeEach(() => {
     cy.visit('/test')
@@ -50,7 +50,7 @@ describe('Textlist Tag Tests', function () {
     cy.window().then((win) => {
       win.postMessage({
         doenetML: `
-      <letters>a</letters>
+      <text>a</text>
       <textlist>
         <text>a</text>
         <textlist>q r</textlist>
@@ -77,7 +77,7 @@ describe('Textlist Tag Tests', function () {
       ` }, "*");
     });
 
-    cy.get('#\\/_letters1').should('have.text', 'a');  // to wait until loaded
+    cy.get('#\\/_text1').should('have.text', 'a');  // to wait until loaded
 
     cy.window().then((win) => {
       let components = Object.assign({}, win.state.components);
@@ -95,11 +95,11 @@ describe('Textlist Tag Tests', function () {
       let child8Anchor = cesc('#' + child8Name);
 
       cy.log('Test value displayed in browser')
-      cy.get('#\\/_text1').should('have.text', 'a')
+      cy.get('#\\/_text2').should('have.text', 'a')
       cy.get(child1Anchor).should('have.text', 'q')
       cy.get(child2Anchor).should('have.text', 'r')
-      cy.get('#\\/_text2').should('have.text', 'h')
-      cy.get('#\\/_text3').should('have.text', 'b')
+      cy.get('#\\/_text3').should('have.text', 'h')
+      cy.get('#\\/_text4').should('have.text', 'b')
       cy.get(child5Anchor).should('have.text', 'u')
       cy.get(child6Anchor).should('have.text', 'v')
       cy.get(child7Anchor).should('have.text', 'i')
@@ -157,11 +157,11 @@ describe('Textlist Tag Tests', function () {
 
 
       cy.log('Test value displayed in browser')
-      cy.get('#\\/_text1').should('have.text', '1')
+      cy.get('#\\/_text2').should('have.text', '1')
       cy.get(child1Anchor).should('have.text', '2')
       cy.get(child2Anchor).should('have.text', '3')
-      cy.get('#\\/_text2').should('have.text', '4')
-      cy.get('#\\/_text3').should('have.text', '5')
+      cy.get('#\\/_text3').should('have.text', '4')
+      cy.get('#\\/_text4').should('have.text', '5')
       cy.get(child5Anchor).should('have.text', '6')
       cy.get(child6Anchor).should('have.text', '7')
       cy.get(child7Anchor).should('have.text', '8')

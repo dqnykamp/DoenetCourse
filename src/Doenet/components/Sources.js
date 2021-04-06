@@ -4,8 +4,37 @@ export default class Sources extends BaseComponent {
   static componentType = "sources";
   static rendererType = "container";
 
-  static acceptAlias = true;
-  static acceptIndexAlias = true;
+
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.alias = {
+      createPrimitiveOfType: "string",
+      validationFunction: function (value) {
+        if (!(/[a-zA-Z_]/.test(value.substring(0, 1)))) {
+          throw Error("All aliases must begin with a letter or an underscore");
+        }
+        if (!(/^[a-zA-Z0-9_\-]+$/.test(value))) {
+          throw Error("Aliases can contain only letters, numbers, hyphens, and underscores");
+        }
+        return value;
+      }
+    };
+
+    attributes.indexAlias = {
+      createPrimitiveOfType: "string",
+      validationFunction: function (value) {
+        if (!(/[a-zA-Z_]/.test(value.substring(0, 1)))) {
+          throw Error("All index aliases must begin with a letter or an underscore");
+        }
+        if (!(/^[a-zA-Z0-9_\-]+$/.test(value))) {
+          throw Error("Index aliases can contain only letters, numbers, hyphens, and underscores");
+        }
+        return value;
+      }
+    };
+    return attributes;
+  }
+
 
   static returnChildLogic(args) {
     let childLogic = super.returnChildLogic(args);
@@ -29,7 +58,7 @@ export default class Sources extends BaseComponent {
     stateVariableDefinitions.alias = {
       returnDependencies: () => ({
         alias: {
-          dependencyType: "doenetAttribute",
+          dependencyType: "attribute",
           attributeName: "alias"
         }
       }),
@@ -41,7 +70,7 @@ export default class Sources extends BaseComponent {
     stateVariableDefinitions.indexAlias = {
       returnDependencies: () => ({
         indexAlias: {
-          dependencyType: "doenetAttribute",
+          dependencyType: "attribute",
           attributeName: "indexAlias"
         }
       }),

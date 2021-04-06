@@ -9,12 +9,28 @@ export default class NumberComponent extends InlineComponent {
   static useChildrenForReference = false;
   static get stateVariablesShadowedForReference() { return ["value"] };
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.displayDigits = { default: 10 };
-    properties.displaySmallAsZero = { default: false };
-    properties.renderAsMath = { default: false, forRenderer: true };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.displayDigits = {
+      createComponentOfType: "number",
+      createStateVariable: "displayDigits",
+      defaultValue: 10,
+      public: true,
+    }
+    attributes.displaySmallAsZero = {
+      createComponentOfType: "boolean",
+      createStateVariable: "displaySmallAsZero",
+      defaultValue: false,
+      public: true,
+    }
+    attributes.renderAsMath = {
+      createComponentOfType: "boolean",
+      createStateVariable: "renderAsMath",
+      defaultValue: false,
+      public: true,
+      forRenderer: true,
+    }
+    return attributes;
   }
 
   static returnSugarInstructions() {

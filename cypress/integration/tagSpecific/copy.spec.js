@@ -599,7 +599,7 @@ describe('Copy Tag Tests', function () {
     <text>a</text>
     <p>Hidden text: <text name="hidden" hide>secret</text></p>
     <p>Revealed by default: $hidden</p>
-    <p>Force to stay hidden: <copy tname="hidden" targetPropertiesToIgnore="" /></p>
+    <p>Force to stay hidden: <copy tname="hidden" targetAttributesToIgnore="" /></p>
 
     `}, "*");
     });

@@ -6247,7 +6247,7 @@ describe('Answer Tag Tests', function () {
     })
   });
 
-  it('answer with variable number of choices', () => {
+  it.only('answer with variable number of choices', () => {
     cy.window().then((win) => {
       win.postMessage({
         doenetML: `

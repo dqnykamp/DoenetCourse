@@ -2,15 +2,15 @@ import Polyline from '../Polyline';
 import me from 'math-expressions';
 
 export default class CobwebPolyline extends Polyline {
-  static componentType = "cobwebpolyline";
-  static rendererType = "cobwebpolyline";
+  static componentType = "cobwebPolyline";
+  static rendererType = "cobwebPolyline";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.attractThreshold = { default: 0.5 };
-    properties.nPoints = { default: 1, clamp: [0, Infinity], forRenderer: true };
-    properties.variable = { default: me.fromAst('x'), forRenderer: true }
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.attractThreshold = { default: 0.5 };
+    attributes.nPoints = { default: 1, clamp: [0, Infinity], forRenderer: true };
+    attributes.variable = { default: me.fromAst('x'), forRenderer: true }
+    return attributes;
   }
 
 
@@ -54,15 +54,6 @@ export default class CobwebPolyline extends Polyline {
     stateVariableDefinitions.initialPoint = {
       isArray: true,
       entryPrefixes: ["initialPointX"],
-      returnWrappingComponents(prefix) {
-        if (prefix === "initialPointX") {
-          return [];
-        } else {
-          // entire array
-          // wrap by both <point> and <xs>
-          return [["point", { componentType: "xs", doenetAttributes: { isPropertyChild: true } }]];
-        }
-      },
       returnArraySizeDependencies: () => ({}),
       returnArraySize: () => [2],
       returnArrayDependenciesByKey({ arrayKeys }) {

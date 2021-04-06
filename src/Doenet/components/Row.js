@@ -5,10 +5,10 @@ export default class Row extends BaseComponent {
   static componentType = "row";
   static rendererType = "container";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.rowNum = { default: null };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.rowNum = { default: null };
+    return attributes;
   }
 
   static returnChildLogic(args) {

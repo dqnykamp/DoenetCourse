@@ -3,6 +3,8 @@ import BlockComponent from './abstract/BlockComponent';
 export default class P extends BlockComponent {
   static componentType = "p";
 
+  static includeBlankStringChildren = true;
+
   static returnChildLogic(args) {
     let childLogic = super.returnChildLogic(args);
 
@@ -66,7 +68,5 @@ export default class P extends BlockComponent {
     return stateVariableDefinitions;
 
   }
-
-  static includeBlankStringChildren = true;
 
 }

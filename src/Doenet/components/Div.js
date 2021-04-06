@@ -3,10 +3,15 @@ import BlockComponent from './abstract/BlockComponent';
 export default class Div extends BlockComponent {
   static componentType = "div";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.width = { default: 300 };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.width = {
+      createComponentOfType: "_componentSize",
+      createStateVariable: "width",
+      defaultValue: 300,
+      public: true,
+    };
+    return attributes;
   }
 
   static returnChildLogic(args) {

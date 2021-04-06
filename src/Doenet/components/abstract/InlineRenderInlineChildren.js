@@ -1,7 +1,7 @@
 import InlineComponent from './InlineComponent';
 
 export default class InlineRenderInlineChildren extends InlineComponent {
-  static componentType = "_inlinerenderinlinechildren";
+  static componentType = "_inlineRenderInlineChildren";
 
   static returnChildLogic(args) {
     let childLogic = super.returnChildLogic(args);

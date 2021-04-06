@@ -4,13 +4,28 @@ export default class Choice extends InlineComponent {
   static componentType = "choice";
   static rendererType = "container";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.credit = { default: 0 };
-    properties.feedbackCodes = { default: [] };
-    properties.feedbackText = { default: null };
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.credit = {
+      createComponentOfType: "number",
+      createStateVariable: "credit",
+      defaultValue: 0,
+      public: true,
+    };
+    attributes.feedbackCodes = {
+      createComponentOfType: "textList",
+      createStateVariable: "feedbackCodes",
+      defaultValue: [],
+      public: true,
+    };
+    attributes.feedbackText = {
+      createComponentOfType: "text",
+      createStateVariable: "feedbackText",
+      defaultValue: null,
+      public: true,
+    };
 
-    return properties;
+    return attributes;
   }
 
   static returnChildLogic(args) {

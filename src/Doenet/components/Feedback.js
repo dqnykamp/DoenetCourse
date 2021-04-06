@@ -9,37 +9,26 @@ export default class Feedback extends BlockComponent {
     return ["hide"]
   }
 
-  static createPropertiesObject() {
-    let properties = super.createPropertiesObject();
-    delete properties.hide;
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    delete attributes.hide;
+    attributes.condition = {
+      createComponentOfType: "condition"
+    }
+
+    return attributes;
   }
 
   static returnChildLogic(args) {
     let childLogic = super.returnChildLogic(args);
 
-    let atMostOneCondition = childLogic.newLeaf({
-      name: "atMostOneCondition",
-      componentType: 'condition',
-      comparison: 'atMost',
-      number: 1,
-      takePropertyChildren: true,
-      allowSpillover: false,
-    });
-
-    let atLeastZeroAnything = childLogic.newLeaf({
+    childLogic.newLeaf({
       name: "atLeastZeroAnything",
       componentType: '_base',
       comparison: 'atLeast',
       number: 0,
-    });
-
-    childLogic.newOperator({
-      name: "ifAndRest",
-      operator: "and",
-      propositions: [atMostOneCondition, atLeastZeroAnything],
       setAsBase: true,
-    })
+    });
 
     return childLogic;
   }
@@ -51,19 +40,19 @@ export default class Feedback extends BlockComponent {
     stateVariableDefinitions.hide = {
       forRenderer: true,
       returnDependencies: () => ({
-        conditionChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneCondition",
+        condition: {
+          dependencyType: "attributeComponent",
+          attributeName: "condition",
           variableNames: ["value"],
         },
       }),
       definition: function ({ dependencyValues }) {
 
         let hide;
-        if (dependencyValues.conditionChild.length === 0) {
+        if (dependencyValues.condition === null) {
           hide = false;
         } else {
-          hide = !dependencyValues.conditionChild[0].stateValues.value;
+          hide = !dependencyValues.condition.stateValues.value;
         }
 
         return { newValues: { hide } }

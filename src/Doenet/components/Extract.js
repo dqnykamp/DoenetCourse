@@ -9,53 +9,43 @@ export default class Extract extends CompositeComponent {
 
   static assignNamesToReplacements = true;
 
-  static acceptProp = true;
+  static acceptAnyAttribute = true;
 
   static get stateVariablesShadowedForReference() { return ["propName"] };
 
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
 
-  static createPropertiesObject({ allPossibleProperties }) {
+    // delete off attributes from base component that should apply to replacements instead
+    // (using acceptAnyAttribute)
+    delete attributes.disabled;
+    delete attributes.modifyIndirectly;
+    delete attributes.fixed;
+    delete attributes.styleNumber;
+    delete attributes.isResponse;
 
-    if (allPossibleProperties === undefined) {
-      return {};
-    }
-
-
-    // Note: putting all possible properties as state variables
-    // risks a collision between a newly defined property
-    // and one of the state variables of Copy.
-    // TODO: is there a better way to organize to avoid this potential collision
-    // (Naming state variables beginning with a _ is not an option
-    // as the idea is to exclude such state variable names to avoid
-    // collision with internal state variables that core creates.)
-
-    // Allow all standard component types to be entered as a property
-    // at this stage with no defaults.
-    // Will check validity depending on copy target
-
-    // TODO: have check validity of properties again?
-
-    let properties = {};
-    for (let componentType of allPossibleProperties) {
-      properties[componentType] = { ignorePropagationFromAncestors: true, default: null };
-    }
-
-    // Just in case there is a component that added these as a property, delete them
-
-    // delete string
-    delete properties.string;
-
-    // delete basic types, in case they were used as property
-    delete properties.math;
-    delete properties.number;
-    delete properties.text;
-
-    properties.includeUndefinedObjects = { default: false };
-    properties.componentIndex = { default: null };
-    properties.propIndex = { default: null };
-
-    return properties;
-
+    attributes.prop = {
+      createPrimitiveOfType: "text",
+    };
+    attributes.includeUndefinedObjects = {
+      createComponentOfType: "boolean",
+      createStateVariable: "includeUndefinedObjects",
+      defaultValue: false,
+      public: true,
+    };
+    attributes.componentIndex = {
+      createComponentOfType: "number",
+      createStateVariable: "componentIndex",
+      defaultValue: null,
+      public: true,
+    };
+    attributes.propIndex = {
+      createComponentOfType: "number",
+      createStateVariable: "propIndex",
+      defaultValue: null,
+      public: true,
+    };
+    return attributes;
   }
 
 
@@ -82,8 +72,8 @@ export default class Extract extends CompositeComponent {
     stateVariableDefinitions.propName = {
       returnDependencies: () => ({
         propName: {
-          dependencyType: "doenetAttribute",
-          attributeName: "propName"
+          dependencyType: "attribute",
+          attributeName: "prop"
         },
       }),
       definition: function ({ dependencyValues }) {
@@ -184,7 +174,7 @@ export default class Extract extends CompositeComponent {
 
   }
 
-  static createSerializedReplacements({ component, components, workspace, componentInfoObjects }) {
+  static createSerializedReplacements({ component, components, workspace, componentInfoObjects, flags }) {
 
     // evaluate needsReplacementsUpdatedWhenStale to make it fresh
     component.stateValues.needsReplacementsUpdatedWhenStale;
@@ -200,6 +190,8 @@ export default class Extract extends CompositeComponent {
 
     workspace.uniqueIdentifiersUsedBySource = {};
 
+    let compositeAttributesObj = this.createAttributesObject({ flags });
+
     for (let sourceNum = 0; sourceNum < component.stateValues.sourceComponents.length; sourceNum++) {
       if (component.stateValues.sourceComponents[sourceNum] !== undefined) {
         let uniqueIdentifiersUsed = workspace.uniqueIdentifiersUsedBySource[sourceNum] = [];
@@ -209,7 +201,8 @@ export default class Extract extends CompositeComponent {
           components,
           numReplacementsSoFar,
           uniqueIdentifiersUsed,
-          componentInfoObjects
+          componentInfoObjects,
+          compositeAttributesObj
         });
 
         workspace.propVariablesCopiedBySource[sourceNum] = results.propVariablesCopiedByReplacement;
@@ -232,7 +225,8 @@ export default class Extract extends CompositeComponent {
 
 
   static createReplacementForSource({ component, components, sourceNum,
-    numReplacementsSoFar, uniqueIdentifiersUsed, componentInfoObjects
+    numReplacementsSoFar, uniqueIdentifiersUsed, componentInfoObjects,
+    compositeAttributesObj
   }) {
 
     // console.log(`create replacement for source ${sourceNum}, ${numReplacementsSoFar} of ${component.componentName}`)
@@ -243,6 +237,8 @@ export default class Extract extends CompositeComponent {
       propName: component.stateValues.propName,
       // numReplacementsSoFar,
       uniqueIdentifiersUsed,
+      compositeAttributesObj,
+      componentInfoObjects
     })
 
     let serializedReplacements = results.serializedReplacements;
@@ -253,7 +249,7 @@ export default class Extract extends CompositeComponent {
       serializedComponents: serializedReplacements,
       parentName: component.componentName,
       indOffset: numReplacementsSoFar,
-      parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+      parentCreatesNewNamespace: component.attributes.newNamespace,
       componentInfoObjects,
     });
 
@@ -264,7 +260,7 @@ export default class Extract extends CompositeComponent {
 
   }
 
-  static calculateReplacementChanges({ component, components, workspace, componentInfoObjects }) {
+  static calculateReplacementChanges({ component, components, workspace, componentInfoObjects, flags }) {
 
     // evaluate needsReplacementsUpdatedWhenStale to make it fresh
     component.stateValues.needsReplacementsUpdatedWhenStale;
@@ -281,6 +277,7 @@ export default class Extract extends CompositeComponent {
     let numReplacementsBySource = [];
     let propVariablesCopiedBySource = [];
 
+    let compositeAttributesObj = this.createAttributesObject({ flags });
 
     let maxSourceLength = Math.max(component.stateValues.sourceComponents.length, workspace.numReplacementsBySource.length);
 
@@ -369,6 +366,7 @@ export default class Extract extends CompositeComponent {
           components,
           uniqueIdentifiersUsed,
           componentInfoObjects,
+          compositeAttributesObj
         });
 
         numReplacementsSoFar += results.numReplacements;
@@ -417,6 +415,7 @@ export default class Extract extends CompositeComponent {
         numReplacementsSoFar,
         uniqueIdentifiersUsed,
         componentInfoObjects,
+        compositeAttributesObj
       });
 
       let propVariablesCopiedByReplacement = results.propVariablesCopiedByReplacement;
@@ -498,12 +497,12 @@ export default class Extract extends CompositeComponent {
 
   static recreateReplacements({ component, sourceNum, numReplacementsSoFar,
     numReplacementsToDelete,
-    uniqueIdentifiersUsed, components, componentInfoObjects
+    uniqueIdentifiersUsed, components, componentInfoObjects, compositeAttributesObj
   }) {
 
     let results = this.createReplacementForSource({
       component, sourceNum, numReplacementsSoFar, components, uniqueIdentifiersUsed,
-      componentInfoObjects
+      componentInfoObjects, compositeAttributesObj
     });
 
     let propVariablesCopiedByReplacement = results.propVariablesCopiedByReplacement;

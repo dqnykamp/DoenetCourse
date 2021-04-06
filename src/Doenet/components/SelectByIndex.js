@@ -5,56 +5,23 @@ import { processAssignNames } from '../utils/serializedStateProcessing';
 export default class SelectByIndex extends CompositeComponent {
   static componentType = "selectByIndex";
 
-  // static assignNewNamespaceToAllChildrenExcept = Object.keys(this.createPropertiesObject({})).map(x => x.toLowerCase());
+  // static assignNewNamespaceToAllChildrenExcept = Object.keys(this.createAttributesObject({})).map(x => x.toLowerCase());
   static assignNamesToReplacements = true;
 
   // used when referencing this component without prop
   static useChildrenForReference = false;
   static get stateVariablesShadowedForReference() { return ["selectedIndices"] };
 
-  // static keepChildrenSerialized({ serializedComponent, componentInfoObjects }) {
-  //   if (serializedComponent.children === undefined) {
-  //     return [];
-  //   }
 
-  //   let propertyClasses = [];
-  //   for (let componentType in this.createPropertiesObject({})) {
-  //     let ct = componentType.toLowerCase();
-  //     propertyClasses.push({
-  //       componentType: ct,
-  //       class: componentInfoObjects.allComponentClasses[ct]
-  //     });
-  //   }
-
-  //   let nonPropertyChildInds = [];
-
-  //   // first occurence of a property component class
-  //   // will be created
-  //   // any other component will stay serialized
-  //   for (let [ind, child] of serializedComponent.children.entries()) {
-  //     let propFound = false;
-  //     for (let propObj of propertyClasses) {
-  //       if (componentInfoObjects.isInheritedComponentType({
-  //         inheritedComponentType: child.componentType,
-  //         baseComponentType: propObj.componentType
-  //       }) && !propObj.propFound) {
-  //         propFound = propObj.propFound = true;
-  //         break;
-  //       }
-  //     }
-  //     if (!propFound) {
-  //       nonPropertyChildInds.push(ind);
-  //     }
-  //   }
-
-  //   return nonPropertyChildInds;
-
-  // }
-
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.selectIndices = { default: [] };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.selectIndices = {
+      createComponentOfType: "numberList",
+      createStateVariable: "selectIndices",
+      defaultValue: [],
+      public: true,
+    }
+    return attributes;
   }
 
 
@@ -224,7 +191,7 @@ export default class SelectByIndex extends CompositeComponent {
       assignNames: component.doenetAttributes.assignNames,
       serializedComponents: replacements,
       parentName: component.componentName,
-      parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+      parentCreatesNewNamespace: component.attributes.newNamespace,
       componentInfoObjects,
     });
 

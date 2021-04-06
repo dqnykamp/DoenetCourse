@@ -9,7 +9,7 @@ import { textToAst } from '../utils/math';
 export default class Select extends CompositeComponent {
   static componentType = "select";
 
-  // static assignNewNamespaceToAllChildrenExcept = Object.keys(this.createPropertiesObject({})).map(x => x.toLowerCase());
+  // static assignNewNamespaceToAllChildrenExcept = Object.keys(this.createAttributesObject({})).map(x => x.toLowerCase());
   static assignNamesToReplacements = true;
 
   static createsVariants = true;
@@ -18,24 +18,35 @@ export default class Select extends CompositeComponent {
   static useChildrenForReference = false;
   static get stateVariablesShadowedForReference() { return ["selectedIndices"] };
 
-  static acceptType = true;
-
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.numberToSelect = { default: 1 };
-    properties.withReplacement = { default: false };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.numberToSelect = {
+      createComponentOfType: "number",
+      createStateVariable: "numberToSelect",
+      defaultValue: 1,
+      public: true,
+    }
+    attributes.withReplacement = {
+      createComponentOfType: "boolean",
+      createStateVariable: "withReplacement",
+      defaultValue: false,
+      public: true,
+    }
+    attributes.type = {
+      createPrimitiveOfType: "string"
+    }
+    return attributes;
   }
 
 
   static returnSugarInstructions() {
     let sugarInstructions = super.returnSugarInstructions();
 
-    function breakStringsIntoOptionsBySpaces({ matchedChildren, componentProps }) {
+    function breakStringsIntoOptionsBySpaces({ matchedChildren, componentAttributes }) {
 
       let type;
-      if (componentProps.type) {
-        type = componentProps.type
+      if (componentAttributes.type) {
+        type = componentAttributes.type
       } else {
         type = "math";
       }
@@ -173,6 +184,7 @@ export default class Select extends CompositeComponent {
         }
       }),
       definition: function ({ dependencyValues }) {
+        console.log(dependencyValues)
 
         let availableVariants = {};
         for (let [ind, optionChild] of dependencyValues.optionChildren.entries()) {
@@ -472,7 +484,7 @@ export default class Select extends CompositeComponent {
 
   static createSerializedReplacements({ component, components, componentInfoObjects }) {
 
-    // console.log(`create serialized replacements for ${component.componentName}`);
+    console.log(`create serialized replacements for ${component.componentName}`);
 
     let replacements = [];
 
@@ -493,6 +505,10 @@ export default class Select extends CompositeComponent {
         doenetAttributes: Object.assign({}, selectedChild.doenetAttributes),
         children: serializedGrandchildren,
         originalName: selectedChildName,
+      }
+
+      if (selectedChild.attributes.newNamespace) {
+        serializedChild.attributes = { newNamespace: true }
       }
 
       if (selectedChild.variants) {
@@ -536,7 +552,7 @@ export default class Select extends CompositeComponent {
       assignNames: component.doenetAttributes.assignNames,
       serializedComponents: replacements,
       parentName: component.componentName,
-      parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+      parentCreatesNewNamespace: component.attributes.newNamespace,
       componentInfoObjects,
     });
 
@@ -628,7 +644,7 @@ export default class Select extends CompositeComponent {
         }
 
       } else if (componentType === "selectWeight") {
-        // uniquevariants disabled if have a child with selectWeight specified
+        // uniqueVariants disabled if have a child with selectWeight specified
         return { succes: false }
       } else if (componentType !== "hide" && componentType !== "modifyIndirectly") {
         if (componentType === "string") {

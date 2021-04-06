@@ -30,9 +30,9 @@ export class M extends InlineComponent {
       comparison: 'atLeast',
       number: 0,
     });
-    let atLeastZeroMathlists = childLogic.newLeaf({
-      name: "atLeastZeroMathlists",
-      componentType: 'mathlist',
+    let atLeastZeroMathLists = childLogic.newLeaf({
+      name: "atLeastZeroMathLists",
+      componentType: 'mathList',
       comparison: 'atLeast',
       number: 0,
     });
@@ -44,9 +44,9 @@ export class M extends InlineComponent {
       number: 0,
     });
 
-    let atLeastZeroMathinputs = childLogic.newLeaf({
-      name: "atLeastZeroMathinputs",
-      componentType: 'mathinput',
+    let atLeastZeroMathInputs = childLogic.newLeaf({
+      name: "atLeastZeroMathInputs",
+      componentType: 'mathInput',
       comparison: 'atLeast',
       number: 0,
     });
@@ -57,9 +57,9 @@ export class M extends InlineComponent {
         atLeastZeroStrings,
         atLeastZeroTexts,
         atLeastZeroMaths,
-        atLeastZeroMathlists,
+        atLeastZeroMathLists,
         atLeastZeroMs,
-        atLeastZeroMathinputs
+        atLeastZeroMathInputs
       ],
       requireConsecutive: true,
       setAsBase: true,
@@ -139,7 +139,7 @@ export class M extends InlineComponent {
         for (let child of dependencyValues.stringTextMathChildren) {
           if (componentInfoObjects.isInheritedComponentType({
             inheritedComponentType: child.componentType,
-            baseComponentType: "mathinput"
+            baseComponentType: "mathInput"
           })) {
             if (lastLatex.length > 0) {
               latexWithInputChildren.push(lastLatex);
@@ -195,15 +195,15 @@ export class M extends InlineComponent {
 
     stateVariableDefinitions.childrenToRender = {
       returnDependencies: () => ({
-        mathinputChildren: {
+        mathInputChildren: {
           dependencyType: "child",
-          childLogicName: "atLeastZeroMathinputs"
+          childLogicName: "atLeastZeroMathInputs"
         },
       }),
       definition: function ({ dependencyValues }) {
         return {
           newValues: {
-            childrenToRender: dependencyValues.mathinputChildren.map(x => x.componentName)
+            childrenToRender: dependencyValues.mathInputChildren.map(x => x.componentName)
           }
         };
       }

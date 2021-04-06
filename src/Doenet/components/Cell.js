@@ -8,13 +8,13 @@ export default class Cell extends BaseComponent {
 
   static primaryStateVariableForDefinition = "placeholder";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
 
-    properties.rowNum = { default: null };
-    properties.colNum = { default: null };
+    attributes.rowNum = { default: null };
+    attributes.colNum = { default: null };
 
-    return properties;
+    return attributes;
   }
 
   static returnChildLogic(args) {

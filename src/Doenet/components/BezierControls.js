@@ -3,7 +3,7 @@ import { breakEmbeddedStringsIntoParensPieces } from './commonsugar/breakstrings
 import me from 'math-expressions';
 
 export default class BezierControls extends BaseComponent {
-  static componentType = "beziercontrols";
+  static componentType = "bezierControls";
   static rendererType = "container";
 
   static get stateVariablesShadowedForReference() { return ["controls"] };

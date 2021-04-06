@@ -10,6 +10,7 @@ export default class BaseComponent {
     serializedComponent,
     definingChildren,
     serializedChildren, childLogic,
+    attributes,
     stateVariableDefinitions,
     componentInfoObjects,
     coreFunctions,
@@ -43,6 +44,8 @@ export default class BaseComponent {
 
     this.childLogic = childLogic;
 
+    this.attributes = attributes;
+
     this.state = {};
     for (let stateVariable in stateVariableDefinitions) {
       // need to separately create a shallow copy of each state variable
@@ -73,7 +76,7 @@ export default class BaseComponent {
   }
 
   get componentType() {
-    return this.constructor.componentType.toLowerCase();
+    return this.constructor.componentType;
   }
 
   get rendererType() {
@@ -157,15 +160,53 @@ export default class BaseComponent {
     return this.childLogic.logicResult.success;
   }
 
-  static createPropertiesObject({ flags = {} } = {}) {
+  static createAttributesObject({ flags = {} } = {}) {
 
     return {
-      hide: { default: false },
-      disabled: { default: flags.readOnly ? true : false, forRenderer: true, propagateToDescendants: true },
-      modifyIndirectly: { default: true, propagateToProps: true },
-      fixed: { default: false },
-      styleNumber: { default: 1, propagateToDescendants: true },
-      isResponse: { default: false },
+      hide: {
+        createComponentOfType: "boolean",
+        createStateVariable: "hide",
+        defaultValue: false,
+        public: true,
+      },
+      disabled: {
+        createComponentOfType: "boolean",
+        createStateVariable: "disabled",
+        defaultValue: flags.readOnly ? true : false,
+        public: true,
+        forRenderer: true,
+        propagateToDescendants: true
+      },
+      modifyIndirectly: {
+        createComponentOfType: "boolean",
+        createStateVariable: "modifyIndirectly",
+        defaultValue: true,
+        public: true,
+        propagateToProps: true,
+      },
+      fixed: {
+        createComponentOfType: "boolean",
+        createStateVariable: "fixed",
+        defaultValue: false,
+        public: true,
+      },
+      styleNumber: {
+        createComponentOfType: "number",
+        createStateVariable: "styleNumber",
+        defaultValue: 1,
+        public: true,
+        propagateToDescendants: true
+      },
+      isResponse: {
+        createComponentOfType: "boolean",
+        createStateVariable: "isResponse",
+        defaultValue: false,
+        public: true,
+      },
+
+      newNamespace: {
+        createPrimitiveOfType: "boolean"
+      }
     };
   }
 
@@ -173,12 +214,9 @@ export default class BaseComponent {
     return [];
   }
 
-  static returnChildLogic({ standardComponentClasses, allComponentClasses, components, allPossibleProperties, flags }) {
+  static returnChildLogic({ standardComponentClasses, allComponentClasses, components }) {
     let childLogic = new ChildLogicClass({
       parentComponentType: this.componentType,
-      properties: this.createPropertiesObject({
-        standardComponentClasses, allPossibleProperties, flags
-      }),
       allComponentClasses,
       standardComponentClasses,
       components,
@@ -260,14 +298,14 @@ export default class BaseComponent {
     return stateVariableDefinitions;
   }
 
-  static returnNormalizedStateVariableDefinitions({ propertyNames, numerics }) {
+  static returnNormalizedStateVariableDefinitions({ attributeNames, numerics }) {
     // return state variable definitions
     // where have added additionalStateVariablesDefined
 
 
     //  add state variable definitions from component class
     let newDefinitions = this.returnStateVariableDefinitions({
-      propertyNames, numerics,
+      attributeNames, numerics,
     });
 
     if (!newDefinitions) {
@@ -337,37 +375,24 @@ export default class BaseComponent {
 
   }
 
-  static returnStateVariableInfo({ onlyPublic = false, standardComponentClasses, allPossibleProperties }) {
-    let propertyObject = this.createPropertiesObject({ standardComponentClasses, allPossibleProperties });
+  static returnStateVariableInfo({ onlyPublic = false, flags }) {
+    let attributeObject = this.createAttributesObject({ flags });
 
     let stateVariableDescriptions = {};
     let arrayEntryPrefixes = {};
     let aliases = {};
 
-    for (let varName in propertyObject) {
-      let componentTypeOverride = propertyObject[varName].componentType;
+    for (let varName in attributeObject) {
+      let componentTypeOverride = attributeObject[varName].componentType;
       stateVariableDescriptions[varName] = {
         componentType: componentTypeOverride ? componentTypeOverride : varName,
         public: true,
 
       }
-      if (propertyObject[varName].entryPrefixes) {
-        let classPropertyAttributes = standardComponentClasses[varName].attributesForPropertyValue;
-        if (classPropertyAttributes && classPropertyAttributes.isArray) {
-          stateVariableDescriptions[varName].isArray = true;
-          for (let prefix of propertyObject[varName].entryPrefixes) {
-            arrayEntryPrefixes[prefix] = {
-              arrayVariableName: varName,
-            }
-          }
-        } else {
-          console.warn(`entryPrefixes ignored for property ${varName} of ${this.componentType}`)
-        }
-      }
 
     }
 
-    let stateDef = this.returnNormalizedStateVariableDefinitions({ propertyNames: Object.keys(stateVariableDescriptions) });
+    let stateDef = this.returnNormalizedStateVariableDefinitions({ attributeNames: Object.keys(stateVariableDescriptions) });
 
     for (let varName in stateDef) {
       let theStateDef = stateDef[varName];
@@ -455,17 +480,17 @@ export default class BaseComponent {
     // TODO: this function is converted only for the case with the parameter
     // forCopy set
 
-    let includePropertyChildren = true;
-    let includeOtherDefiningChildren = true;
+    // TODO: not serializing attribute children (as don't need them with forCopy)
+
+    let includeDefiningChildren = true;
     let stateVariablesToInclude = [];
 
     if (parameters.forCopy) {
-      includePropertyChildren = false;
-      includeOtherDefiningChildren = true;//this.constructor.useChildrenForReference;
+      includeDefiningChildren = true;//this.constructor.useChildrenForReference;
     } else {
       let instructions = this.returnSerializeInstructions();
       if (instructions.skipChildren) {
-        includeOtherDefiningChildren = false;
+        includeDefiningChildren = false;
       }
       if (instructions.stateVariables) {
         stateVariablesToInclude = instructions.stateVariables;
@@ -479,14 +504,10 @@ export default class BaseComponent {
 
     let serializedChildren = [];
 
-    if (includePropertyChildren || includeOtherDefiningChildren) {
+    if (includeDefiningChildren) {
 
       for (let child of this.definingChildren) {
-        if ((includePropertyChildren && child.doenetAttributes.isPropertyChild) ||
-          (includeOtherDefiningChildren && !child.doenetAttributes.isPropertyChild)) {
-
-          serializedChildren.push(child.serialize(parameters));
-        }
+        serializedChildren.push(child.serialize(parameters));
       }
 
       if (this.serializedChildren !== undefined) {
@@ -504,11 +525,34 @@ export default class BaseComponent {
 
     }
 
+    let attributesObject = this.constructor.createAttributesObject({ flags: this.flags });
+
+    serializedComponent.attributes = {};
+
+    for (let attr in this.attributes) {
+      let attrVal = this.attributes[attr];
+      if (attrVal.componentType) {
+        // only copy attribute components if attributes object specifies
+        let attrInfo = attributesObject[attr];
+        if(attrInfo.copyComponentOnReference) {
+          serializedComponent.attributes[attr] = attrVal.serialize(parameters);
+        }
+      } else {
+        // always copy primitives
+        serializedComponent.attributes[attr] = attrVal;
+      }
+    }
+
 
     if (parameters.forCopy) {
       serializedComponent.originalName = this.componentName;
       serializedComponent.originalDoenetAttributes = deepClone(this.doenetAttributes);
       serializedComponent.doenetAttributes = deepClone(this.doenetAttributes);
+      for (let attr in this.attributes) {
+
+      }
+      serializedComponent.originalAttributes = deepClone(serializedComponent.attributes);
+
       delete serializedComponent.doenetAttributes.prescribedName;
       delete serializedComponent.doenetAttributes.assignNames;
 
@@ -566,6 +610,8 @@ export default class BaseComponent {
       serializedComponent.doenetAttributes !== undefined) {
       serializedCopy.originalDoenetAttributes = deepClone(serializedComponent.doenetAttributes);
       serializedCopy.doenetAttributes = deepClone(serializedComponent.doenetAttributes);
+      serializedCopy.originalAttributes = deepClone(serializedComponent.attributes);
+      serializedCopy.attributes = deepClone(serializedComponent.attributes);
       delete serializedCopy.doenetAttributes.prescribedName;
       delete serializedCopy.doenetAttributes.assignNames;
 
@@ -621,7 +667,7 @@ export default class BaseComponent {
     }
 
     let doenetAttributes = {};
-    if(this.doenetAttributes.isPropertyChild) {
+    if (this.doenetAttributes.isPropertyChild) {
       doenetAttributes.isPropertyChild = true;
     }
 

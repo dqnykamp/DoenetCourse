@@ -35,7 +35,7 @@ export default class Textinput extends Input {
     });
 
   }
-  static componentType = "textinput";
+  static componentType = "textInput";
 
   static variableForPlainMacro = "value";
 
@@ -43,26 +43,25 @@ export default class Textinput extends Input {
     return ["value"]
   };
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.prefill = { default: "" };
-    properties.size = { default: 10, forRenderer: true };
-    return properties;
-  }
-
-  static returnChildLogic(args) {
-    let childLogic = super.returnChildLogic(args);
-
-    childLogic.newLeaf({
-      name: "atMostOneBindValueTo",
-      componentType: "bindValueTo",
-      comparison: "atMost",
-      number: 1,
-      takePropertyChildren: true,
-      setAsBase: true,
-    })
-
-    return childLogic;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.prefill = {
+      createComponentOfType: "text",
+      createStateVariable: "prefill",
+      defaultValue: "",
+      public: true,
+    };
+    attributes.size = {
+      createComponentOfType: "number",
+      createStateVariable: "size",
+      defaultValue: 10,
+      forRenderer: true,
+      public: true,
+    };
+    attributes.bindValueTo = {
+      createComponentOfType: "text"
+    };
+    return attributes;
   }
 
 
@@ -75,11 +74,10 @@ export default class Textinput extends Input {
       componentType: "text",
       forRenderer: true,
       returnDependencies: () => ({
-        bindValueToChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneBindValueTo",
-          variableNames: ["text"],
-          requireChildLogicInitiallySatisfied: true,
+        bindValueTo: {
+          dependencyType: "attributeComponent",
+          attributeName: "bindValueTo",
+          variableNames: ["value"],
         },
         prefill: {
           dependencyType: "stateVariable",
@@ -87,24 +85,26 @@ export default class Textinput extends Input {
         },
       }),
       definition: function ({ dependencyValues }) {
-        if (dependencyValues.bindValueToChild.length === 0) {
+        if (!dependencyValues.bindValueTo) {
           return {
             useEssentialOrDefaultValue: {
-              value: { variablesToCheck: "value", defaultValue: dependencyValues.prefill }
+              value: {
+                variablesToCheck: "value",
+                defaultValue: dependencyValues.prefill
+              }
             }
           }
         }
-        return { newValues: { value: dependencyValues.bindValueToChild[0].stateValues.text } };
+        return { newValues: { value: dependencyValues.bindValueTo.stateValues.value } };
       },
       inverseDefinition: function ({ desiredStateVariableValues, dependencyValues }) {
 
-        if (dependencyValues.bindValueToChild.length === 1) {
+        if (dependencyValues.bindValueTo) {
           return {
             success: true,
             instructions: [{
-              setDependency: "bindValueToChild",
+              setDependency: "bindValueTo",
               desiredValue: desiredStateVariableValues.value,
-              childIndex: 0,
               variableIndex: 0,
             }]
           };

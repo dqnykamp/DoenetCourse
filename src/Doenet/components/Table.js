@@ -7,13 +7,13 @@ export default class Table extends BaseComponent {
   static componentType = "table";
   static rendererType = "table";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.width = { default: '400px' };
-    properties.minNumRows = { default: 1 };
-    properties.minNumColumns = { default: 1 };
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.width = { default: '400px' };
+    attributes.minNumRows = { default: 1 };
+    attributes.minNumColumns = { default: 1 };
 
-    properties.height = {
+    attributes.height = {
       forRenderer: true,
       dependentStateVariables: [{
         dependencyName: "numRows",
@@ -38,7 +38,7 @@ export default class Table extends BaseComponent {
       }
     }
 
-    return properties;
+    return attributes;
   }
 
   static returnChildLogic(args) {
@@ -67,7 +67,7 @@ export default class Table extends BaseComponent {
 
     let zeroOrMoreCellblocks = childLogic.newLeaf({
       name: "zeroOrMoreCellblocks",
-      componentType: 'cellblock',
+      componentType: 'cellBlock',
       comparison: 'atLeast',
       number: 0,
     });
@@ -189,7 +189,7 @@ export default class Table extends BaseComponent {
       },
       returnEntryDimensions: prefix => prefix === "range" ? 2 : 1,
       containsComponentNamesToCopy: true,
-      targetPropertiesToIgnoreOnCopy: ["rowNum", "colNum"],
+      targetAttributesToIgnoreOnCopy: ["rowNum", "colNum"],
       returnWrappingComponents(prefix) {
         if (prefix === "cell") {
           return [];
@@ -199,7 +199,7 @@ export default class Table extends BaseComponent {
           return [["column"]];
         } else {
           // range or entire array
-          return [["row"], ["cellblock"]]
+          return [["row"], ["cellBlock"]]
         }
       },
       getArrayKeysFromVarName({ arrayEntryPrefix, varEnding, arraySize }) {
@@ -618,11 +618,11 @@ function determineCellMapping({ cellRelatedChildren, rowOffset = 0, colOffset = 
       nextCellColIndexIfBothUndefined = nextCellColIndex;
     } else if (componentInfoObjects.isInheritedComponentType({
       inheritedComponentType: child.componentType,
-      baseComponentType: "cellblock"
+      baseComponentType: "cellBlock"
     })) {
-      let cellblock = child;
-      let rowIndex = normalizeIndex(cellblock.stateValues.rowNum);
-      let colIndex = normalizeIndex(cellblock.stateValues.colNum);
+      let cellBlock = child;
+      let rowIndex = normalizeIndex(cellBlock.stateValues.rowNum);
+      let colIndex = normalizeIndex(cellBlock.stateValues.colNum);
 
       if (rowIndex === undefined) {
         rowIndex = nextCellRowIndex;
@@ -641,7 +641,7 @@ function determineCellMapping({ cellRelatedChildren, rowOffset = 0, colOffset = 
       }
 
       let results = determineCellMapping({
-        cellRelatedChildren: cellblock.stateValues.prescribedCellsRowsColumnsBlocks,
+        cellRelatedChildren: cellBlock.stateValues.prescribedCellsRowsColumnsBlocks,
         rowOffset: rowIndex,
         colOffset: colIndex,
         cellNameToRowCol, cellNamesByRowCol, componentInfoObjects

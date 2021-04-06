@@ -14,27 +14,77 @@ export default class MathComponent extends InlineComponent {
   static useChildrenForReference = false;
   static get stateVariablesShadowedForReference() { return ["unnormalizedValue"] };
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.format = { default: "text", validValues: ["text", "latex"] };
-
-    // let simply==="" be full simplify so that can simplify <math simplify /> to get full simplification
-    // TODO: do we want to support simplify===""?
-    properties.simplify = {
-      default: "none",
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.format = {
+      createComponentOfType: "text",
+      createStateVariable: "format",
+      defaultValue: "text",
+      public: true,
+      validValues: ["text", "latex"]
+    };
+    // let simply==="" or simplify="true" be full simplify
+    attributes.simplify = {
+      createComponentOfType: "text",
+      createStateVariable: "simplify",
+      defaultValue: "none",
+      public: true,
       toLowerCase: true,
-      valueTransformations: { "": "full", "true": "full" },
+      valueTransformations: { "true": "full" },
       validValues: ["none", "full", "numbers", "numberspreserveorder"]
     };
-    properties.expand = { default: false };
-    properties.displayDigits = { default: 10 };
-    properties.displayDecimals = { default: null };
-    properties.displaySmallAsZero = { default: false };
-    properties.renderMode = { default: "inline", forRenderer: true };
-    properties.unordered = { default: false };
-    properties.createVectors = { default: false };
-    properties.createIntervals = { default: false };
-    return properties;
+    attributes.expand = {
+      createComponentOfType: "boolean",
+      createStateVariable: "expand",
+      defaultValue: false,
+      public: true,
+    };
+
+    attributes.displayDigits = {
+      createComponentOfType: "number",
+      createStateVariable: "displayDigits",
+      defaultValue: 10,
+      public: true,
+    };
+
+    attributes.displayDecimals = {
+      createComponentOfType: "number",
+      createStateVariable: "displayDecimals",
+      defaultValue: null,
+      public: true,
+    };
+    attributes.displaySmallAsZero = {
+      createComponentOfType: "boolean",
+      createStateVariable: "displaySmallAsZero",
+      defaultValue: false,
+      public: true,
+    };
+    attributes.renderMode = {
+      createComponentOfType: "text",
+      createStateVariable: "renderMode",
+      defaultValue: "inline",
+      public: true,
+      forRenderer: true,
+    };
+    attributes.unordered = {
+      createComponentOfType: "boolean",
+      createStateVariable: "unordered",
+      defaultValue: false,
+      public: true,
+    };
+    attributes.createVectors = {
+      createComponentOfType: "boolean",
+      createStateVariable: "createVectors",
+      defaultValue: false,
+      public: true,
+    };
+    attributes.createIntervals = {
+      createComponentOfType: "boolean",
+      createStateVariable: "createIntervals",
+      defaultValue: false,
+      public: true,
+    };
+    return attributes;
   }
 
   static returnChildLogic(args) {

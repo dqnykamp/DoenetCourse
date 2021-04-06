@@ -5,10 +5,16 @@ export class Ol extends BlockComponent {
   static componentType = "ol";
   static rendererType = "list";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.label = { default: undefined, forRenderer: true };
-    return properties;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.label = {
+      createComponentOfType: "text",
+      createStateVariable: "label",
+      defaultValue: undefined,
+      public: true,
+      forRenderer: true
+    };
+    return attributes;
   }
 
   static returnChildLogic(args) {

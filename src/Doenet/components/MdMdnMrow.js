@@ -227,25 +227,12 @@ export class Mdn extends Md {
 export class Mrow extends M {
   static componentType = "mrow";
 
-  static returnChildLogic(args) {
-    let childLogic = super.returnChildLogic(args);
-
-    let atMostOneNumbered = childLogic.newLeaf({
-      name: "atMostOneNumbered",
-      componentType: 'numbered',
-      comparison: 'atMost',
-      number: 1,
-      takePropertyChildren: true,
-    });
-
-    childLogic.newOperator({
-      name: "numberedAndRest",
-      operator: "and",
-      propositions: [childLogic.baseLogic, atMostOneNumbered],
-      setAsBase: true,
-    })
-
-    return childLogic;
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.number = {
+      createComponentOfType: "boolean",
+    };
+    return attributes;
   }
 
 
@@ -264,16 +251,16 @@ export class Mrow extends M {
           dependencyType: "parentStateVariable",
           variableName: "numbered"
         },
-        numberedChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneNumbered",
+        numberAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "number",
           variableNames: ["value"]
         }
       }),
       definition({ dependencyValues }) {
         let numbered;
-        if (dependencyValues.numberedChild.length === 1) {
-          numbered = dependencyValues.numberedChild[0].stateValues.value;
+        if (dependencyValues.numberAttr !== null) {
+          numbered = dependencyValues.numberAttr.stateValues.value;
         } else {
           numbered = dependencyValues.parentNumbered;
         }

@@ -13,18 +13,57 @@ export default class Slider extends BaseComponent {
 
   static variableForPlainMacro = "value";
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.width = { default: 300, forRenderer: true };
-    properties.height = { default: 50, forRenderer: true };
-    properties.initialNumber = { default: undefined };
-    properties.initialText = { default: undefined };
-    properties.label = { default: undefined, forRenderer: true };
-    properties.showControls = { default: false, forRenderer: true };
-    properties.showTicks = { default: true, forRenderer: true };
-    // properties.collaborateGroups = { default: undefined }; //???
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
+    attributes.width = {
+      createComponentOfType: "_componentSize",
+      createStateVariable: "width",
+      defaultValue: 300,
+      public: true,
+      forRenderer: true
+    };
+    attributes.height = {
+      createComponentOfType: "_componentSize",
+      createStateVariable: "height",
+      defaultValue: 300,
+      public: true,
+      forRenderer: true
+    };
+    attributes.initialNumber = {
+      createComponentOfType: "number",
+      createStateVariable: "initialNumber",
+      defaultValue: undefined,
+      public: true,
+    };
+    attributes.initialText = {
+      createComponentOfType: "text",
+      createStateVariable: "initialText",
+      defaultValue: undefined,
+      public: true,
+    };
+    attributes.label = {
+      createComponentOfType: "text",
+      createStateVariable: "label",
+      defaultValue: undefined,
+      public: true,
+      forRenderer: true
+    };
+    attributes.showControls = {
+      createComponentOfType: "boolean",
+      createStateVariable: "showControls",
+      defaultValue: false,
+      public: true,
+      forRenderer: true
+    };
+    attributes.showTicks = {
+      createComponentOfType: "boolean",
+      createStateVariable: "showTicks",
+      defaultValue: true,
+      public: true,
+      forRenderer: true
+    };
 
-    return properties;
+    return attributes;
   }
 
   static returnChildLogic(args) {

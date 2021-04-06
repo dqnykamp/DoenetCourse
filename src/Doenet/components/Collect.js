@@ -11,32 +11,47 @@ export default class Collect extends CompositeComponent {
   static assignNamesToReplacements = true;
 
   static acceptTname = true;
-  static acceptProp = true;
 
   static get stateVariablesShadowedForReference() { return ["targetComponent", "propName", "componentTypesToCollect"] };
 
-  static createPropertiesObject(args) {
-    let properties = super.createPropertiesObject(args);
-    properties.maximumNumber = { default: null };
-    properties.componentIndex = { default: null };
-    properties.propIndex = { default: null };
-    properties.targetPropertiesToIgnore = { default: ["hide"] };
-    return properties;
-  }
+  static createAttributesObject(args) {
+    let attributes = super.createAttributesObject(args);
 
-  static returnChildLogic(args) {
-    let childLogic = super.returnChildLogic(args);
+    attributes.prop = {
+      createPrimitiveOfType: "text",
+    };
+    attributes.maximumNumber = {
+      createComponentOfType: "number",
+      createStateVariable: "maximumNumber",
+      defaultValue: null,
+      public: true,
+    };
+    attributes.componentIndex = {
+      createComponentOfType: "number",
+      createStateVariable: "componentIndex",
+      defaultValue: null,
+      public: true,
+    };
 
-    childLogic.newLeaf({
-      name: "atMostOneComponentTypes",
-      componentType: "componentTypes",
-      comparison: "atMost",
-      number: 1,
-      takePropertyChildren: true,
-      setAsBase: true
-    })
+    attributes.propIndex = {
+      createComponentOfType: "number",
+      createStateVariable: "propIndex",
+      defaultValue: null,
+      public: true,
+    };
 
-    return childLogic;
+    attributes.targetattributesToIgnore = {
+      createComponentOfType: "textList",
+      createStateVariable: "targetattributesToIgnore",
+      defaultValue: ["hide"],
+      public: true,
+    };
+
+    attributes.componentTypes = {
+      createComponentOfType: "textList"
+    }
+
+    return attributes;
   }
 
 
@@ -103,8 +118,8 @@ export default class Collect extends CompositeComponent {
     stateVariableDefinitions.propName = {
       returnDependencies: () => ({
         propName: {
-          dependencyType: "doenetAttribute",
-          attributeName: "propName"
+          dependencyType: "attribute",
+          attributeName: "prop"
         },
       }),
       definition: function ({ dependencyValues }) {
@@ -115,17 +130,17 @@ export default class Collect extends CompositeComponent {
 
     stateVariableDefinitions.componentTypesToCollect = {
       returnDependencies: () => ({
-        componentTypesChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneComponentTypes",
+        componentTypesAttr: {
+          dependencyType: "attributeComponent",
+          attributeName: "componentTypes",
           variableNames: ["texts"],
         }
       }),
       definition: function ({ dependencyValues }) {
-        if (dependencyValues.componentTypesChild.length === 1) {
+        if (dependencyValues.componentTypesAttr !== null) {
           return {
             newValues: {
-              componentTypesToCollect: dependencyValues.componentTypesChild[0].stateValues.texts
+              componentTypesToCollect: dependencyValues.componentTypesAttr.stateValues.texts
             }
           }
         } else {
@@ -285,6 +300,8 @@ export default class Collect extends CompositeComponent {
 
     workspace.uniqueIdentifiersUsedByCollected = {};
 
+    let compositeAttributesObj = this.createAttributesObject({});
+
     for (let collectedNum = 0; collectedNum < component.stateValues.collectedComponents.length; collectedNum++) {
       if (component.stateValues.collectedComponents[collectedNum]) {
         let uniqueIdentifiersUsed = workspace.uniqueIdentifiersUsedByCollected[collectedNum] = [];
@@ -294,7 +311,8 @@ export default class Collect extends CompositeComponent {
           components,
           numReplacementsSoFar,
           uniqueIdentifiersUsed,
-          componentInfoObjects
+          componentInfoObjects,
+          compositeAttributesObj,
         });
 
         workspace.propVariablesCopiedByCollected[collectedNum] = results.propVariablesCopiedByReplacement;
@@ -318,7 +336,9 @@ export default class Collect extends CompositeComponent {
 
 
   static createReplacementForCollected({ component, components, collectedNum,
-    numReplacementsSoFar, uniqueIdentifiersUsed, componentInfoObjects }) {
+    numReplacementsSoFar, uniqueIdentifiersUsed, componentInfoObjects,
+    compositeAttributesObj,
+  }) {
 
     // console.log(`create replacement for collected ${collectedNum}, ${numReplacementsSoFar}`)
 
@@ -346,6 +366,8 @@ export default class Collect extends CompositeComponent {
         propName: component.stateValues.propName,
         // numReplacementsSoFar,
         uniqueIdentifiersUsed,
+        compositeAttributesObj,
+        componentInfoObjects,
       })
 
       serializedReplacements = results.serializedReplacements;
@@ -368,7 +390,7 @@ export default class Collect extends CompositeComponent {
       serializedComponents: serializedReplacements,
       parentName: component.componentName,
       indOffset: numReplacementsSoFar,
-      parentCreatesNewNamespace: component.doenetAttributes.newNamespace,
+      parentCreatesNewNamespace: component.attributes.newNamespace,
       componentInfoObjects,
     });
 
@@ -399,6 +421,8 @@ export default class Collect extends CompositeComponent {
     let maxCollectedLength = Math.max(component.stateValues.collectedComponents.length, workspace.numReplacementsByCollected.length);
 
     let recreateRemaining = false;
+
+    let compositeAttributesObj = this.createAttributesObject({});
 
     for (let collectedNum = 0; collectedNum < maxCollectedLength; collectedNum++) {
       let collected = component.stateValues.collectedComponents[collectedNum];
@@ -468,7 +492,8 @@ export default class Collect extends CompositeComponent {
           numReplacementsToDelete,
           components,
           uniqueIdentifiersUsed,
-          componentInfoObjects
+          componentInfoObjects,
+          compositeAttributesObj
         });
 
         numReplacementsSoFar += results.numReplacements;
@@ -522,7 +547,8 @@ export default class Collect extends CompositeComponent {
         components,
         numReplacementsSoFar,
         uniqueIdentifiersUsed,
-        componentInfoObjects
+        componentInfoObjects,
+        compositeAttributesObj,
       });
 
       let propVariablesCopiedByReplacement = results.propVariablesCopiedByReplacement;
@@ -599,12 +625,12 @@ export default class Collect extends CompositeComponent {
 
   static recreateReplacements({ component, collectedNum, numReplacementsSoFar,
     numReplacementsToDelete,
-    uniqueIdentifiersUsed, components, componentInfoObjects
+    uniqueIdentifiersUsed, components, componentInfoObjects, compositeAttributesObj
   }) {
 
     let results = this.createReplacementForCollected({
       component, collectedNum, components, numReplacementsSoFar, uniqueIdentifiersUsed,
-      componentInfoObjects
+      componentInfoObjects, compositeAttributesObj,
     });
 
     let propVariablesCopiedByReplacement = results.propVariablesCopiedByReplacement;

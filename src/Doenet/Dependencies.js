@@ -458,9 +458,9 @@ export class DependencyHandler {
 
       this.updateAncestorDependencies(component);
 
-      this.core.updateInProgress.parentsToUpdateDescendants.add(component.componentName);
+      this.core.updateInfo.parentsToUpdateDescendants.add(component.componentName);
       for (let ancestorName of ancestorsIncludingComposites(component, this.components)) {
-        this.core.updateInProgress.parentsToUpdateDescendants.add(ancestorName);
+        this.core.updateInfo.parentsToUpdateDescendants.add(ancestorName);
       }
     }
 
@@ -630,9 +630,9 @@ export class DependencyHandler {
     console.log(`update dependencies of ${stateVariable} of ${component.componentName}`)
 
     let updateWasInProgress = true;
-    if (!this.core.updateInProgress) {
+    if (!this.core.updateInfo) {
       updateWasInProgress = false;
-      this.core.updateInProgress = this.core.getNewUpdateObject();
+      this.core.updateInfo = this.core.getNewUpdateObject();
     }
 
     let stateVarObj = component.state[stateVariable];
@@ -694,7 +694,7 @@ export class DependencyHandler {
     }
 
 
-    // let haveUnresolved = Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0;
+    // let haveUnresolved = Object.keys(this.core.updateInfo.unresolvedDependencies).length > 0;
     let haveUnresolved = false;
 
     for (let varName of allStateVariablesAffected) {
@@ -706,13 +706,13 @@ export class DependencyHandler {
       stateVariables: allStateVariablesAffected,
     })
 
-    if(updateWasInProgress && Object.keys(resolveResult.varsUnresolved).length > 0) {
+    if (updateWasInProgress && Object.keys(resolveResult.varsUnresolved).length > 0) {
       console.error(`we are in the middle of update and dependency change led to unresolved result`)
       // TODO: is there anything we could do to check if we could resolve it now?
 
       // Undo the change and mark it to be changed later.
 
-      
+
 
     }
 
@@ -781,36 +781,36 @@ export class DependencyHandler {
     // until after the final mark stale step, above.
     // resolveAllDependencies tries to expand composites.)
     if (!updateWasInProgress) {
-      if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+      if (Object.keys(this.core.updateInfo.unresolvedDependencies).length > 0) {
         this.core.resolveAllDependencies();
       }
 
-      while (this.core.updateInProgress.compositesToUpdateReplacements.length > 0) {
+      while (this.core.updateInfo.compositesToUpdateReplacements.length > 0) {
 
         this.core.replacementChangesFromCompositesToUpdate()
 
-        if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+        if (Object.keys(this.core.updateInfo.unresolvedDependencies).length > 0) {
           this.core.resolveAllDependencies();
         }
 
       }
 
-      if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+      if (Object.keys(this.core.updateInfo.unresolvedDependencies).length > 0) {
         console.error("created new unresolved variables that we couldn't resolve while updating dependencies.  What do we do?");
-        console.log(this.core.updateInProgress.unresolvedDependencies);
-        console.log(this.core.updateInProgress.unresolvedByDependent);
-        let message = this.core.updateInProgress.unresolvedMessage;
+        console.log(this.core.updateInfo.unresolvedDependencies);
+        console.log(this.core.updateInfo.unresolvedByDependent);
+        let message = this.core.updateInfo.unresolvedMessage;
         throw Error(message);
       }
 
-      delete this.core.updateInProgress;
+      delete this.core.updateInfo;
 
     }
 
 
 
     console.log(`finished updating dependencies of ${stateVariable} of ${component.componentName}`)
-    console.log(this.core.updateInProgress)
+    console.log(this.core.updateInfo)
 
   }
 
@@ -818,21 +818,21 @@ export class DependencyHandler {
   updateDependenciesOld(prevUpdatesleft) {
 
     // first update descendant dependencies
-    if (this.core.updateInProgress.parentsToUpdateDescendants.size > 0) {
-      for (let parentName of this.core.updateInProgress.parentsToUpdateDescendants) {
+    if (this.core.updateInfo.parentsToUpdateDescendants.size > 0) {
+      for (let parentName of this.core.updateInfo.parentsToUpdateDescendants) {
         if (this._components[parentName]) {
           this.updateDescendantDependencies(this._components[parentName])
         }
       }
-      this.core.updateInProgress.parentsToUpdateDescendants = new Set();
+      this.core.updateInfo.parentsToUpdateDescendants = new Set();
     }
 
 
     let dependencyChanges = [];
 
-    if (this.core.updateInProgress.componentsToUpdateDependencies.length > 0) {
+    if (this.core.updateInfo.componentsToUpdateDependencies.length > 0) {
       console.log(`updating dependencies`)
-      console.log(this.core.updateInProgress.componentsToUpdateDependencies)
+      console.log(this.core.updateInfo.componentsToUpdateDependencies)
 
       let determineDependenciesStateVariablesToFreshen = [];
 
@@ -840,7 +840,7 @@ export class DependencyHandler {
 
       let newlyCreatedDependencies = [];
 
-      for (let updateObj of this.core.updateInProgress.componentsToUpdateDependencies) {
+      for (let updateObj of this.core.updateInfo.componentsToUpdateDependencies) {
 
         let component = this._components[updateObj.componentName];
         if (!component) {
@@ -950,9 +950,9 @@ export class DependencyHandler {
       // that we could not update above
       // We will recurse to update those dependencies, along with any
       // more dependencies that get marked for needing updates
-      this.core.updateInProgress.componentsToUpdateDependencies = dependenciesCouldNotUpdate;
+      this.core.updateInfo.componentsToUpdateDependencies = dependenciesCouldNotUpdate;
 
-      let haveUnresolved = Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0;
+      let haveUnresolved = Object.keys(this.core.updateInfo.unresolvedDependencies).length > 0;
       for (let updateObj of dependencyChanges) {
 
         let component = this._components[updateObj.componentName];
@@ -1034,34 +1034,34 @@ export class DependencyHandler {
     // until after the final mark stale step, above.
     // resolveAllDependencies tries to expand composites.)
 
-    if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+    if (Object.keys(this.core.updateInfo.unresolvedDependencies).length > 0) {
       this.core.resolveAllDependencies();
     }
 
-    while (this.core.updateInProgress.compositesToUpdateReplacements.length > 0) {
+    while (this.core.updateInfo.compositesToUpdateReplacements.length > 0) {
 
       this.core.replacementChangesFromCompositesToUpdate()
 
-      if (Object.keys(this.core.updateInProgress.unresolvedDependencies).length > 0) {
+      if (Object.keys(this.core.updateInfo.unresolvedDependencies).length > 0) {
         this.core.resolveAllDependencies();
       }
 
     }
 
-    if ((this.core.updateInProgress.componentsToUpdateDependencies.length > 0 && dependencyChanges.length > 0)
-      || this.core.updateInProgress.parentsToUpdateDescendants.size > 0
+    if ((this.core.updateInfo.componentsToUpdateDependencies.length > 0 && dependencyChanges.length > 0)
+      || this.core.updateInfo.parentsToUpdateDescendants.size > 0
     ) {
 
-      let nUpdatesLeft = this.core.updateInProgress.componentsToUpdateDependencies.length +
-        this.core.updateInProgress.parentsToUpdateDescendants.size;
+      let nUpdatesLeft = this.core.updateInfo.componentsToUpdateDependencies.length +
+        this.core.updateInfo.parentsToUpdateDescendants.size;
 
       // Avoid infinite loop by making sure number of updates left is decreasing
       if (!prevUpdatesleft || nUpdatesLeft < prevUpdatesleft) {
 
         // TODO: address case where have continued dependencies to update
         console.log(`since found more components to update dependencies, will try to recurse`)
-        console.log(this.core.updateInProgress.componentsToUpdateDependencies)
-        console.log(this.core.updateInProgress.parentsToUpdateDescendants)
+        console.log(this.core.updateInfo.componentsToUpdateDependencies)
+        console.log(this.core.updateInfo.parentsToUpdateDescendants)
 
         this.updateDependencies(nUpdatesLeft);
       }
@@ -2216,7 +2216,6 @@ class StateVariableComponentTypeDependency extends StateVariableDependency {
               // remove the downstream dependency 
               // and create static value
               this.staticValue = componentObj;
-              console.log(`since don't have variable component type, remove dep`)
               this.removeDownstreamComponent({ indexToRemove: 0, recordChange: false });
 
             }
@@ -2560,6 +2559,98 @@ class ComponentIdentityDependency extends Dependency {
 dependencyTypeArray.push(ComponentIdentityDependency);
 
 
+
+class AttributeComponentDependency extends Dependency {
+  static dependencyType = "attributeComponent";
+
+  setUpParameters() {
+
+    if (this.definition.parentName) {
+      this.parentName = this.definition.parentName
+      this.specifiedComponentName = this.parentName;
+    } else {
+      this.parentName = this.upstreamComponentName;
+    }
+
+    if (this.definition.variableNames) {
+      if (!Array.isArray(this.definition.variableNames)) {
+        throw Error(`Invalid state variable ${this.representativeStateVariable} of ${this.upstreamComponentName}, dependency ${this.dependencyName}: variableNames must be an array`)
+      }
+      this.originalDownstreamVariableNames = this.definition.variableNames;
+    } else {
+      this.originalDownstreamVariableNames = [];
+    }
+
+    this.attributeName = this.definition.attributeName;
+
+    this.returnSingleComponent = true;
+
+  }
+
+  determineDownstreamComponents() {
+
+    let parent = this.dependencyHandler._components[this.parentName];
+
+    if (!parent) {
+      if (this.specifiedComponentName) {
+        let dependenciesMissingComponent = this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[this.specifiedComponentName];
+        if (!dependenciesMissingComponent) {
+          dependenciesMissingComponent = this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[this.specifiedComponentName] = [];
+        }
+        if (!dependenciesMissingComponent.includes(this)) {
+          dependenciesMissingComponent.push(this);
+        }
+
+        this.unresolvedSpecifiedComponent = this.specifiedComponentName;
+
+      }
+
+      return {
+        downstreamComponentNames: [],
+        downstreamComponentTypes: []
+      }
+    }
+
+    delete this.unresolvedSpecifiedComponent;
+
+
+    let attrComp = parent.attributes[this.attributeName];
+
+    if (attrComp && attrComp.componentType) {
+      // have an attribute that is a component
+      return {
+        downstreamComponentNames: [attrComp.componentName],
+        downstreamComponentTypes: [attrComp.componentType],
+      }
+    } else {
+      return {
+        downstreamComponentNames: [],
+        downstreamComponentTypes: []
+      }
+    }
+
+  }
+
+
+  deleteFromUpdateTriggers() {
+
+    if (this.specifiedComponentName) {
+      let dependenciesMissingComponent = this.dependencyHandler.updateTriggers.dependenciesMissingComponentBySpecifiedName[this.specifiedComponentName];
+      if (dependenciesMissingComponent) {
+        let ind = dependenciesMissingComponent.indexOf(this);
+        if (ind !== -1) {
+          dependenciesMissingComponent.splice(ind, 1);
+        }
+      }
+    }
+
+  }
+
+}
+
+dependencyTypeArray.push(AttributeComponentDependency);
+
+
 class ChildDependency extends Dependency {
   static dependencyType = "child";
 
@@ -2736,11 +2827,11 @@ class DescendantDependency extends Dependency {
       this.originalDownstreamVariableNames = [];
     }
 
-    this.componentTypes = this.definition.componentTypes.map(x => x.toLowerCase());
+    this.componentTypes = this.definition.componentTypes;
     this.recurseToMatchedChildren = this.definition.recurseToMatchedChildren;
     this.useReplacementsForComposites = this.definition.useReplacementsForComposites;
     this.includeNonActiveChildren = this.definition.includeNonActiveChildren;
-    this.includePropertyChildren = this.definition.includePropertyChildren;
+    this.includeAttributeChildren = this.definition.includeAttributeChildren;
     this.skipOverAdapters = this.definition.skipOverAdapters;
     this.ignoreReplacementsOfMatchedComposites = this.definition.ignoreReplacementsOfMatchedComposites;
     this.definingChildrenFirst = this.definition.definingChildrenFirst;
@@ -2781,13 +2872,22 @@ class DescendantDependency extends Dependency {
       descendantDependencies.push(this);
     }
 
+    let descendantClasses = [];
+    for(let componentType of this.componentTypes) {
+      let dClass = this.dependencyHandler.componentInfoObjects.allComponentClasses[componentType];
+      if(!dClass) {
+        throw Error(`Invalid component type ${componentType} in dependency ${this.dependencyName} of ${this.representativeStateVariable} of ${this.upstreamComponentName}`)
+      }
+      descendantClasses.push(dClass);
+    }
+
     let descendants = gatherDescendants({
       ancestor,
-      descendantClasses: this.componentTypes.map(x => this.dependencyHandler.componentInfoObjects.allComponentClasses[x]),
+      descendantClasses,
       recurseToMatchedChildren: this.recurseToMatchedChildren,
       useReplacementsForComposites: this.useReplacementsForComposites,
       includeNonActiveChildren: this.includeNonActiveChildren,
-      includePropertyChildren: this.includePropertyChildren,
+      includeAttributeChildren: this.includeAttributeChildren,
       skipOverAdapters: this.skipOverAdapters,
       ignoreReplacementsOfMatchedComposites: this.ignoreReplacementsOfMatchedComposites,
       definingChildrenFirst: this.definingChildrenFirst,
@@ -3016,7 +3116,7 @@ class AncestorDependency extends Dependency {
     delete this.unresolvedSpecifiedComponent;
 
     if (this.definition.componentType) {
-      this.componentType = this.definition.componentType.toLowerCase();
+      this.componentType = this.definition.componentType;
     }
 
     let ancestorResults = this.findMatchingAncestor(descendant);
@@ -3767,6 +3867,51 @@ class DoenetAttributeDependency extends StateVariableDependency {
 }
 
 dependencyTypeArray.push(DoenetAttributeDependency);
+
+
+class AttributeDependency extends StateVariableDependency {
+  static dependencyType = "attribute";
+
+  setUpParameters() {
+
+    this.attributeName = this.definition.attributeName;
+
+    if (this.definition.componentName) {
+      this.componentName = this.definition.componentName;
+      this.specifiedComponentName = this.componentName;
+    } else {
+      this.componentName = this.upstreamComponentName;
+    }
+
+  }
+
+  getValue() {
+
+    let value = null;
+    let changes = {};
+
+    if (this.componentIdentitiesChanged) {
+      changes.componentIdentitiesChanged = true;
+      this.componentIdentitiesChanged = false;
+    }
+
+    if (this.downstreamComponentNames.length === 1) {
+      let depComponent = this.dependencyHandler.components[this.downstreamComponentNames[0]];
+
+      value = depComponent.attributes[this.attributeName];
+
+    }
+
+    if (!this.doNotProxy && value !== null && typeof value === 'object') {
+      value = new Proxy(value, readOnlyProxyHandler)
+    }
+
+    return { value, changes }
+  }
+
+}
+
+dependencyTypeArray.push(AttributeDependency);
 
 
 class SerializedChildrenDependency extends Dependency {
