@@ -3,6 +3,7 @@ import InlineComponent from './abstract/InlineComponent';
 export default class TextList extends InlineComponent {
   static componentType = "textList";
   static rendererType = "asList";
+  static renderChildren = true;
 
   // when another component has a attribute that is a textList,
   // use the texts state variable to populate that attribute
@@ -118,25 +119,36 @@ export default class TextList extends InlineComponent {
             dependencyType: "stateVariable",
             variableName: "maximumNumber",
           },
+          textListChildren: {
+            dependencyType: "child",
+            childLogicName: "atLeastZeroTextLists",
+            variableNames: ["nComponents"],
+          },
           textAndTextListChildren: {
             dependencyType: "child",
             childLogicName: "textAndTextLists",
-            variableNames: ["nComponents"],
-            variablesOptional: true,
-          }
+            skipComponentNames: true,
+          },
         }
       },
-      definition: function ({ dependencyValues }) {
+      definition: function ({ dependencyValues, componentInfoObjects }) {
 
         let nComponents = 0;
         let childIndexByArrayKey = [];
 
+        let nTextLists = 0;
         for (let [childInd, child] of dependencyValues.textAndTextListChildren.entries()) {
-          if (child.stateValues.nComponents !== undefined) {
-            for (let i = 0; i < child.stateValues.nComponents; i++) {
+          if (componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: child.componentType,
+            baseComponentType: "textList"
+          })) {
+            let textListChild = dependencyValues.textListChildren[nTextLists];
+            nTextLists++;
+            for (let i = 0; i < textListChild.stateValues.nComponents; i++) {
               childIndexByArrayKey[nComponents + i] = [childInd, i];
             }
-            nComponents += child.stateValues.nComponents;
+            nComponents += textListChild.stateValues.nComponents;
+
           } else {
             childIndexByArrayKey[nComponents] = [childInd, 0];
             nComponents += 1;
@@ -295,44 +307,44 @@ export default class TextList extends InlineComponent {
     }
 
 
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        textAndTextListChildren: {
-          dependencyType: "child",
-          childLogicName: "textAndTextLists",
-          variableNames: ["childrenToRender"],
-          variablesOptional: true,
-        },
-        maximumNumber: {
-          dependencyType: "stateVariable",
-          variableName: "maximumNumber",
-        },
-      }),
-      definition: function ({ dependencyValues, componentInfoObjects }) {
+    // stateVariableDefinitions.childrenToRender = {
+    //   returnDependencies: () => ({
+    //     textAndTextListChildren: {
+    //       dependencyType: "child",
+    //       childLogicName: "textAndTextLists",
+    //       variableNames: ["childrenToRender"],
+    //       variablesOptional: true,
+    //     },
+    //     maximumNumber: {
+    //       dependencyType: "stateVariable",
+    //       variableName: "maximumNumber",
+    //     },
+    //   }),
+    //   definition: function ({ dependencyValues, componentInfoObjects }) {
 
-        let childrenToRender = [];
+    //     let childrenToRender = [];
 
-        for (let child of dependencyValues.textAndTextListChildren) {
-          if (componentInfoObjects.isInheritedComponentType({
-            inheritedComponentType: child.componentType,
-            baseComponentType: "textList"
-          })) {
-            childrenToRender.push(...child.stateValues.childrenToRender);
-          } else {
-            childrenToRender.push(child.componentName);
-          }
-        }
+    //     for (let child of dependencyValues.textAndTextListChildren) {
+    //       if (componentInfoObjects.isInheritedComponentType({
+    //         inheritedComponentType: child.componentType,
+    //         baseComponentType: "textList"
+    //       })) {
+    //         childrenToRender.push(...child.stateValues.childrenToRender);
+    //       } else {
+    //         childrenToRender.push(child.componentName);
+    //       }
+    //     }
 
-        let maxNum = dependencyValues.maximumNumber;
-        if (maxNum !== null && childrenToRender.length > maxNum) {
-          maxNum = Math.max(0, Math.floor(maxNum));
-          childrenToRender = childrenToRender.slice(0, maxNum)
-        }
+    //     let maxNum = dependencyValues.maximumNumber;
+    //     if (maxNum !== null && childrenToRender.length > maxNum) {
+    //       maxNum = Math.max(0, Math.floor(maxNum));
+    //       childrenToRender = childrenToRender.slice(0, maxNum)
+    //     }
 
-        return { newValues: { childrenToRender } }
+    //     return { newValues: { childrenToRender } }
 
-      }
-    }
+    //   }
+    // }
 
     return stateVariableDefinitions;
   }

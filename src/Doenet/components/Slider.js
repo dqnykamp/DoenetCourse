@@ -143,9 +143,10 @@ export default class Slider extends BaseComponent {
     stateVariableDefinitions.items = {
       forRenderer: true,
       public: true,
-      isArray: true,
-      entryPrefixes: ["item"],
-      entireArrayAtOnce: true,
+      hasVariableComponentType: true,
+      // isArray: true,
+      // entryPrefixes: ["item"],
+      // entireArrayAtOnce: true,
       returnDependencies: () => ({
         textChildren: {
           dependencyType: "child",
@@ -162,7 +163,7 @@ export default class Slider extends BaseComponent {
           variableName: "sliderType"
         }
       }),
-      entireArrayDefinition: function ({ dependencyValues }) {
+      definition: function ({ dependencyValues }) {
 
         let items;
 
@@ -275,6 +276,7 @@ export default class Slider extends BaseComponent {
       forRenderer: true,
       public: true,
       essential: true,
+      hasVariableComponentType: true,
       returnDependencies: () => ({
         sliderType: {
           dependencyType: "stateVariable",

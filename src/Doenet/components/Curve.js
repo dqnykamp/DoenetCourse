@@ -416,14 +416,23 @@ export default class Curve extends GraphicalComponent {
           return [["point", { componentType: "mathList", isAttribute: "xs" }]];
         }
       },
-      getArrayKeysFromVarName({ arrayEntryPrefix, varEnding, arraySize }) {
+      getArrayKeysFromVarName({ arrayEntryPrefix, varEnding, arraySize, desiredEntrySize }) {
         if (arrayEntryPrefix === "throughPointX") {
           // throughPointX1_2 is the 2nd component of the first throughPoint
           let indices = varEnding.split('_').map(x => Number(x) - 1)
           if (indices.length === 2 && indices.every(
             (x, i) => Number.isInteger(x) && x >= 0
           )) {
-            if (arraySize) {
+            if (desiredEntrySize) {
+              // If give a desired entry size, then ignore array size.
+              // Since by default, we return just 1 entry,
+              // return that one entry as long as the size is positive in all dimensions
+              if (indices.every((x, i) => desiredEntrySize[i] > 0)) {
+                return [String(indices)];
+              } else {
+                return [];
+              }
+            } else if (arraySize) {
               if (indices.every((x, i) => x < arraySize[i])) {
                 return [String(indices)];
               } else {
@@ -440,10 +449,22 @@ export default class Curve extends GraphicalComponent {
           }
         } else {
           // throughPoint3 is all components of the third throughPoint
+          let throughPointInd = Number(varEnding) - 1;
+          if (desiredEntrySize) {
+            if (desiredEntrySize[0] > 0 && Number.isInteger(throughPointInd) && throughPointInd >= 0) {
+              // if have desired entry size, then assume specify size after wrapping components
+              // In this case, if the entry size is positive, will return all components
+              // for point while ignoring arraySize[0]
+
+              // array of "throughPointInd,i", where i=0, ..., arraySize[1]-1
+              return Array.from(Array(arraySize[1]), (_, i) => throughPointInd + "," + i)
+            } else {
+              return [];
+            }
+          }
           if (!arraySize) {
             return [];
           }
-          let throughPointInd = Number(varEnding) - 1;
           if (Number.isInteger(throughPointInd) && throughPointInd >= 0 && throughPointInd < arraySize[0]) {
             // array of "throughPointInd,i", where i=0, ..., arraySize[1]-1
             return Array.from(Array(arraySize[1]), (_, i) => throughPointInd + "," + i)
@@ -731,7 +752,7 @@ export default class Curve extends GraphicalComponent {
           return [["vector", { componentType: "mathList", isAttribute: "xs" }]];
         }
       },
-      getArrayKeysFromVarName({ arrayEntryPrefix, varEnding, arraySize }) {
+      getArrayKeysFromVarName({ arrayEntryPrefix, varEnding, arraySize, desiredEntrySize }) {
         if (arrayEntryPrefix === "controlVectorX") {
           // controlVectorX3_2_1 is the first component of the second control vector
           // controlling the third point
@@ -739,7 +760,16 @@ export default class Curve extends GraphicalComponent {
           if (indices.length === 3 && indices.every(
             (x, i) => Number.isInteger(x) && x >= 0
           )) {
-            if (arraySize) {
+            if (desiredEntrySize) {
+              // If give a desired entry size, then ignore array size.
+              // Since by default, we return just 1 entry,
+              // return that one entry as long as the size is positive in all dimensions
+              if (indices.every((x, i) => desiredEntrySize[i] > 0)) {
+                return [String(indices)];
+              } else {
+                return [];
+              }
+            } else if (arraySize) {
               if (indices.every((x, i) => x < arraySize[i])) {
                 return [String(indices)];
               } else {
@@ -757,10 +787,23 @@ export default class Curve extends GraphicalComponent {
         } else {
           // controlVector3_2 is all components of the second control vector
           // controling the third point
+          let indices = varEnding.split('_').map(x => Number(x) - 1)
+          if (desiredEntrySize) {
+            if (desiredEntrySize[0] > 0 && indices.length === 2 && indices.every(
+              (x, i) => Number.isInteger(x) && x >= 0
+            )) {
+              // if have desired entry size, then assume specify size after wrapping components
+              // In this case, if the entry size is positive, will return all components
+              // for vector while ignoring arraySize[0] and arraySize[1]
+              return Array.from(Array(arraySize[2]), (_, i) => String(indices) + "," + i)
+            } else {
+              return [];
+            }
+          }
+
           if (!arraySize) {
             return [];
           }
-          let indices = varEnding.split('_').map(x => Number(x) - 1)
           if (indices.length === 2 && indices.every(
             (x, i) => Number.isInteger(x) && x >= 0 && x < arraySize[i]
           )) {
@@ -1097,7 +1140,7 @@ export default class Curve extends GraphicalComponent {
           return [["point", { componentType: "mathList", isAttribute: "xs" }]];
         }
       },
-      getArrayKeysFromVarName({ arrayEntryPrefix, varEnding, arraySize }) {
+      getArrayKeysFromVarName({ arrayEntryPrefix, varEnding, arraySize, desiredEntrySize }) {
         if (arrayEntryPrefix === "controlPointX") {
           // controlPointX3_2_1 is the first component of the second control point
           // controlling the third point
@@ -1105,7 +1148,16 @@ export default class Curve extends GraphicalComponent {
           if (indices.length === 3 && indices.every(
             (x, i) => Number.isInteger(x) && x >= 0
           )) {
-            if (arraySize) {
+            if (desiredEntrySize) {
+              // If give a desired entry size, then ignore array size.
+              // Since by default, we return just 1 entry,
+              // return that one entry as long as the size is positive in all dimensions
+              if (indices.every((x, i) => desiredEntrySize[i] > 0)) {
+                return [String(indices)];
+              } else {
+                return [];
+              }
+            } else if (arraySize) {
               if (indices.every((x, i) => x < arraySize[i])) {
                 return [String(indices)];
               } else {
@@ -1123,10 +1175,21 @@ export default class Curve extends GraphicalComponent {
         } else {
           // controlPoint3_2 is all components of the second control point
           // controling the third point
-          if (!arraySize) {
+          let indices = varEnding.split('_').map(x => Number(x) - 1)
+          if (desiredEntrySize) {
+            if (desiredEntrySize[0] > 0 && indices.length === 2 && indices.every(
+              (x, i) => Number.isInteger(x) && x >= 0
+            )) {
+              // if have desired entry size, then assume specify size after wrapping components
+              // In this case, if the entry size is positive, will return all components
+              // for point while ignoring arraySize[0] and arraySize[1]
+              return Array.from(Array(arraySize[2]), (_, i) => String(indices) + "," + i)
+            } else {
+              return [];
+            }
+          } if (!arraySize) {
             return [];
           }
-          let indices = varEnding.split('_').map(x => Number(x) - 1)
           if (indices.length === 2 && indices.every(
             (x, i) => Number.isInteger(x) && x >= 0 && x < arraySize[i]
           )) {

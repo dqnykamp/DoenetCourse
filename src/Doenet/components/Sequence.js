@@ -19,6 +19,8 @@ export default class Sequence extends CompositeComponent {
     ]
   };
 
+  static stateVariableToEvaluateAfterReplacements = "readyToExpandWhenResolved";
+
   static createAttributesObject(args) {
     let attributes = super.createAttributesObject(args);
 
@@ -485,7 +487,7 @@ export default class Sequence extends CompositeComponent {
       },
     };
 
-    stateVariableDefinitions.readyToExpand = {
+    stateVariableDefinitions.readyToExpandWhenResolved = {
 
       returnDependencies: () => ({
         from: {
@@ -517,7 +519,7 @@ export default class Sequence extends CompositeComponent {
       definition: function () {
         // even with invalid sequence, still ready to expand
         // (it will just expand with zero replacements)
-        return { newValues: { readyToExpand: true } };
+        return { newValues: { readyToExpandWhenResolved: true } };
       },
     };
 
@@ -650,10 +652,6 @@ export default class Sequence extends CompositeComponent {
 
     // console.log(`create serialized replacements for ${component.componentName}`)
 
-    // evaluate readyToExpand so that it is marked fresh,
-    // as it being marked stale triggers replacement update
-    component.stateValues.readyToExpand;
-
     if (!component.stateValues.validSequence) {
       workspace.lastReplacementParameters = {
         from: null,
@@ -734,10 +732,6 @@ export default class Sequence extends CompositeComponent {
   static calculateReplacementChanges({ component, workspace, componentInfoObjects }) {
     // console.log(`calculate replacement changes for ${component.componentName}`);
 
-
-    // evaluate readyToExpand so that it is marked fresh,
-    // as it being marked stale triggers replacement update
-    component.stateValues.readyToExpand;
 
     let lrp = workspace.lastReplacementParameters;
 

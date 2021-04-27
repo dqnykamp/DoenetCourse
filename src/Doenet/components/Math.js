@@ -145,7 +145,6 @@ export default class MathComponent extends InlineComponent {
           dependencyType: "child",
           childLogicName: "atLeastZeroStrings",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true,
         },
       }),
       definition: calculateCodePre,
@@ -159,7 +158,6 @@ export default class MathComponent extends InlineComponent {
           dependencyType: "child",
           childLogicName: "stringsAndMaths",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true,
         },
         format: {
           dependencyType: "stateVariable",
@@ -188,13 +186,11 @@ export default class MathComponent extends InlineComponent {
           dependencyType: "child",
           childLogicName: "atLeastZeroMaths",
           variableNames: ["value", "canBeModified"],
-          requireChildLogicInitiallySatisfied: true,
         },
         stringChildren: {
           dependencyType: "child",
           childLogicName: "atLeastZeroStrings",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true,
         },
         expressionWithCodes: {
           dependencyType: "stateVariable",
@@ -455,7 +451,6 @@ export default class MathComponent extends InlineComponent {
           dependencyType: "child",
           childLogicName: "atLeastZeroMaths",
           variableNames: ["canBeModified"],
-          requireChildLogicInitiallySatisfied: true,
         },
         expressionWithCodes: {
           dependencyType: "stateVariable",
@@ -556,7 +551,7 @@ export default class MathComponent extends InlineComponent {
   //   return {};
   // }
 
-  adapters = ["number", "text"];
+  static adapters = ["number", "text"];
 
 }
 
@@ -1198,6 +1193,12 @@ function invertMath({ desiredStateVariableValues, dependencyValues, stateValues,
   // if there are any string children,
   // need to update expressionWithCodes with new values
   // and then update the string children based on it
+
+  // TODO: the only time a string child could change is if it
+  // entirely contains a component of a vector.
+  // Can we easily determine if this is the case and skip processing
+  // string children and expression with codes if it is not the case?
+
   if (stringChildren.length > 0) {
     let newExpressionWithCodes = stateValues.expressionWithCodes;
 
@@ -1243,7 +1244,7 @@ function invertMath({ desiredStateVariableValues, dependencyValues, stateValues,
 
 function finishInvertMathForStringChildren({ dependencyValues, stateValues }) {
 
-  console.log("finishInvertMathForStringChildren")
+  // console.log("finishInvertMathForStringChildren")
 
   let mathChildren = dependencyValues.mathChildren;
   let stringChildren = dependencyValues.stringChildren;
@@ -1278,6 +1279,8 @@ function finishInvertMathForStringChildren({ dependencyValues, stateValues }) {
 
   }
 
+
+  // TODO: see TODO about string children in invertMath
 
   let instructions = [];
 

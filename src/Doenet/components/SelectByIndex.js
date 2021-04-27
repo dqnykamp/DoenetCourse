@@ -12,6 +12,7 @@ export default class SelectByIndex extends CompositeComponent {
   static useChildrenForReference = false;
   static get stateVariablesShadowedForReference() { return ["selectedIndices"] };
 
+  static stateVariableToEvaluateAfterReplacements = "needsReplacementsUpdatedWhenStale";
 
   static createAttributesObject(args) {
     let attributes = super.createAttributesObject(args);
@@ -94,7 +95,7 @@ export default class SelectByIndex extends CompositeComponent {
       }
     }
 
-    stateVariableDefinitions.readyToExpand = {
+    stateVariableDefinitions.readyToExpandWhenResolved = {
       returnDependencies: () => ({
         selectedIndices: {
           dependencyType: "stateVariable",
@@ -103,7 +104,7 @@ export default class SelectByIndex extends CompositeComponent {
       }),
       definition() {
         return {
-          newValues: { readyToExpand: true }
+          newValues: { readyToExpandWhenResolved: true }
         }
       }
     }
@@ -129,9 +130,6 @@ export default class SelectByIndex extends CompositeComponent {
   static createSerializedReplacements({ component, components, workspace, componentInfoObjects }) {
 
     let replacements = this.getReplacements(component, components, componentInfoObjects);
-
-    // evaluate needsReplacementsUpdatedWhenStale to make it fresh
-    component.stateValues.needsReplacementsUpdatedWhenStale;
 
     workspace.previousSelectedIndices = [...component.stateValues.selectedIndices];
 
@@ -207,9 +205,6 @@ export default class SelectByIndex extends CompositeComponent {
     // console.log(`calculate replacement changes for selectByIndex`)
     // console.log([...workspace.previousSelectedIndices]);
     // console.log([...component.stateValues.selectedIndices])
-
-    // evaluate needsReplacementsUpdatedWhenStale to make it fresh
-    component.stateValues.needsReplacementsUpdatedWhenStale;
 
     if (workspace.previousSelectedIndices.length === component.stateValues.selectedIndices.length
       && component.stateValues.selectedIndices.every((v, i) => v === workspace.previousSelectedIndices[i])

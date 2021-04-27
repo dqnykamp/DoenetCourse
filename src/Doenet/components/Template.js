@@ -68,10 +68,10 @@ export default class Template extends CompositeComponent {
       }
     }
 
-    stateVariableDefinitions.readyToExpand = {
+    stateVariableDefinitions.readyToExpandWhenResolved = {
       returnDependencies: () => ({}),
       definition: function () {
-        return { newValues: { readyToExpand: true } };
+        return { newValues: { readyToExpandWhenResolved: true } };
       },
     };
 

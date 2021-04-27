@@ -2,6 +2,7 @@ import BlockComponent from './abstract/BlockComponent';
 
 export default class Div extends BlockComponent {
   static componentType = "div";
+  static renderChildren = true;
 
   static createAttributesObject(args) {
     let attributes = super.createAttributesObject(args);
@@ -26,48 +27,6 @@ export default class Div extends BlockComponent {
     });
 
     return childLogic;
-  }
-
-  static returnStateVariableDefinitions() {
-
-    let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        activeChildren: {
-          dependencyType: "child",
-          childLogicName: "anything"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-            { childrenToRender: dependencyValues.activeChildren.map(x => x.componentName) }
-        };
-      }
-    }
-
-    return stateVariableDefinitions;
-  }
-
-
-
-  initializeRenderer() {
-    if (this.renderer === undefined) {
-      this.renderer = new this.availableRenderers.div({
-        key: this.componentName,
-        width: this.stateValues.width,
-      });
-    } else {
-      this.updateRenderer();
-    }
-  }
-
-  updateRenderer() {
-
-    this.renderer.updateDiv({
-      width: this.stateValues.width,
-    });
   }
 
 

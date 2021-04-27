@@ -157,7 +157,12 @@ export default class BaseComponent {
   }
 
   get childLogicSatisfied() {
-    return this.childLogic.logicResult.success;
+    return this.childLogic.logicResult && this.childLogic.logicResult.success 
+    && !this.placeholderActiveChildrenIndices;
+  }
+
+  get childLogicSatisfiedWithPlaceholders() {
+    return this.childLogic.logicResult && this.childLogic.logicResult.success;
   }
 
   static createAttributesObject({ flags = {} } = {}) {
@@ -214,11 +219,10 @@ export default class BaseComponent {
     return [];
   }
 
-  static returnChildLogic({ standardComponentClasses, allComponentClasses, components }) {
+  static returnChildLogic({ componentInfoObjects, components }) {
     let childLogic = new ChildLogicClass({
       parentComponentType: this.componentType,
-      allComponentClasses,
-      standardComponentClasses,
+      componentInfoObjects,
       components,
     });
 
@@ -228,11 +232,6 @@ export default class BaseComponent {
   static returnStateVariableDefinitions() {
 
     let stateVariableDefinitions = {};
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({}),
-      definition: () => ({ newValues: { childrenToRender: [] } })
-    }
 
     stateVariableDefinitions.hidden = {
       public: true,
@@ -327,8 +326,9 @@ export default class BaseComponent {
       "returnArraySizeDependencies", "returnArraySize",
       "returnArrayDependenciesByKey", "arrayDefinitionByKey",
       "inverseArrayDefinitionByKey",
-      "basedOnArrayKeyStateVariables", "entireArrayAtOnce",
+      "basedOnArrayKeyStateVariables",
       "markStale", "getPreviousDependencyValuesForMarkStale",
+      "determineDependenciesImmediately"
     ];
 
     let stateVariableDefinitions = {};
@@ -534,7 +534,7 @@ export default class BaseComponent {
       if (attrVal.componentType) {
         // only copy attribute components if attributes object specifies
         let attrInfo = attributesObject[attr];
-        if(attrInfo.copyComponentOnReference) {
+        if (attrInfo.copyComponentOnReference) {
           serializedComponent.attributes[attr] = attrVal.serialize(parameters);
         }
       } else {
@@ -626,19 +626,19 @@ export default class BaseComponent {
 
   }
 
-  adapters = [];
+  static adapters = [];
 
-  get nAdapters() {
+  static get nAdapters() {
     return this.adapters.length;
   }
 
   getAdapter(ind) {
 
-    if (ind >= this.adapters.length) {
+    if (ind >= this.constructor.adapters.length) {
       return;
     }
 
-    let adapter = this.adapters[ind];
+    let adapter = this.constructor.adapters[ind];
 
     let adapterStateVariable;
     let adapterComponentType;
@@ -666,14 +666,8 @@ export default class BaseComponent {
       adapterComponentType = stateFromAdapter.componentType;
     }
 
-    let doenetAttributes = {};
-    if (this.doenetAttributes.isPropertyChild) {
-      doenetAttributes.isPropertyChild = true;
-    }
-
     return {
       componentType: adapterComponentType,
-      doenetAttributes,
       downstreamDependencies: {
         [this.componentName]: [{
           dependencyType: "adapter",
@@ -685,6 +679,50 @@ export default class BaseComponent {
         }]
       }
     }
+
+  }
+
+  static getAdapterComponentType(ind, publicStateVariableInfo) {
+
+    if (ind >= this.adapters.length) {
+      return;
+    }
+
+    let adapter = this.adapters[ind];
+
+    let adapterStateVariable;
+    let adapterComponentType;
+
+    // adapter could be either 
+    // - a string specifying a public state variable, or
+    // - an object specify a public state variable and, optionally
+    //   a component type and a state variable for the new component
+    if (typeof adapter === "string") {
+      adapterStateVariable = adapter;
+    } else {
+      adapterStateVariable = adapter.stateVariable;
+      adapterComponentType = adapter.componentType;
+    }
+
+    if (adapterComponentType === undefined) {
+      // if didn't override componentType, use componentType from state variable
+
+      let stateVarInfo = publicStateVariableInfo[this.componentType]
+
+      let varInfo = stateVarInfo.stateVariableDescriptions[adapterStateVariable];
+      if (!varInfo) {
+        throw Error("Invalid adapter " + adapterStateVariable + " in "
+          + this.componentType);
+      }
+
+      adapterComponentType = varInfo.componentType;
+
+      if(!adapterComponentType) {
+        throw Error(`Couldn't get adapter component type for ${adapterStateVariable} of componentType ${this.componentType}`)
+      }
+    }
+
+    return adapterComponentType;
 
   }
 

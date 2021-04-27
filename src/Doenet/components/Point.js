@@ -70,7 +70,7 @@ export default class Point extends GraphicalComponent {
           success: true,
           newAttributes: {
             x: {
-              componentType: "math", 
+              componentType: "math",
               children: matchedChildren
             }
           }
@@ -80,13 +80,13 @@ export default class Point extends GraphicalComponent {
 
       if (result.success) {
         // wrap xs around the x children
-        result.newAttributes =  {
+        result.newAttributes = {
           xs: {
-            componentType: "mathList", 
+            componentType: "mathList",
             children: result.newChildren
           }
         },
-        delete result.newChildren;
+          delete result.newChildren;
       }
 
       return result;
@@ -492,7 +492,6 @@ export default class Point extends GraphicalComponent {
         // console.log(desiredStateVariableValues)
         // console.log(globalDependencyValues);
         // console.log(dependencyValuesByKey);
-        // console.log(stateValues);
 
         let instructions = [];
         let basedOnCoords = false;
@@ -939,7 +938,7 @@ export default class Point extends GraphicalComponent {
   }
 
 
-  adapters = ["coords"];
+  static adapters = ["coords"];
 
   movePoint({ x, y, z, transient }) {
     let components = {};

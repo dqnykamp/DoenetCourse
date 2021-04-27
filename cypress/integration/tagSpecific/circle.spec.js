@@ -5805,7 +5805,7 @@ describe('Circle Tag Tests', function () {
         components['/_circle1'].moveCircle({ center: newCenter });
 
         let r = Math.abs(t1x - t2x);
-        expect(components['/_circle1'].stateValues.radius.tree).eq(r);
+        expect(components['/_circle1'].stateValues.radius.tree).closeTo(r, 1E-12);
 
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][0]).closeTo(t1x, 1E-12);
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][1]).closeTo(t1y, 1E-12);
@@ -5837,7 +5837,7 @@ describe('Circle Tag Tests', function () {
         centerPoint.movePoint({ x: newCenter[0], y: newCenter[1] });
 
         let r = Math.abs(t1x - t2x);
-        expect(components['/_circle1'].stateValues.radius.tree).eq(r);
+        expect(components['/_circle1'].stateValues.radius.tree).closeTo(r, 1E-12);
 
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][0]).closeTo(t1x, 1E-12);
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][1]).closeTo(t1y, 1E-12);
@@ -5864,7 +5864,7 @@ describe('Circle Tag Tests', function () {
         throughPoint1.movePoint({ x: t1x, y: t1y });
 
         let r = Math.abs(t1x - t2x);
-        expect(components['/_circle1'].stateValues.radius.tree).eq(r);
+        expect(components['/_circle1'].stateValues.radius.tree).closeTo(r, 1E-12);
 
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][0]).closeTo(t1x, 1E-12);
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][1]).closeTo(t1y, 1E-12);
@@ -5890,7 +5890,7 @@ describe('Circle Tag Tests', function () {
         throughPoint2.movePoint({ x: t2x, y: t2y });
 
         let r = Math.abs(t1x - t2x);
-        expect(components['/_circle1'].stateValues.radius.tree).eq(r);
+        expect(components['/_circle1'].stateValues.radius.tree).closeTo(r, 1E-12);
 
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][0]).closeTo(t1x, 1E-12);
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][1]).closeTo(t1y, 1E-12);
@@ -5918,7 +5918,7 @@ describe('Circle Tag Tests', function () {
         throughPoint2.movePoint({ x: t2x, y: t2y });
 
         let r = Math.abs(t1x - t2x);
-        expect(components['/_circle1'].stateValues.radius.tree).eq(r);
+        expect(components['/_circle1'].stateValues.radius.tree).closeTo(r, 1E-12);
 
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][0]).closeTo(t1x, 1E-12);
         expect(components['/_circle1'].stateValues.numericalThroughPoints[0][1]).closeTo(t1y, 1E-12);

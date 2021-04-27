@@ -16,12 +16,23 @@ export default class Section extends DoenetRenderer {
 
     let id = this.componentName + "_title";
 
-    let childrenToRender = this.children;
+    let childrenToRender = [...this.children];
+
+    // BADBADBAD: need to redo how getting the title child
+    // getting it using the internal guts of componentInstructions
+    // is just asking for trouble
 
     let title;
-    if (this.doenetSvData.titleDefinedByChildren) {
-      title = this.children[0]
-      childrenToRender = this.children.slice(1); // remove title
+    if (this.doenetSvData.titleChildName) {
+      let titleChildInd;
+      for (let [ind, child] of this.children.entries()) {
+        if (child.props.componentInstructions.componentName === this.doenetSvData.titleChildName) {
+          titleChildInd = ind;
+          break;
+        }
+      }
+      title = this.children[titleChildInd];
+      childrenToRender.splice(titleChildInd, 1); // remove title
     } else {
       title = this.doenetSvData.title;
     }

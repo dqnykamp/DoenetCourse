@@ -1745,7 +1745,7 @@ export default class Function extends InlineComponent {
 
   }
 
-  adapters = [{
+  static adapters = [{
     stateVariable: "numericalf",
     componentType: "curve"
   },

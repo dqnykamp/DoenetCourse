@@ -1507,9 +1507,9 @@ describe('Line Tag Tests', function () {
         doenetML: `
   <text>a</text>
   <graph>
-  <line through="$(_line2{prop='point2'}) (1,0)" />
-  <line through="$(_line3{prop='point2'}) (3,2)" />
-  <line through="$(_line1{prop='point2'}) (-1,4)" />
+  <line through="$(_line2{prop='point2' componentType='point'}) (1,0)" />
+  <line through="$(_line3{prop='point2' componentType='point'}) (3,2)" />
+  <line through="$(_line1{prop='point2' componentType='point'}) (-1,4)" />
   </graph>
   `}, "*");
     });

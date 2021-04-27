@@ -9,6 +9,7 @@ export default class Solution extends BlockComponent {
 
   }
   static componentType = "solution";
+  static renderChildren = true;
 
 
   static createAttributesObject(args) {
@@ -194,21 +195,6 @@ export default class Solution extends BlockComponent {
             value: desiredStateVariableValues.message
           }]
         }
-      }
-    }
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        children: {
-          dependencyType: "child",
-          childLogicName: "inlineAndBlock"
-        },
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-            { childrenToRender: dependencyValues.children.map(x => x.componentName) }
-        };
       }
     }
 

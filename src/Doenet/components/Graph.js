@@ -2,6 +2,7 @@ import BlockComponent from './abstract/BlockComponent';
 
 export default class Graph extends BlockComponent {
   static componentType = "graph";
+  static renderChildren = true;
 
   static createAttributesObject(args) {
     let attributes = super.createAttributesObject(args);
@@ -167,21 +168,6 @@ export default class Graph extends BlockComponent {
       definition: ({ dependencyValues }) => ({
         newValues: { numericalHeight: parseInt(dependencyValues.height) }
       })
-    }
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        activeChildren: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroGraphical"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-            { childrenToRender: dependencyValues.activeChildren.map(x => x.componentName) }
-        };
-      }
     }
 
     return stateVariableDefinitions;

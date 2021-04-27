@@ -334,32 +334,21 @@ export function addDocumentIfItsMissing(serializedComponents) {
   }
 }
 
-export function correctComponentTypeCapitalization(serializedComponents, standardComponentClasses) {
+export function correctComponentTypeCapitalization(serializedComponents, componentTypeLowerCaseMapping) {
 
-  let componentTypeLowerCaseMapping = {};
+  for (let component of serializedComponents) {
+    let componentTypeFixed = componentTypeLowerCaseMapping[component.componentType.toLowerCase()];
 
-  for (let componentType in standardComponentClasses) {
-    componentTypeLowerCaseMapping[componentType.toLowerCase()] = componentType;
-  }
-
-  correctComponentTypeCapitalizationSub(serializedComponents);
-
-  function correctComponentTypeCapitalizationSub(serializedComponents) {
-
-    for (let component of serializedComponents) {
-      let componentTypeFixed = componentTypeLowerCaseMapping[component.componentType.toLowerCase()];
-
-      if (componentTypeFixed) {
-        component.componentType = componentTypeFixed;
-      } else {
-        throw Error(`Invalid component type: ${component.componentType}`);
-      }
-
-      if (component.children) {
-        correctComponentTypeCapitalizationSub(component.children);
-      }
-
+    if (componentTypeFixed) {
+      component.componentType = componentTypeFixed;
+    } else {
+      throw Error(`Invalid component type: ${component.componentType}`);
     }
+
+    if (component.children) {
+      correctComponentTypeCapitalization(component.children, componentTypeLowerCaseMapping);
+    }
+
   }
 
 }

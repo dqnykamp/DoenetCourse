@@ -172,8 +172,8 @@ export default class SelectFromSequence extends Sequence {
       }
     }
 
-    let originalReturnDependencies = stateVariableDefinitions.readyToExpand.returnDependencies;
-    stateVariableDefinitions.readyToExpand.returnDependencies = function () {
+    let originalReturnDependencies = stateVariableDefinitions.readyToExpandWhenResolved.returnDependencies;
+    stateVariableDefinitions.readyToExpandWhenResolved.returnDependencies = function () {
       let deps = originalReturnDependencies();
 
       deps.selectedValues = {

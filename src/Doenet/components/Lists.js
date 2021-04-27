@@ -4,6 +4,7 @@ import BaseComponent from './abstract/BaseComponent';
 export class Ol extends BlockComponent {
   static componentType = "ol";
   static rendererType = "list";
+  static renderChildren = true;
 
   static createAttributesObject(args) {
     let attributes = super.createAttributesObject(args);
@@ -41,23 +42,6 @@ export class Ol extends BlockComponent {
       definition: () => ({ newValues: { numbered: true } })
     }
 
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        liChildren: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroLis"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues: {
-            childrenToRender: dependencyValues.liChildren.map(x => x.componentName)
-          }
-        }
-      }
-    }
-
-
     return stateVariableDefinitions;
 
   }
@@ -89,6 +73,7 @@ export class Ul extends Ol {
 export class Li extends BaseComponent {
   static componentType = "li";
   static rendererType = "list";
+  static renderChildren = true;
 
   static includeBlankStringChildren = true;
 
@@ -129,23 +114,6 @@ export class Li extends BaseComponent {
       returnDependencies: () => ({}),
       definition: () => ({ newValues: { item: true } })
     }
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        children: {
-          dependencyType: "child",
-          childLogicName: "inlineOrBlock"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues: {
-            childrenToRender: dependencyValues.children.map(x => x.componentName)
-          }
-        }
-      }
-    }
-
 
     return stateVariableDefinitions;
 

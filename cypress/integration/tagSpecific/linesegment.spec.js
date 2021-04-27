@@ -1566,9 +1566,9 @@ describe('LineSegment Tag Tests', function () {
         doenetML: `
   <text>a</text>
   <graph>
-  <linesegment endpoints="$(_linesegment2{prop='endpoint2'}) (1,0)" />
-  <linesegment endpoints="$(_linesegment3{prop='endpoint2'}) (3,2)" />
-  <linesegment endpoints="$(_linesegment1{prop='endpoint2'}) (-1,4)" />
+  <linesegment endpoints="$(_linesegment2{prop='endpoint2' componentType='point'}) (1,0)" />
+  <linesegment endpoints="$(_linesegment3{prop='endpoint2' componentType='point'}) (3,2)" />
+  <linesegment endpoints="$(_linesegment1{prop='endpoint2' componentType='point'}) (-1,4)" />
   </graph>
   `}, "*");
     });

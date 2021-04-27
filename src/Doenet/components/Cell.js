@@ -245,6 +245,6 @@ export default class Cell extends BaseComponent {
     return stateVariableDefinitions;
   }
 
-  adapters = ["text", "math", "number"];
+  static adapters = ["text", "math", "number"];
 
 }

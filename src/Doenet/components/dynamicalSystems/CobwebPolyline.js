@@ -607,11 +607,6 @@ export default class CobwebPolyline extends Polyline {
       }
     }
 
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({}),
-      definition: () => ({ newValues: { childrenToRender: [] } })
-    }
-
     return stateVariableDefinitions;
   }
 

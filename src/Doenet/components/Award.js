@@ -297,12 +297,7 @@ export default class Award extends BaseComponent {
     }
 
 
-    stateVariableDefinitions.feedbacks = {
-      public: true,
-      componentType: "feedback",
-      isArray: true,
-      entireArrayAtOnce: true,
-      entryPrefixes: ['feedback'],
+    stateVariableDefinitions.allFeedbacks = {
       returnDependencies: () => ({
         feedbackText: {
           dependencyType: "stateVariable",
@@ -321,32 +316,90 @@ export default class Award extends BaseComponent {
           variableName: "awarded"
         }
       }),
-      entireArrayDefinition: function ({ dependencyValues }) {
+      definition: function ({ dependencyValues }) {
 
         if (!dependencyValues.awarded) {
-          return { newValues: { feedbacks: [] } }
+          return { newValues: { allFeedbacks: [] } }
         }
 
-        let feedbacks = [];
+        let allFeedbacks = [];
 
         for (let feedbackCode of dependencyValues.feedbackCodes) {
           let code = feedbackCode.toLowerCase();
           for (let feedbackDefinition of dependencyValues.feedbackDefinitions) {
             if (code === feedbackDefinition.feedbackCode) {
-              feedbacks.push(feedbackDefinition.feedbackText);
+              allFeedbacks.push(feedbackDefinition.feedbackText);
               break;  // just take first match
             }
           }
         }
 
         if (dependencyValues.feedbackText !== null) {
-          feedbacks.push(dependencyValues.feedbackText);
+          allFeedbacks.push(dependencyValues.feedbackText);
         }
 
-        return { newValues: { feedbacks } }
+        return { newValues: { allFeedbacks } }
 
       }
     };
+
+    stateVariableDefinitions.numberFeedbacks = {
+      public: true,
+      componentType: "number",
+      returnDependencies: () => ({
+        allFeedbacks: {
+          dependencyType: "stateVariable",
+          variableName: "allFeedbacks"
+        }
+      }),
+      definition({ dependencyValues }) {
+        return {
+          newValues: { numberFeedbacks: dependencyValues.allFeedbacks.length },
+          checkForActualChange: { numberFeedbacks: true }
+        }
+      }
+    }
+
+    stateVariableDefinitions.feedbacks = {
+      public: true,
+      componentType: "feedback",
+      isArray: true,
+      entryPrefixes: ["feedback"],
+      returnArraySizeDependencies: () => ({
+        numberFeedbacks: {
+          dependencyType: "stateVariable",
+          variableName: "numberFeedbacks",
+        },
+      }),
+      returnArraySize({ dependencyValues }) {
+        return [dependencyValues.numberFeedbacks];
+      },
+      returnArrayDependenciesByKey() {
+        let globalDependencies = {
+          allFeedbacks: {
+            dependencyType: "stateVariable",
+            variableName: "allFeedbacks"
+          }
+        }
+
+        return { globalDependencies }
+
+      },
+      arrayDefinitionByKey({ globalDependencyValues }) {
+        // console.log(`array definition by key of function feedbacks`)
+        // console.log(globalDependencyValues)
+
+        let feedbacks = {};
+
+        for (let arrayKey = 0; arrayKey < globalDependencyValues.__array_size; arrayKey++) {
+          feedbacks[arrayKey] = globalDependencyValues.allFeedbacks[arrayKey];
+        }
+
+        return { newValues: { feedbacks } }
+      }
+
+    }
+
 
     stateVariableDefinitions.feedback = {
       isAlias: true,
@@ -357,7 +410,7 @@ export default class Award extends BaseComponent {
   }
 
 
-  adapters = ["awarded"];
+  static adapters = ["awarded"];
 
 
   static standardizedFeedback = {

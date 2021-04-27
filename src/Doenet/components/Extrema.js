@@ -237,7 +237,7 @@ export class Extremum extends BaseComponent {
 
 export class Extrema extends BaseComponent {
   static componentType = "extrema";
-  static rendererType = "container";
+  static rendererType = undefined;
   static componentTypeSingular = "extremum"
   static get componentTypeCapitalized() {
     return this.componentType.charAt(0).toUpperCase() + this.componentType.slice(1);
@@ -520,21 +520,6 @@ export class Extrema extends BaseComponent {
         }
 
       }
-    }
-
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        extremumChildren: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroExtrema",
-        }
-      }),
-      definition: ({ dependencyValues }) => ({
-        newValues: {
-          childrenToRender: dependencyValues.extremumChildren.map(x => x.componentName)
-        }
-      })
     }
 
     return stateVariableDefinitions;

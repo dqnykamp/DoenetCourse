@@ -24,6 +24,8 @@ export default class Answer extends InlineComponent {
   }
   static componentType = "answer";
 
+  static renderChildren = true;
+
   static variableForPlainMacro = "submittedResponses";
 
 
@@ -156,9 +158,6 @@ export default class Answer extends InlineComponent {
     let replaceFromOneString = function ({ matchedChildren, componentAttributes }) {
       // answer where only child is a string (other than activeChildren from attributes)
       // wrap string with award and math/text
-
-      console.log(`componentAttributes`)
-      console.log(componentAttributes)
 
 
       let type;
@@ -443,9 +442,7 @@ export default class Answer extends InlineComponent {
               componentTypes: ["_base"],
               variableNames: ["isResponse", "nValues"],
               variablesOptional: true,
-              requireChildLogicInitiallySatisfied: true,
               recurseToMatchedChildren: true,
-              includeAttributeChildren: true,
               includeNonActiveChildren: true,
               skipOverAdapters: true,
             }
@@ -562,7 +559,6 @@ export default class Answer extends InlineComponent {
               componentTypes: ["_base"],
               variableNames: ["isResponse", "value", "values", "componentType"],
               variablesOptional: true,
-              requireChildLogicInitiallySatisfied: true,
               recurseToMatchedChildren: true,
               includeAttributeChildren: true,
               includeNonActiveChildren: true,
@@ -1115,12 +1111,7 @@ export default class Answer extends InlineComponent {
       }
     }
 
-    stateVariableDefinitions.feedbacks = {
-      public: true,
-      componentType: "feedback",
-      isArray: true,
-      entireArrayAtOnce: true,
-      entryPrefixes: ["feedback"],
+    stateVariableDefinitions.allFeedbacks = {
       returnDependencies: () => ({
         awardChildren: {
           dependencyType: "child",
@@ -1134,7 +1125,7 @@ export default class Answer extends InlineComponent {
           variablesOptional: true,
         },
       }),
-      entireArrayDefinition: function ({ dependencyValues }) {
+      definition: function ({ dependencyValues }) {
         let feedbacks = [];
 
         for (let award of dependencyValues.awardChildren) {
@@ -1147,29 +1138,69 @@ export default class Answer extends InlineComponent {
         }
         return {
           newValues: {
-            feedbacks
+            allFeedbacks: feedbacks
           }
         }
       }
     }
 
-    stateVariableDefinitions.childrenToRender = {
+    stateVariableDefinitions.numberFeedbacks = {
+      public: true,
+      componentType: "number",
       returnDependencies: () => ({
-        inputChild: {
+        allFeedbacks: {
           dependencyType: "stateVariable",
-          variableName: "inputChild",
-        },
-      }),
-      definition: function ({ dependencyValues }) {
-        let childrenToRender = [];
-        if (dependencyValues.inputChild) {
-          childrenToRender.push(dependencyValues.inputChild.componentName)
+          variableName: "allFeedbacks"
         }
+      }),
+      definition({ dependencyValues }) {
         return {
-          newValues: { childrenToRender }
+          newValues: { numberFeedbacks: dependencyValues.allFeedbacks.length },
+          checkForActualChange: { numberFeedbacks: true }
         }
       }
     }
+
+    stateVariableDefinitions.feedbacks = {
+      public: true,
+      componentType: "feedback",
+      isArray: true,
+      entryPrefixes: ["feedback"],
+      returnArraySizeDependencies: () => ({
+        numberFeedbacks: {
+          dependencyType: "stateVariable",
+          variableName: "numberFeedbacks",
+        },
+      }),
+      returnArraySize({ dependencyValues }) {
+        return [dependencyValues.numberFeedbacks];
+      },
+      returnArrayDependenciesByKey() {
+        let globalDependencies = {
+          allFeedbacks: {
+            dependencyType: "stateVariable",
+            variableName: "allFeedbacks"
+          }
+        }
+
+        return { globalDependencies }
+
+      },
+      arrayDefinitionByKey({ globalDependencyValues }) {
+        // console.log(`array definition by key of function feedbacks`)
+        // console.log(globalDependencyValues)
+
+        let feedbacks = {};
+
+        for (let arrayKey = 0; arrayKey < globalDependencyValues.__array_size; arrayKey++) {
+          feedbacks[arrayKey] = globalDependencyValues.allFeedbacks[arrayKey];
+        }
+
+        return { newValues: { feedbacks } }
+      }
+
+    }
+
 
     return stateVariableDefinitions;
   }

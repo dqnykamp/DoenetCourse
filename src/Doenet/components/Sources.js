@@ -3,6 +3,7 @@ import BaseComponent from './abstract/BaseComponent';
 export default class Sources extends BaseComponent {
   static componentType = "sources";
   static rendererType = "container";
+  static renderChildren = true;
 
 
   static createAttributesObject(args) {
@@ -86,7 +87,6 @@ export default class Sources extends BaseComponent {
         children: {
           dependencyType: "child",
           childLogicName: "atLeastZeroChildren",
-          requireChildLogicInitiallySatisfied: true,
         },
       }),
       definition: function ({ dependencyValues }) {
@@ -101,22 +101,6 @@ export default class Sources extends BaseComponent {
         };
       },
     }
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        children: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroChildren"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-            { childrenToRender: dependencyValues.children.map(x => x.componentName) }
-        };
-      }
-    }
-
 
     return stateVariableDefinitions;
 

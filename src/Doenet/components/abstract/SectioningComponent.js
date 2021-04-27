@@ -3,6 +3,7 @@ import { getVariantsForDescendants } from '../../utils/variants';
 
 export default class SectioningComponent extends BlockComponent {
   static componentType = "_sectioningComponent";
+  static renderChildren = true;
 
   static setUpVariantIfVariantControlChild = true;
 
@@ -127,7 +128,7 @@ export default class SectioningComponent extends BlockComponent {
     }
 
 
-    stateVariableDefinitions.titleDefinedByChildren = {
+    stateVariableDefinitions.titleChildName = {
       forRenderer: true,
       returnDependencies: () => ({
         titleChild: {
@@ -136,10 +137,12 @@ export default class SectioningComponent extends BlockComponent {
         },
       }),
       definition({ dependencyValues }) {
+        let titleChildName = null;
+        if (dependencyValues.titleChild.length === 1) {
+          titleChildName = dependencyValues.titleChild[0].componentName
+        }
         return {
-          newValues: {
-            titleDefinedByChildren: dependencyValues.titleChild.length === 1
-          }
+          newValues: { titleChildName }
         }
       }
     }
@@ -493,30 +496,6 @@ export default class SectioningComponent extends BlockComponent {
             value: desiredStateVariableValues.open
           }]
         }
-      }
-    }
-
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        titleChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneTitle"
-        },
-        activeChildren: {
-          dependencyType: "child",
-          childLogicName: "anything"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-          {
-            childrenToRender:
-              [...dependencyValues.titleChild, ...dependencyValues.activeChildren]
-                .map(x => x.componentName)
-          }
-        };
       }
     }
 

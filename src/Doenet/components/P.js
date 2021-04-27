@@ -2,6 +2,7 @@ import BlockComponent from './abstract/BlockComponent';
 
 export default class P extends BlockComponent {
   static componentType = "p";
+  static renderChildren = true;
 
   static includeBlankStringChildren = true;
 
@@ -23,21 +24,6 @@ export default class P extends BlockComponent {
   static returnStateVariableDefinitions() {
 
     let stateVariableDefinitions = super.returnStateVariableDefinitions();
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        activeChildren: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroInline"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-            { childrenToRender: dependencyValues.activeChildren.map(x => x.componentName) }
-        };
-      }
-    }
 
     stateVariableDefinitions.text = {
       public: true,

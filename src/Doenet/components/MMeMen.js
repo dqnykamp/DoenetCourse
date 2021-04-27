@@ -193,21 +193,6 @@ export class M extends InlineComponent {
     }
 
 
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        mathInputChildren: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroMathInputs"
-        },
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues: {
-            childrenToRender: dependencyValues.mathInputChildren.map(x => x.componentName)
-          }
-        };
-      }
-    }
 
 
     return stateVariableDefinitions;

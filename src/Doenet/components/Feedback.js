@@ -2,6 +2,7 @@ import BlockComponent from './abstract/BlockComponent';
 
 export default class Feedback extends BlockComponent {
   static componentType = "feedback";
+  static renderChildren = true;
 
   static primaryStateVariableForDefinition = "feedbackText";
 
@@ -69,22 +70,6 @@ export default class Feedback extends BlockComponent {
           feedbackText: { variablesToCheck: ["feedbackText"] }
         }
       })
-    }
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        children: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroAnything"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues: {
-            childrenToRender: dependencyValues.children.map(x => x.componentName)
-          }
-        }
-      }
     }
 
 

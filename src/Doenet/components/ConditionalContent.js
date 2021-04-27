@@ -8,6 +8,8 @@ export default class ConditionalContent extends CompositeComponent {
     return ["hide"]
   }
   
+  static stateVariableToEvaluateAfterReplacements = "needsReplacementsUpdatedWhenStale";
+
   static createAttributesObject(args) {
     let attributes = super.createAttributesObject(args);
     delete attributes.hide;
@@ -48,7 +50,7 @@ export default class ConditionalContent extends CompositeComponent {
       definition: function ({ dependencyValues }) {
 
         let hide;
-        if (dependencyValues.conditionAttr !== null) {
+        if (dependencyValues.conditionAttr === null) {
           hide = true;
         } else {
           hide = !dependencyValues.conditionAttr.stateValues.value;
@@ -58,7 +60,7 @@ export default class ConditionalContent extends CompositeComponent {
       }
     };
 
-    stateVariableDefinitions.readyToExpand = {
+    stateVariableDefinitions.readyToExpandWhenResolved = {
       returnDependencies: () => ({
         hide: {
           dependencyType: "stateVariable",
@@ -74,7 +76,7 @@ export default class ConditionalContent extends CompositeComponent {
         },
       }),
       definition() {
-        return { newValues: { readyToExpand: true } }
+        return { newValues: { readyToExpandWhenResolved: true } }
       }
     }
 
@@ -115,9 +117,6 @@ export default class ConditionalContent extends CompositeComponent {
 
   static createSerializedReplacements({ component, workspace }) {
 
-    // evaluate needsReplacementsUpdatedWhenStale to make it fresh
-    component.stateValues.needsReplacementsUpdatedWhenStale;
-
     workspace.previouslyHidden = component.stateValues.hide;
 
     if (component.stateValues.hide) {
@@ -146,9 +145,6 @@ export default class ConditionalContent extends CompositeComponent {
   }
 
   static calculateReplacementChanges({ component, componentChanges, components, workspace }) {
-
-    // evaluate needsReplacementsUpdatedWhenStale to make it fresh
-    component.stateValues.needsReplacementsUpdatedWhenStale;
 
     if (component.stateValues.hide) {
       if (workspace.previouslyHidden) {

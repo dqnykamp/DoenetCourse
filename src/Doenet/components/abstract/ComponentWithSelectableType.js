@@ -70,6 +70,7 @@ export class ComponentWithSelectableType extends BaseComponent {
 
     stateVariableDefinitions.value = {
       public: true,
+      hasVariableComponentType: true,
       returnDependencies: () => ({
         type: {
           dependencyType: "stateVariable",
@@ -79,7 +80,6 @@ export class ComponentWithSelectableType extends BaseComponent {
           dependencyType: "child",
           childLogicName: "atMostOneChild",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true,
         },
       }),
       definition({ dependencyValues }) {
@@ -219,6 +219,7 @@ export class ComponentListWithSelectableType extends ComponentWithSelectableType
       isArray: true,
       entryPrefixes: ["value"],
       stateVariablesDeterminingDependencies: ["childForValue"],
+      hasVariableComponentType: true,
       returnArraySizeDependencies: () => ({
         nValues: {
           dependencyType: "stateVariable",

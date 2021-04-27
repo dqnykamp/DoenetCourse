@@ -40,7 +40,6 @@ export default class Line extends GraphicalComponent {
   }
 
 
-
   static returnSugarInstructions() {
     let sugarInstructions = super.returnSugarInstructions();
 
@@ -121,8 +120,7 @@ export default class Line extends GraphicalComponent {
       },
       definition: function ({ dependencyValues, changes }) {
 
-        // console.log('definition of nDimensions')
-
+        // console.log(`definition of nDimensions of ${componentName}`)
         // console.log(dependencyValues)
         // console.log(changes)
 
@@ -1052,7 +1050,7 @@ export default class Line extends GraphicalComponent {
 
   }
 
-  adapters = ["equation"];
+  static adapters = ["equation"];
 
   moveLine({ point1coords, point2coords, transient }) {
 

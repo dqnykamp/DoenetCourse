@@ -51,7 +51,6 @@ export default class Text extends InlineComponent {
           dependencyType: "child",
           childLogicName: "stringsAndTexts",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true,
         },
       }),
       defaultValue: "",

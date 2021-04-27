@@ -282,7 +282,7 @@ export default class Select extends CompositeComponent {
         // }
 
 
-        if (dependencyValues.numberToSelect < 1 || dependencyValues.nOptions === 0) {
+        if (!(dependencyValues.numberToSelect >= 1) || dependencyValues.nOptions === 0) {
           return {
             makeEssential: ["selectedIndices"],
             newValues: {
@@ -291,11 +291,6 @@ export default class Select extends CompositeComponent {
             makeImmutable: ["selectedIndices"]
           }
         }
-
-        if (Number.isNaN(dependencyValues.numberToSelect)) {
-          return { newValues: { selectedIndices: null } }
-        }
-
 
         // if desiredIndices is specfied, use those
         if (dependencyValues.variants && dependencyValues.variants.desiredVariant !== undefined) {
@@ -461,19 +456,16 @@ export default class Select extends CompositeComponent {
     }
 
 
-    stateVariableDefinitions.readyToExpand = {
+    stateVariableDefinitions.readyToExpandWhenResolved = {
       returnDependencies: () => ({
         selectedIndices: {
           dependencyType: "stateVariable",
           variableName: "selectedIndices"
         }
       }),
-      definition: function ({ dependencyValues }) {
-
-        let readyToExpand = dependencyValues.selectedIndices !== null;
-
+      definition () {
         return {
-          newValues: { readyToExpand }
+          newValues: { readyToExpandWhenResolved: true }
         }
       }
     }

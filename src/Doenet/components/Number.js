@@ -88,13 +88,11 @@ export default class NumberComponent extends InlineComponent {
           dependencyType: "child",
           childLogicName: "exactlyOneNumber",
           variableNames: ["value", "canBeModified"],
-          requireChildLogicInitiallySatisfied: true,
         },
         stringChild: {
           dependencyType: "child",
           childLogicName: "atMostOneString",
           variableNames: ["value"],
-          requireChildLogicInitiallySatisfied: true,
         },
       }),
       defaultValue: NaN,
@@ -275,7 +273,6 @@ export default class NumberComponent extends InlineComponent {
           dependencyType: "child",
           childLogicName: "exactlyOneNumber",
           variableNames: ["canBeModified"],
-          requireChildLogicInitiallySatisfied: true,
         },
         modifyIndirectly: {
           dependencyType: "stateVariable",
@@ -318,6 +315,6 @@ export default class NumberComponent extends InlineComponent {
   // }
 
 
-  adapters = ["math", "text"];
+  static adapters = ["math", "text"];
 
 }

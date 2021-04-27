@@ -3,6 +3,7 @@ import InlineComponent from './abstract/InlineComponent';
 export default class panel extends InlineComponent {
   static componentType = "panel";
   static rendererType = "container";
+  static renderChildren = true;
 
   static createAttributesObject(args) {
     let attributes = super.createAttributesObject(args);
@@ -119,21 +120,6 @@ export default class panel extends InlineComponent {
         return { newValues: { breakpoints } }
       }
 
-    }
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        children: {
-          dependencyType: "child",
-          childLogicName: "anything",
-        },
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-            { childrenToRender: dependencyValues.children.map(x => x.componentName) }
-        };
-      }
     }
 
     return stateVariableDefinitions;

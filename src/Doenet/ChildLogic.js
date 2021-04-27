@@ -2,11 +2,10 @@ import { flattenDeep } from "./utils/array";
 
 export default class ChildLogic {
   constructor({ parentComponentType,
-    allComponentClasses, standardComponentClasses, components }) {
+    componentInfoObjects, components }) {
     this.logicComponents = {};
     this.parentComponentType = parentComponentType;
-    this.allComponentClasses = allComponentClasses;
-    this.standardComponentClasses = standardComponentClasses;
+    this.componentInfoObjects = componentInfoObjects;
     this.components = components;
   }
 
@@ -23,7 +22,7 @@ export default class ChildLogic {
     delete this.baseLogic;
   }
 
-  newLeaf({ name, componentType, getComponentType, comparison, number, requireConsecutive,
+  newLeaf({ name, componentType, comparison, number, requireConsecutive,
     condition,
     allowSpillover, excludeComponentTypes, excludeCompositeReplacements,
     setAsBase = false, ...invalidArguments
@@ -48,14 +47,13 @@ export default class ChildLogic {
 
     let leaf = new ChildLogicLeaf({
       name,
-      componentType, getComponentType, excludeComponentTypes,
+      componentType, excludeComponentTypes,
       excludeCompositeReplacements,
       comparison, number,
       requireConsecutive, condition,
       allowSpillover,
       parentComponentType: this.parentComponentType,
-      allComponentClasses: this.allComponentClasses,
-      standardComponentClasses: this.standardComponentClasses,
+      componentInfoObjects: this.componentInfoObjects,
       components: this.components,
     });
 
@@ -97,8 +95,7 @@ export default class ChildLogic {
       sequenceMatters, requireConsecutive,
       allowSpillover,
       parentComponentType: this.parentComponentType,
-      allComponentClasses: this.allComponentClasses,
-      standardComponentClasses: this.standardComponentClasses,
+      componentInfoObjects: this.componentInfoObjects,
       components: this.components,
     });
 
@@ -129,8 +126,7 @@ export default class ChildLogic {
 
     try {
       this.logicResult = this.baseLogic.applyLogic({
-        activeChildren,
-        maxAdapterNumber: maxAdapterNumber,
+        activeChildren, maxAdapterNumber,
       });
     } catch (e) {
       console.warn(`error encountered when evaluating child logic`)
@@ -140,7 +136,7 @@ export default class ChildLogic {
     }
 
     // number of matches must match number of activeChildren
-    if (this.logicResult.success === true) {
+    if (this.logicResult.success) {
       let flattenedMatchIndices = flattenDeep(this.logicResult.childMatches);
       if (flattenedMatchIndices.length !== activeChildren.length) {
         this.logicResult = { success: false, message: (activeChildren.length - flattenedMatchIndices.length) + " extra children." };
@@ -150,13 +146,13 @@ export default class ChildLogic {
     return this.logicResult;
   }
 
-  checkIfChildInLogic(child, allowInheritance = false) {
+  checkIfChildInLogic(child) {
 
     if (this.baseLogic === undefined) {
       return false;
     }
 
-    return this.baseLogic.checkIfChildInLogic(child, allowInheritance);
+    return this.baseLogic.checkIfChildInLogic(child);
 
   }
 
@@ -199,11 +195,11 @@ export default class ChildLogic {
 }
 
 class ChildLogicBase {
-  constructor({ name, parentComponentType, allComponentClasses, standardComponentClasses, components }) {
+  constructor({ name, parentComponentType, componentInfoObjects, components }) {
     this.name = name;
     this.parentComponentType = parentComponentType;
-    this.allComponentClasses = allComponentClasses;
-    this.standardComponentClasses = standardComponentClasses;
+
+    this.componentInfoObjects = componentInfoObjects;
     this.components = components;
   }
 
@@ -222,30 +218,23 @@ class ChildLogicBase {
 }
 
 class ChildLogicLeaf extends ChildLogicBase {
-  constructor({ name, componentType, getComponentType, excludeComponentTypes,
+  constructor({ name, componentType, excludeComponentTypes,
     excludeCompositeReplacements = false,
     comparison = "exactly", number = 1,
     requireConsecutive = false, condition,
     allowSpillover = true,
     parentComponentType,
-    allComponentClasses,
-    standardComponentClasses,
+    componentInfoObjects,
     components,
   }) {
 
     super({
-      name: name,
-      parentComponentType: parentComponentType,
-      allComponentClasses: allComponentClasses,
-      standardComponentClasses: standardComponentClasses,
-      components: components
+      name, parentComponentType, componentInfoObjects, components
     })
 
-    if (getComponentType !== undefined) {
-      Object.defineProperty(this, 'componentType', { get: () => getComponentType() });
-    } else {
-      this.componentType = componentType;
-    }
+
+    this.componentType = componentType;
+
     this.excludeComponentTypes = excludeComponentTypes;
     this.excludeCompositeReplacements = excludeCompositeReplacements;
 
@@ -291,71 +280,53 @@ class ChildLogicLeaf extends ChildLogicBase {
   }) {
 
     // Note: it is OK if componentType is not a valid component type
-    // In this case, componentClass will be undefined,
-    // and we will return no matches with this leaf
-    this.componentClass = this.allComponentClasses[this.componentType];
+    // In this case, we will return no matches with this leaf
 
     let childMatches = [];
     let adapterResults = {};
 
-    if (this.componentClass !== undefined) {
+    if (this.componentType in this.componentInfoObjects.allComponentClasses) {
       for (let childNum = 0; childNum < activeChildren.length; childNum++) {
         if (previouslyMatched.includes(childNum)) {
           continue;
         }
         let child = activeChildren[childNum];
 
-        let matched = false;
-
-        // and inherited classes are matched
-        if (child instanceof this.componentClass) {
-          matched = true;
-          if (this.condition && !this.condition(child)) {
-            matched = false;
-          } else if (this.excludeComponentTypes) {
-            for (let ct of this.excludeComponentTypes) {
-              if (child instanceof this.allComponentClasses[ct]) {
-                matched = false;
-                break;
-              }
-            }
-          }
-          if (matched && this.excludeCompositeReplacements && child.replacementOf) {
-            matched = false;
-          }
-        }
+        let matched = this.checkIfChildInLogic(child);
 
         if (matched) {
           childMatches.push(childNum)
-        }
-        else {
+        } else {
           // if didn't match child, attempt to match with child's adapters
-
-          let maxAdapt = Math.min(maxAdapterNumber, child.nAdapters);
+          let nAdapters;
+          if (child.componentName) {
+            nAdapters = child.constructor.nAdapters;
+          }else {
+            nAdapters = this.componentInfoObjects.allComponentClasses[child.componentType].nAdapters;
+          }
+          let maxAdapt = Math.min(maxAdapterNumber, nAdapters);
           for (let n = 0; n < maxAdapt; n++) {
-            let adapter = child.getAdapter(n);
-            let adapterClass = this.allComponentClasses[adapter.componentType];
-            if (adapterClass !== undefined &&
-              (adapterClass === this.componentClass ||
-                this.componentClass.isPrototypeOf(adapterClass))
-            ) {
-              matched = true;
-              if (this.condition && !this.condition(child)) {
-                matched = false;
-              } else if (this.excludeComponentTypes) {
-                for (let ct of this.excludeComponentTypes) {
-                  let ctClass = this.allComponentClasses[ct];
-                  if (adapterClass === ctClass || ctClass.isPrototypeOf(adapterClass)) {
-                    matched = false;
-                    break;
-                  }
-                }
+            let adapter;
+
+            if (child.componentName) {
+              adapter = child.getAdapter(n);
+            } else {
+              // child isn't a component, just an object with a componentType
+              // Create an object that is just the componentType of the adapter
+
+              adapter = {
+                componentType:
+                  this.componentInfoObjects.allComponentClasses[child.componentType]
+                    .getAdapterComponentType(n, this.componentInfoObjects.publicStateVariableInfo)
               }
-              if (matched) {
-                childMatches.push(childNum);
-                adapterResults[childNum] = adapter;
-                break;
-              }
+            }
+
+            matched = this.checkIfChildInLogic(adapter);
+
+            if (matched) {
+              childMatches.push(childNum);
+              adapterResults[childNum] = adapter;
+              break;
             }
           }
         }
@@ -398,17 +369,43 @@ class ChildLogicLeaf extends ChildLogicBase {
 
   }
 
-  checkIfChildInLogic(child, allowInheritance) {
+  checkIfChildInLogic(child) {
+    let matched = false;
 
-    this.componentClass = this.allComponentClasses[this.componentType];
-
-    if (child.constructor === this.componentClass ||
-      (allowInheritance && child instanceof this.componentClass)
-    ) {
-      return true;
-    } else {
-      return false;
+    if (this.componentInfoObjects.isInheritedComponentType({
+      inheritedComponentType: child.componentType,
+      baseComponentType: this.componentType
+    })) {
+      matched = true;
+      if (this.componentType === "_base" &&
+        this.componentInfoObjects.isInheritedComponentType({
+          inheritedComponentType: child.componentType,
+          baseComponentType: "_composite"
+        })) {
+        // don't match composites to the base component
+        // so that they will expand
+        matched = false;
+      }
+      if (this.condition && !this.condition(child)) {
+        matched = false;
+      } else if (this.excludeComponentTypes) {
+        for (let ct of this.excludeComponentTypes) {
+          if (this.componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: child.componentType,
+            baseComponentType: ct
+          })) {
+            matched = false;
+            break;
+          }
+        }
+      }
+      if (matched && this.excludeCompositeReplacements && child.replacementOf) {
+        matched = false;
+      }
     }
+
+    return matched;
+
   }
 
 }
@@ -418,17 +415,12 @@ class ChildLogicOperator extends ChildLogicBase {
     sequenceMatters = false, requireConsecutive = false,
     allowSpillover = true,
     parentComponentType,
-    allComponentClasses,
-    standardComponentClasses,
+    componentInfoObjects,
     components,
   }) {
 
     super({
-      name: name,
-      parentComponentType: parentComponentType,
-      allComponentClasses: allComponentClasses,
-      standardComponentClasses: standardComponentClasses,
-      components: components,
+      name, parentComponentType, componentInfoObjects, components,
     })
 
     this.operator = operator;
@@ -597,8 +589,8 @@ class ChildLogicOperator extends ChildLogicBase {
 
   }
 
-  checkIfChildInLogic(child, allowInheritance) {
-    return this.propositions.some(x => x.checkIfChildInLogic(child, allowInheritance));
+  checkIfChildInLogic(child) {
+    return this.propositions.some(x => x.checkIfChildInLogic(child));
   }
 
 }

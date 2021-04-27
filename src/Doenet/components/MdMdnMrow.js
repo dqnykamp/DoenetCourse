@@ -184,24 +184,6 @@ export class Md extends InlineComponent {
       definition: () => ({ newValues: { numbered: false } })
     }
 
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        mrowChildren: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroMrows",
-          variableNames: ["childrenToRender"],
-        },
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues: {
-            childrenToRender: dependencyValues.mrowChildren.reduce(
-              (a, c) => [...a, ...c.stateValues.childrenToRender], [])
-          }
-        };
-      }
-    }
-
     return stateVariableDefinitions;
   }
 

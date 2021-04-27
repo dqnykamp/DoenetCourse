@@ -12,6 +12,8 @@ export default class SelectByCondition extends CompositeComponent {
 
   static assignNamesToReplacements = true;
 
+  static stateVariableToEvaluateAfterReplacements = "needsReplacementsUpdatedWhenStale";
+
   // used when referencing this component without prop
   // static useChildrenForReference = false;
   // static get stateVariablesShadowedForReference() { return ["selectedIndices"] };
@@ -135,7 +137,7 @@ export default class SelectByCondition extends CompositeComponent {
       }
     }
 
-    stateVariableDefinitions.readyToExpand = {
+    stateVariableDefinitions.readyToExpandWhenResolved = {
       returnDependencies: () => ({
         selectedIndices: {
           dependencyType: "stateVariable",
@@ -144,7 +146,7 @@ export default class SelectByCondition extends CompositeComponent {
       }),
       definition() {
         return {
-          newValues: { readyToExpand: true }
+          newValues: { readyToExpandWhenResolved: true }
         }
       }
     }
@@ -170,9 +172,6 @@ export default class SelectByCondition extends CompositeComponent {
   static createSerializedReplacements({ component, components, workspace, componentInfoObjects }) {
 
     let replacements = this.getReplacements(component, components, componentInfoObjects);
-
-    // evaluate needsReplacementsUpdatedWhenStale to make it fresh
-    component.stateValues.needsReplacementsUpdatedWhenStale;
 
     workspace.previousSelectedIndices = [...component.stateValues.selectedIndices];
 
@@ -236,9 +235,6 @@ export default class SelectByCondition extends CompositeComponent {
     // console.log(`calculate replacement changes for selectByCondition`)
     // console.log(workspace.previousSelectedIndices);
     // console.log(component.stateValues.selectedIndices);
-
-    // evaluate needsReplacementsUpdatedWhenStale to make it fresh
-    component.stateValues.needsReplacementsUpdatedWhenStale;
 
     if (workspace.previousSelectedIndices.length === component.stateValues.selectedIndices.length
       && workspace.previousSelectedIndices.every((v, i) => v === component.stateValues.selectedIndices[i])

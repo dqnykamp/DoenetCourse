@@ -3,6 +3,7 @@ import InlineComponent from './abstract/InlineComponent';
 export default class Choice extends InlineComponent {
   static componentType = "choice";
   static rendererType = "container";
+  static renderChildren = true;
 
   static createAttributesObject(args) {
     let attributes = super.createAttributesObject(args);
@@ -131,9 +132,9 @@ export default class Choice extends InlineComponent {
     stateVariableDefinitions.feedbacks = {
       public: true,
       componentType: "feedbacktext",
-      isArray: true,
-      entireArrayAtOnce: true,
-      entryPrefixes: ['feedback'],
+      // isArray: true,
+      // entireArrayAtOnce: true,
+      // entryPrefixes: ['feedback'],
       returnDependencies: () => ({
         feedbackText: {
           dependencyType: "stateVariable",
@@ -152,7 +153,7 @@ export default class Choice extends InlineComponent {
           variableName: "submitted"
         }
       }),
-      entireArrayDefinition({ dependencyValues }) {
+      definition({ dependencyValues }) {
 
         if (!dependencyValues.submitted) {
           return { newValues: { feedbacks: [] } }
@@ -179,27 +180,12 @@ export default class Choice extends InlineComponent {
       }
     };
 
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        activeChildren: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroChildren"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-            { childrenToRender: dependencyValues.activeChildren.map(x => x.componentName) }
-        };
-      }
-    }
-
     return stateVariableDefinitions;
   }
 
 
   static includeBlankStringChildren = true;
 
-  adapters = ["submitted"];
+  static adapters = ["submitted"];
 
 }

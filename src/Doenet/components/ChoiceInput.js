@@ -37,6 +37,8 @@ export default class Choiceinput extends Input {
 
   static componentType = "choiceInput";
 
+  static renderChildren = true;
+
   static variableForPlainMacro = "values";
 
   static createsVariants = true;
@@ -127,6 +129,7 @@ export default class Choiceinput extends Input {
     }
 
     stateVariableDefinitions.choiceOrder = {
+      forRenderer: true,
       returnDependencies: ({ sharedParameters }) => ({
         choiceChildren: {
           dependencyType: "child",
@@ -363,8 +366,6 @@ export default class Choiceinput extends Input {
     }
 
 
-    // could just make selectedIndices and array with entireArrayAtOnce set
-    // if get that working correctly with essential values
     stateVariableDefinitions.allSelectedIndices = {
       defaultValue: [],
       returnDependencies() {
@@ -696,12 +697,7 @@ export default class Choiceinput extends Input {
       targetVariableName: "submittedIndices"
     }
 
-    stateVariableDefinitions.feedbacks = {
-      public: true,
-      componentType: "feedbacktext",
-      isArray: true,
-      entryPrefixes: ["feedback"],
-      entireArrayAtOnce: true,
+    stateVariableDefinitions.allFeedbacks = {
       returnDependencies: () => ({
         choiceOrder: {
           dependencyType: "stateVariable",
@@ -713,7 +709,7 @@ export default class Choiceinput extends Input {
           variableNames: ["feedbacks"]
         },
       }),
-      entireArrayDefinition({ dependencyValues }) {
+      definition({ dependencyValues }) {
 
         let choiceChildrenOrdered = dependencyValues.choiceOrder.map(i => dependencyValues.choiceChildren[i]);
 
@@ -724,36 +720,93 @@ export default class Choiceinput extends Input {
         }
         return {
           newValues: {
-            feedbacks
+            allFeedbacks: feedbacks
           }
         }
       }
     }
 
-
-    stateVariableDefinitions.childrenToRender = {
+    stateVariableDefinitions.numberFeedbacks = {
+      public: true,
+      componentType: "number",
       returnDependencies: () => ({
-        choiceChildrenOrdered: {
+        allFeedbacks: {
           dependencyType: "stateVariable",
-          variableName: "choiceChildrenOrdered"
-        },
-        inline: {
-          dependencyType: "stateVariable",
-          variableName: "inline"
+          variableName: "allFeedbacks"
         }
       }),
-      definition: function ({ dependencyValues }) {
-        if (dependencyValues.inline) {
-          return { newValues: { childrenToRender: [] } }
-        } else {
-          return {
-            newValues: {
-              childrenToRender: dependencyValues.choiceChildrenOrdered.map(x => x.componentName)
-            }
-          }
+      definition({ dependencyValues }) {
+        return {
+          newValues: { numberFeedbacks: dependencyValues.allFeedbacks.length },
+          checkForActualChange: { numberFeedbacks: true }
         }
       }
     }
+
+    stateVariableDefinitions.feedbacks = {
+      public: true,
+      componentType: "feedback",
+      isArray: true,
+      entryPrefixes: ["feedback"],
+      returnArraySizeDependencies: () => ({
+        numberFeedbacks: {
+          dependencyType: "stateVariable",
+          variableName: "numberFeedbacks",
+        },
+      }),
+      returnArraySize({ dependencyValues }) {
+        return [dependencyValues.numberFeedbacks];
+      },
+      returnArrayDependenciesByKey() {
+        let globalDependencies = {
+          allFeedbacks: {
+            dependencyType: "stateVariable",
+            variableName: "allFeedbacks"
+          }
+        }
+
+        return { globalDependencies }
+
+      },
+      arrayDefinitionByKey({ globalDependencyValues }) {
+        // console.log(`array definition by key of function feedbacks`)
+        // console.log(globalDependencyValues)
+
+        let feedbacks = {};
+
+        for (let arrayKey = 0; arrayKey < globalDependencyValues.__array_size; arrayKey++) {
+          feedbacks[arrayKey] = globalDependencyValues.allFeedbacks[arrayKey];
+        }
+
+        return { newValues: { feedbacks } }
+      }
+
+    }
+
+
+    // stateVariableDefinitions.childrenToRender = {
+    //   returnDependencies: () => ({
+    //     choiceChildrenOrdered: {
+    //       dependencyType: "stateVariable",
+    //       variableName: "choiceChildrenOrdered"
+    //     },
+    //     inline: {
+    //       dependencyType: "stateVariable",
+    //       variableName: "inline"
+    //     }
+    //   }),
+    //   definition: function ({ dependencyValues }) {
+    //     if (dependencyValues.inline) {
+    //       return { newValues: { childrenToRender: [] } }
+    //     } else {
+    //       return {
+    //         newValues: {
+    //           childrenToRender: dependencyValues.choiceChildrenOrdered.map(x => x.componentName)
+    //         }
+    //       }
+    //     }
+    //   }
+    // }
 
 
     return stateVariableDefinitions;

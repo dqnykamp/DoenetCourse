@@ -5,6 +5,7 @@ import { returnDefaultStyleDefinitions } from '../utils/style';
 export default class Document extends BaseComponent {
   static componentType = "document";
   static rendererType = "section";
+  static renderChildren = true;
 
   static createsVariants = true;
 
@@ -95,7 +96,7 @@ export default class Document extends BaseComponent {
     let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
 
-    stateVariableDefinitions.titleDefinedByChildren = {
+    stateVariableDefinitions.titleChildName = {
       forRenderer: true,
       returnDependencies: () => ({
         titleChild: {
@@ -104,13 +105,16 @@ export default class Document extends BaseComponent {
         },
       }),
       definition({ dependencyValues }) {
+        let titleChildName = null;
+        if (dependencyValues.titleChild.length === 1) {
+          titleChildName = dependencyValues.titleChild[0].componentName
+        }
         return {
-          newValues: {
-            titleDefinedByChildren: dependencyValues.titleChild.length === 1
-          }
+          newValues: { titleChildName }
         }
       }
     }
+
 
     stateVariableDefinitions.title = {
       public: true,
@@ -382,30 +386,6 @@ export default class Document extends BaseComponent {
         }
         return { newValues: { selectedVariantInfo } }
 
-      }
-    }
-
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        titleChild: {
-          dependencyType: "child",
-          childLogicName: "atMostOneTitle"
-        },
-        activeChildren: {
-          dependencyType: "child",
-          childLogicName: "anything"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-          {
-            childrenToRender:
-              [...dependencyValues.titleChild, ...dependencyValues.activeChildren]
-                .map(x => x.componentName)
-          }
-        };
       }
     }
 

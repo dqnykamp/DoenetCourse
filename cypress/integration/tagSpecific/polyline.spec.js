@@ -1033,7 +1033,7 @@ describe('Polyline Tag Tests', function () {
         doenetML: `
   <text>a</text>
   <graph>
-  <polyline vertices="(1,2) (3,4)(-5,6) $(_polyline1{prop='vertex1'})" />
+  <polyline vertices="(1,2) (3,4)(-5,6) $(_polyline1{prop='vertex1' componentType='point'})" />
   </graph>
   `}, "*");
     });
@@ -1105,7 +1105,7 @@ describe('Polyline Tag Tests', function () {
         doenetML: `
   <text>a</text>
   <graph>
-  <polyline vertices="$(_polyline1{prop='vertex4' includeUndefinedObjects}) (3,4) (-5,6) (1,2)" />
+  <polyline vertices="$(_polyline1{prop='vertex4' componentType='point'}) (3,4) (-5,6) (1,2)" />
   </graph>
   
   `}, "*");
@@ -1178,7 +1178,7 @@ describe('Polyline Tag Tests', function () {
         doenetML: `
   <text>a</text>
   <graph>
-  <polyline vertices="$(_polyline1{prop='vertex4'}) (3,4)(-5,6) (1,2) ($(_polyline1{prop='vertexX1_1'})+1,2)" />
+  <polyline vertices="$(_polyline1{prop='vertex4' componentType='point'}) (3,4)(-5,6) (1,2) ($(_polyline1{prop='vertexX1_1'})+1,2)" />
   </graph>
   
   `}, "*");
@@ -1273,7 +1273,7 @@ describe('Polyline Tag Tests', function () {
         doenetML: `
   <text>a</text>
   <graph>
-  <polyline name="P" vertices="$(P{prop='vertex4'}) (1,2) (3,4) $(P{prop='vertex7'}) (5,7) (-5,7) $(P{prop='vertex10' includeUndefinedObjects}) (3,1) (5,0) (-5,-1)" />
+  <polyline name="P" vertices="$(P{prop='vertex4' componentType='point'}) (1,2) (3,4) $(P{prop='vertex7' componentType='point'}) (5,7) (-5,7) $(P{prop='vertex10' componentType='point'}) (3,1) (5,0) (-5,-1)" />
   </graph>
   
   `}, "*");

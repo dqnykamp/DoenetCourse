@@ -2,6 +2,7 @@ import InlineComponent from './abstract/InlineComponent';
 
 export default class Ref extends InlineComponent {
   static componentType = "ref";
+  static renderChildren = true;
 
   static acceptTname = true;
 
@@ -205,22 +206,6 @@ export default class Ref extends InlineComponent {
           linkText = "???";
         }
         return { newValues: { linkText } }
-      }
-    }
-
-
-    stateVariableDefinitions.childrenToRender = {
-      returnDependencies: () => ({
-        inlineChildren: {
-          dependencyType: "child",
-          childLogicName: "atLeastZeroAnything"
-        }
-      }),
-      definition: function ({ dependencyValues }) {
-        return {
-          newValues:
-            { childrenToRender: dependencyValues.inlineChildren.map(x => x.componentName) }
-        };
       }
     }
 
